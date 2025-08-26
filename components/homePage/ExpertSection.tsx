@@ -20,6 +20,9 @@ export default function ExpertSection() {
           width={400}
           height={400}
           className="absolute -right-25 bottom-0 md:-right-25 rotate-25 md:-bottom-15 drop-shadow-lg z-5 w-48 h-48 sm:w-72 sm:h-72 lg:w-96 lg:h-96"
+          sizes="100vw (max-width: 600px) 48vw, (max-width: 1024px) 28vw, 23vw"
+          placeholder="blur"
+          quality={75}
         />
         <div className="text-center mb-12 z-10">
           <h2 className="text-3xl sm:text-4xl font-bold text-[var(--brown-color)] mb-4">

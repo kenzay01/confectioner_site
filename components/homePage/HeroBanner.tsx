@@ -29,6 +29,9 @@ export default function HeroBanner() {
             width={400}
             height={400}
             className="absolute -left-25 sm:-left-40 lg:-left-55 z-15 rotate-40 bottom-15 md:bottom-20 lg:bottom-10 drop-shadow-2xl w-48 h-48 sm:w-68 sm:h-68 lg:w-92 lg:h-92"
+            sizes="100vw (max-width: 600px) 48vw, (max-width: 1024px) 28vw, 23vw"
+            placeholder="blur"
+            quality={75}
           />
           <Image
             src={sweet2}
@@ -36,6 +39,9 @@ export default function HeroBanner() {
             width={400}
             height={400}
             className="absolute -right-20 sm:-right-40 lg:-right-55 z-15 rotate-25 top-30 md:top-20 lg:top-10 drop-shadow-2xl w-48 h-48 sm:w-72 sm:h-72 lg:w-96 lg:h-96"
+            sizes="100vw (max-width: 600px) 48vw, (max-width: 1024px) 28vw, 23vw"
+            placeholder="blur"
+            quality={75}
           />
           <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-[var(--brown-color)] mb-6 leading-tight">
             {dict?.home?.banner?.title || "Bake with the Best!"}

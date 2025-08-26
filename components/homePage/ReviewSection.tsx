@@ -27,6 +27,9 @@ export default function ReviewSection() {
           width={400}
           height={400}
           className="hidden lg:flex absolute z-15 xl:left-90 lg:left-110 lg:top-50 xl:top-40 -rotate-12 drop-shadow-2xl w-48 h-48 sm:w-68 sm:h-68 xl:w-92 xl:h-92"
+          sizes="100vw (max-width: 600px) 48vw, (max-width: 1024px) 28vw, 23vw"
+          placeholder="blur"
+          quality={75}
         />
 
         <div className="grid sm:grid-cols-2 gap-8">

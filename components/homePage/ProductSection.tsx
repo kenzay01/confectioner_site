@@ -42,6 +42,9 @@ export default function ProductSection() {
             width={400}
             height={400}
             className="absolute -left-46 z-5 top-20 drop-shadow-2xl w-92 h-auto"
+            sizes="100vw (max-width: 600px) 48vw, (max-width: 1024px) 28vw, 23vw"
+            placeholder="blur"
+            quality={75}
           />
           <Image
             src={sweet6}
@@ -49,6 +52,9 @@ export default function ProductSection() {
             width={400}
             height={400}
             className="absolute -right-46 z-5 top-0 drop-shadow-2xl w-92 h-auto"
+            sizes="100vw (max-width: 600px) 48vw, (max-width: 1024px) 28vw, 23vw"
+            placeholder="blur"
+            quality={75}
           />
           <div className="relative z-20 bg-white rounded-3xl p-8 sm:p-12 shadow-2xl border border-[var(--brown-color)]/10 hover:shadow-3xl transition-shadow duration-300">
             <div className="grid lg:grid-cols-2 gap-8 items-center">
