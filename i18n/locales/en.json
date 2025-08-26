@@ -1,0 +1,43 @@
+{
+  "header": {
+    "home": "Home",
+    "masterClass": "Master Class",
+    "aboutMe": "About Me",
+    "onlineProducts": "Online Products",
+    "contactWithChef": "Contact the Chef",
+    "contacts": "Contacts"
+  },
+  "home": {
+    "banner": {
+      "title": "Master Class in Puff and Semi-Puff Pastry",
+      "date": "September 22–23",
+      "location": "Tychy",
+      "forAllLevels": "For all preparation levels",
+      "price": "2400 zł",
+      "bookButton": "Book Your Spot"
+    },
+    "expert": {
+      "title": "Who's Leading the Master Class?",
+      "subtitle": "Let's get acquainted!",
+      "description": "I'm Yaroslav Semkiv, a baker and confectioner who loves dough in all its forms. In the master class, we'll prepare both classics and modern trends in sweet baking: croissants, danish pastries, flans, palmiers, and much more.",
+      "limitedSeats": "Limited number of seats, so hurry to book your spot. See you at the master class."
+    },
+    "reviews": {
+      "title": "What do they say about him?",
+      "testimonials": [
+        "Excellent training — lots of specifics, no unnecessary information. I'm already planning to introduce new recipes to my bakery.",
+        "The best baking training I've participated in — full of practice and inspiration.",
+        "Great atmosphere and excellent instructor.",
+        "The bread I made after the workshop disappeared faster than it could cool down."
+      ]
+    },
+    "products": {
+      "title": "What else is interesting?",
+      "book": {
+        "title": "Yaroslav Semkiv's Book — «Fat Thursday»",
+        "description": "Tender dough and 6 unique flavors for donuts. Make your homemade donuts as delicious as those from a bakery!",
+        "buyButton": "Buy Now!"
+      }
+    }
+  }
+}

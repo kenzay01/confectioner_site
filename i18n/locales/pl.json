@@ -1,0 +1,43 @@
+{
+  "header": {
+    "home": "Główna",
+    "masterClass": "Warsztaty",
+    "aboutMe": "O mnie",
+    "onlineProducts": "Produkty online",
+    "contactWithChef": "Skontaktuj się z szefem kuchni",
+    "contacts": "Kontakty"
+  },
+  "home": {
+    "banner": {
+      "title": "Warsztaty z ciasta francuskiego i półfrancuskiego",
+      "date": "22–23 września",
+      "location": "Tychy",
+      "forAllLevels": "Dla wszystkich poziomów przygotowania",
+      "price": "2400 zł",
+      "bookButton": "Zajmij miejsce"
+    },
+    "expert": {
+      "title": "Kto prowadzi warsztaty?",
+      "subtitle": "Poznajmy się!",
+      "description": "Jestem Jarosław Semkiw, piekarz i cukiernik, który uwielbia ciasto we wszystkich jego formach. Na warsztatach przygotujemy zarówno klasykę, jak i nowoczesne trendy słodkiej wypieki: rogaliki, danki, flany, palmier i wiele innych.",
+      "limitedSeats": "Liczba miejsc ograniczona, więc zdążcie zarezerwować miejsce. Do zobaczenia na warsztatach."
+    },
+    "reviews": {
+      "title": "A co o nim mówią?",
+      "testimonials": [
+        "Świetne szkolenie — dużo konkretów, żadnej zbędnej informacji. Już planuję wprowadzić nowe receptury do swojej piekarni.",
+        "Najlepsze szkolenie piekarnicze w którym brałem udział — pełne praktyki i inspiracji.",
+        "Mega atmosfera i świetny prowadzący.",
+        "Chleb który zrobiłem po warsztatach zniknął szybciej niż zdążył wystygnąć."
+      ]
+    },
+    "products": {
+      "title": "A co jeszcze ciekawego?",
+      "book": {
+        "title": "Książka Jarosława Semkiwa — «Tłusty czwartek»",
+        "description": "Delikatne ciasto i 6 unikalnych smaków pączków. Spraw, żeby Twoje domowe pączki były tak samo smaczne jak w piekarni!",
+        "buyButton": "Kup teraz!"
+      }
+    }
+  }
+}
