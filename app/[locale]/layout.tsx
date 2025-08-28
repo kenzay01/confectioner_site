@@ -3,6 +3,7 @@ import { locales } from "@/i18n/config";
 import { Metadata } from "next";
 import "../globals.css";
 import { Montserrat } from "next/font/google";
+import { ItemsProvider } from "@/context/itemsContext";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -27,9 +28,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pl" className={`${montserrat.variable} font-sans`}>
-      <Header />
       <body>
-        <main>{children}</main>
+        <Header />
+        <ItemsProvider>
+          <main>{children}</main>
+        </ItemsProvider>
       </body>
     </html>
   );

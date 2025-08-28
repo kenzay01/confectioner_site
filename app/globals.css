@@ -12,8 +12,33 @@ html {
   --brown-color: #502d1c;
   --main-color: #f0eade;
   --accent-color: #423c36;
+  --brown-hover: #6b3e29; /* Derived lighter shade for hover */
+  --brown-light: #f9e7e2; /* Light background for error message */
+  --brown-border: #7b4b3a; /* Slightly lighter for borders */
 }
 
 body {
   font-family: var(--font-montserrat);
+}
+
+/* Custom Tailwind utilities for the new colors */
+@layer utilities {
+  .bg-brown {
+    background-color: var(--brown-color);
+  }
+  .bg-brown-hover {
+    background-color: var(--brown-hover);
+  }
+  .bg-brown-light {
+    background-color: var(--brown-light);
+  }
+  .border-brown {
+    border-color: var(--brown-border);
+  }
+  .text-brown {
+    color: var(--brown-color);
+  }
+  .ring-brown {
+    --tw-ring-color: var(--brown-color);
+  }
 }

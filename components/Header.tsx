@@ -4,7 +4,7 @@ import { Menu, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
+import { usePathname } from "next/navigation";
 import LogoWithoutBg from "@/public/logo-removebg-preview.png";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import { useDictionary } from "@/hooks/getDictionary";
@@ -13,10 +13,16 @@ import LanguageSwitcher from "./LanguageSwitcher";
 
 const Header = () => {
   const router = useRouter();
+  const pathname = usePathname();
   const currentLocale = useCurrentLanguage();
   const { dict } = useDictionary(currentLocale as Locale);
-
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // Normalize pathname for comparison (remove trailing slashes and handle locale)
+  const normalizePath = (path: string) => {
+    // Remove trailing slash and ensure consistent format
+    return path.replace(/\/$/, "").replace(/^\/$/, `/${currentLocale}`);
+  };
 
   const navLinks = [
     { link: "/", label: dict?.header.home || "Główna" },
@@ -36,7 +42,7 @@ const Header = () => {
   return (
     <header className="md:relative fixed top-0 left-0 right-0 z-50 bg-[var(--main-color)] shadow-lg md:shadow-none">
       <div className="max-w-7xl mx-auto overflow-hidden">
-        <div className="flex justify-between items-center h-14 sm:h-24 border-b-2 mx-3 sm:mx-6 lg:mx-8 border-black ">
+        <div className="flex justify-between items-center h-14 sm:h-24 border-b-2 mx-3 sm:mx-6 lg:mx-8 border-black">
           {/* Left side - Logo */}
           <div
             onClick={() => router.push(`/${currentLocale}`)}
@@ -48,7 +54,6 @@ const Header = () => {
                 alt="Logo"
                 width={165}
                 height={165}
-                //   className="w-34"
                 className="flex-shrink-0 mt-2"
               />
             </div>
@@ -58,7 +63,6 @@ const Header = () => {
                 alt="Logo"
                 width={100}
                 height={100}
-                //   className="w-34"
                 className="flex-shrink-0"
               />
             </div>
@@ -67,16 +71,27 @@ const Header = () => {
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-4">
             <div className="flex items-center justify-center space-x-4">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.link}
-                  href={`/${currentLocale}${link.link}`}
-                  className="flex items-center text-black transition-colors px-3 py-2 text-sm sm:text-base font-medium group relative cursor-pointer"
-                >
-                  <label className="cursor-pointer">{link.label}</label>
-                  <div className="absolute bottom-1 left-0 w-full h-0.5 opacity-0 group-hover:opacity-100 bg-black translate-x-[15%] group-hover:translate-x-0 transition-translate duration-100"></div>
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                const linkPath = `/${currentLocale}${link.link}`;
+                const isActive =
+                  normalizePath(pathname) === normalizePath(linkPath);
+                return (
+                  <Link
+                    key={link.link}
+                    href={linkPath}
+                    className="flex items-center text-black transition-colors px-3 py-2 text-sm sm:text-base font-medium group relative cursor-pointer"
+                  >
+                    <label className="cursor-pointer">{link.label}</label>
+                    <div
+                      className={`absolute bottom-1 left-0 w-full h-0.5 bg-black ${
+                        isActive
+                          ? "opacity-100 translate-x-0"
+                          : "opacity-0 translate-x-[15%]"
+                      } group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-100`}
+                    ></div>
+                  </Link>
+                );
+              })}
             </div>
           </nav>
           <div className="hidden lg:flex">
@@ -100,16 +115,23 @@ const Header = () => {
         {isMenuOpen && (
           <div className="lg:hidden py-3 px-3 border-b-2 border-black bg-[var(--main-color)]">
             <nav className="flex flex-col space-y-1 px-3 sm:px-4">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.link}
-                  href={`/${currentLocale}${link.link}`}
-                  onClick={() => setIsMenuOpen(false)}
-                  className="text-left text-[var(--main-color)] bg-[var(--brown-color)] transition-all duration-200 py-2 px-4 rounded-lg text-sm sm:text-base"
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                const linkPath = `/${currentLocale}${link.link}`;
+                const isActive =
+                  normalizePath(pathname) === normalizePath(linkPath);
+                return (
+                  <Link
+                    key={link.link}
+                    href={linkPath}
+                    onClick={() => setIsMenuOpen(false)}
+                    className={`text-left text-[var(--main-color)] bg-[var(--brown-color)] transition-all duration-200 py-2 px-4 rounded-lg text-sm sm:text-base ${
+                      isActive ? "bg-[var(--accent-color)]" : ""
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
             </nav>
             <div className="px-3 sm:px-4 mt-4">
               <LanguageSwitcher currentLocale={currentLocale} />
