@@ -15,7 +15,7 @@ const ItemsContext = createContext<ItemsContextType | undefined>(undefined);
 
 export const ItemsProvider = ({ children }: { children: React.ReactNode }) => {
   const [masterclasses, setMasterclasses] = useState<Masterclass[]>([]);
-  console.log("Masterclasses in context:", masterclasses);
+  //   console.log("Masterclasses in context:", masterclasses);
   const [onlineProducts, setOnlineProducts] = useState<OnlineProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

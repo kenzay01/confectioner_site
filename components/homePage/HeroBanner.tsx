@@ -118,7 +118,21 @@ export default function HeroBanner() {
             </div>
             <div className="flex items-center gap-2">
               <Users className="w-5 h-5 flex-shrink-0" />
-              <span className="font-medium">For all skill levels</span>
+              <span className="font-medium">
+                {loading
+                  ? "Loading..."
+                  : error
+                  ? "Error"
+                  : nearest
+                  ? currentLocale === "pl"
+                    ? `${
+                        nearest.availableSlots - nearest.pickedSlots
+                      } wolne miejsca`
+                    : `${
+                        nearest.availableSlots - nearest.pickedSlots
+                      } spots available`
+                  : "Slots info not available"}
+              </span>
             </div>
           </div>
           <div className="mb-8">
@@ -129,21 +143,29 @@ export default function HeroBanner() {
                 ? "Error"
                 : nearest
                 ? `${nearest.price} zł`
+                : currentLocale === "pl"
+                ? "Cena niedostępna"
                 : "Price not available"}
             </span>
           </div>
-          <Link
-            href={
-              nearest
-                ? `/${currentLocale}/masterClass/masterclass-${nearest.id}`
-                : "#"
-            }
-            className={`bg-[var(--brown-color)] hover:bg-[var(--accent-color)] text-white font-bold text-xl px-12 py-4 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
-              !nearest || loading ? "pointer-events-none opacity-50" : ""
-            }`}
-          >
-            {loading ? "Loading..." : "Book Now"}
-          </Link>
+          <div className="flex justify-center items-center">
+            <Link
+              href={
+                nearest
+                  ? `/${currentLocale}/masterClass/masterclass-${nearest.id}`
+                  : "#"
+              }
+              className={`bg-[var(--brown-color)] hover:bg-[var(--accent-color)] text-white font-bold text-xl px-12 py-4 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
+                !nearest || loading ? "pointer-events-none opacity-50" : ""
+              }`}
+            >
+              {loading
+                ? "Loading..."
+                : currentLocale === "pl"
+                ? "Zarejestruj się"
+                : "Sign Up"}
+            </Link>
+          </div>
         </div>
       </div>
     </section>

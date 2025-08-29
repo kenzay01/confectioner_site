@@ -4,19 +4,22 @@ import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import { Calendar, MapPin, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useItems } from "@/context/itemsContext";
-import { format } from "date-fns";
+import { format, isBefore } from "date-fns";
 import { pl, enGB } from "date-fns/locale";
 import { Masterclass } from "@/types/masterclass";
+import { ArrowLeft } from "lucide-react";
 
 export default function MasterClassPage() {
+  const router = useRouter();
   const currentLocale = useCurrentLanguage() as "pl" | "en";
   const { masterclasses, loading, error } = useItems();
   const params = useParams();
   const masterclassId = params.masterClassId as string;
-  console.log("Masterclass ID from params:", masterclassId);
   const [masterclass, setMasterclass] = useState<Masterclass | null>(null);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Normalize today for comparison
 
   // Find the masterclass by ID
   useEffect(() => {
@@ -28,6 +31,13 @@ export default function MasterClassPage() {
     }
   }, [masterclasses, masterclassId]);
 
+  // Check if a masterclass has ended
+  const isMasterclassEnded = (masterclass: Masterclass): boolean => {
+    const endDate = new Date(masterclass.dateEnd || masterclass.date);
+    endDate.setHours(0, 0, 0, 0);
+    return isBefore(endDate, today);
+  };
+
   // Format date for display
   const formatDate = (masterclass: Masterclass): string => {
     const locale = currentLocale === "pl" ? pl : enGB;
@@ -38,9 +48,9 @@ export default function MasterClassPage() {
     } else {
       const startDate = new Date(masterclass.date);
       const endDate = new Date(masterclass.dateEnd || masterclass.date);
-      return `${format(startDate, "MMM d", { locale })} - ${format(
+      return `${format(startDate, "MMM d, HH:mm", { locale })} - ${format(
         endDate,
-        "MMM d, yyyy",
+        "MMM d, yyyy, HH:mm",
         { locale }
       )}`;
     }
@@ -71,9 +81,40 @@ export default function MasterClassPage() {
     );
   }
 
+  if (isMasterclassEnded(masterclass)) {
+    return (
+      <div className="md:pt-0 pt-14 min-h-screen bg-[var(--main-color)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <button
+            className="mb-4 px-4 py-2 rounded bg-[var(--brown-color)] text-white flex items-center hover:bg-[var(--accent-color)] transition-colors"
+            onClick={() => router.back()}
+          >
+            <ArrowLeft className="inline-block mr-2" />
+            {currentLocale === "pl" ? "Powrót" : "Back"}
+          </button>
+          <h1 className="text-3xl sm:text-4xl font-bold text-[var(--brown-color)] mb-8 text-center">
+            {masterclass.title[currentLocale]}
+          </h1>
+          <p className="text-center text-[var(--accent-color)] text-xl">
+            {currentLocale === "pl"
+              ? "Ten warsztat nie jest już dostępny"
+              : "This masterclass is no longer available"}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="md:pt-0 pt-14 min-h-screen bg-[var(--main-color)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <button
+          className="mb-4 px-4 py-2 rounded bg-[var(--brown-color)] text-white flex items-center hover:bg-[var(--accent-color)] transition-colors"
+          onClick={() => router.back()}
+        >
+          <ArrowLeft className="inline-block mr-2" />
+          {currentLocale === "pl" ? "Powrót" : "Back"}
+        </button>
         {/* Main Content: Photo on Left, Details on Right */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           {/* Left Side: Photo/Video */}
@@ -103,8 +144,8 @@ export default function MasterClassPage() {
 
           {/* Right Side: Details */}
           <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-[var(--brown-color)]/10">
-            <div className="flex flex-col justify-between h-full items-start space-y-6">
-              <h1 className="text-lg sm:text-2xl font-bold text-[var(--brown-color)] mb-4 text-start">
+            <div className="space-y-4">
+              <h1 className="text-3xl sm:text-4xl font-bold text-[var(--brown-color)] mb-4">
                 {masterclass.title[currentLocale]}
               </h1>
               <div className="flex items-center gap-2 text-[var(--accent-color)]">
@@ -118,7 +159,7 @@ export default function MasterClassPage() {
               <div className="flex items-center gap-2 text-[var(--accent-color)]">
                 <Users className="w-5 h-5" />
                 <span>
-                  {masterclass.pickedSlots} / {masterclass.availableSlots}{" "}
+                  {masterclass.availableSlots - masterclass.pickedSlots}{" "}
                   {currentLocale === "pl"
                     ? "wolnych miejsc"
                     : "slots available"}
@@ -127,6 +168,9 @@ export default function MasterClassPage() {
               <div className="text-2xl font-bold text-[var(--brown-color)]">
                 {masterclass.price} zł
               </div>
+              <p className="text-[var(--brown-color)]">
+                {masterclass.description[currentLocale]}
+              </p>
               <Link
                 href={`/${currentLocale}/payment/masterclass-${masterclass.id}`}
                 className={`inline-block px-6 py-3 rounded-full font-bold text-white transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
@@ -145,15 +189,6 @@ export default function MasterClassPage() {
               </Link>
             </div>
           </div>
-        </div>
-
-        <div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-[var(--brown-color)] mb-6">
-            {currentLocale === "pl" ? "Opis" : "Description"}
-          </h2>
-          <p className="text-[var(--brown-color)] whitespace-break-spaces">
-            {masterclass.description[currentLocale]}
-          </p>
         </div>
 
         {/* FAQ Section */}
