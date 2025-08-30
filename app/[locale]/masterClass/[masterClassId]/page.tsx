@@ -3,13 +3,13 @@ import { useState, useEffect } from "react";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import { Calendar, MapPin, Users } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useItems } from "@/context/itemsContext";
 import { format, isBefore } from "date-fns";
 import { pl, enGB } from "date-fns/locale";
 import { Masterclass } from "@/types/masterclass";
 import { ArrowLeft } from "lucide-react";
+import PaymentModal from "@/components/PaymentModal";
 
 export default function MasterClassPage() {
   const router = useRouter();
@@ -18,10 +18,10 @@ export default function MasterClassPage() {
   const params = useParams();
   const masterclassId = params.masterClassId as string;
   const [masterclass, setMasterclass] = useState<Masterclass | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const today = new Date();
-  today.setHours(0, 0, 0, 0); // Normalize today for comparison
+  today.setHours(0, 0, 0, 0);
 
-  // Find the masterclass by ID
   useEffect(() => {
     if (masterclasses.length > 0) {
       const foundMasterclass = masterclasses.find(
@@ -31,14 +31,12 @@ export default function MasterClassPage() {
     }
   }, [masterclasses, masterclassId]);
 
-  // Check if a masterclass has ended
   const isMasterclassEnded = (masterclass: Masterclass): boolean => {
     const endDate = new Date(masterclass.dateEnd || masterclass.date);
     endDate.setHours(0, 0, 0, 0);
     return isBefore(endDate, today);
   };
 
-  // Format date for display
   const formatDate = (masterclass: Masterclass): string => {
     const locale = currentLocale === "pl" ? pl : enGB;
     if (masterclass.dateType === "single") {
@@ -115,9 +113,7 @@ export default function MasterClassPage() {
           <ArrowLeft className="inline-block mr-2" />
           {currentLocale === "pl" ? "Powrót" : "Back"}
         </button>
-        {/* Main Content: Photo on Left, Details on Right */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-          {/* Left Side: Photo/Video */}
           <div className="space-y-6">
             <Image
               src={masterclass.photo || "/placeholder.jpg"}
@@ -127,22 +123,11 @@ export default function MasterClassPage() {
               className="rounded-lg object-cover w-full h-[400px]"
               placeholder="blur"
               blurDataURL="/placeholder.jpg"
+              priority
+              quality={75}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
-            {/* {masterclass.video && (
-              <video
-                controls
-                className="w-full rounded-lg"
-                src={masterclass.video}
-              >
-                <source src={masterclass.video} type="video/mp4" />
-                {currentLocale === "pl"
-                  ? "Twoja przeglądarka nie obsługuje wideo."
-                  : "Your browser does not support the video tag."}
-              </video>
-            )} */}
           </div>
-
-          {/* Right Side: Details */}
           <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-[var(--brown-color)]/10">
             <div className="space-y-4">
               <h1 className="text-3xl sm:text-4xl font-bold text-[var(--brown-color)] mb-4">
@@ -171,8 +156,11 @@ export default function MasterClassPage() {
               <p className="text-[var(--brown-color)]">
                 {masterclass.description[currentLocale]}
               </p>
-              <Link
-                href={`/${currentLocale}/payment/masterclass-${masterclass.id}`}
+              <button
+                onClick={() => setIsModalOpen(true)}
+                disabled={
+                  masterclass.availableSlots - masterclass.pickedSlots <= 0
+                }
                 className={`inline-block px-6 py-3 rounded-full font-bold text-white transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
                   masterclass.availableSlots - masterclass.pickedSlots > 0
                     ? "bg-[var(--brown-color)] hover:bg-[var(--accent-color)]"
@@ -186,12 +174,10 @@ export default function MasterClassPage() {
                   : currentLocale === "pl"
                   ? "Dołącz do listy oczekujących"
                   : "Join Waitlist"}
-              </Link>
+              </button>
             </div>
           </div>
         </div>
-
-        {/* FAQ Section */}
         <div className="mt-12">
           <h2 className="text-2xl sm:text-3xl font-bold text-[var(--brown-color)] mb-6 text-center">
             {currentLocale === "pl"
@@ -220,6 +206,17 @@ export default function MasterClassPage() {
             )}
           </div>
         </div>
+        <PaymentModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          item={{
+            type: "masterclass",
+            id: masterclassId,
+            title: masterclass.title,
+            price: masterclass.price,
+            description: masterclass.description,
+          }}
+        />
       </div>
     </div>
   );

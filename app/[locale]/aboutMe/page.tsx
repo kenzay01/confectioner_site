@@ -261,7 +261,7 @@ export default function AboutMe() {
                       <ul className=" list-inside text-[var(--brown-color)] space-y-2 pr-4 decoration-0">
                         {yearGroup.events.map((event, index) => (
                           <li key={index} className=" flex items-start gap-2">
-                            <MapPin className="w-4 h-4 mt-1 text-[var(--brown-color)]/60" />
+                            <MapPin className="w-4 h-4 mt-1 text-[var(--brown-color)]/60 flex-shrink-0" />
                             {event[currentLocale]}
                           </li>
                         ))}

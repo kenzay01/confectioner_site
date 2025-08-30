@@ -15,6 +15,9 @@ export default function Contact() {
     email: "",
     question: "",
   });
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -22,9 +25,70 @@ export default function Contact() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = () => {
-    // Placeholder for form submission logic
-    console.log("Form submitted:", formData);
+  // Функція для екранування всіх зарезервованих символів у MarkdownV2
+  const escapeMarkdown = (text: string) => {
+    return text.replace(/[_\*\[\]\(\)\~`>#\+-=|\{\}\.!]/g, "\\$&");
+  };
+
+  const handleSubmit = async () => {
+    if (!formData.name || !formData.question) {
+      setStatus("error");
+      return;
+    }
+
+    setStatus("loading");
+
+    // Форматуємо повідомлення для Telegram у MarkdownV2
+    const telegramMessage = `
+📩 *Нове повідомлення з форми контактів*
+
+👤 *Ім'я*: ${escapeMarkdown(formData.name)}
+📲 *Telegram*: ${escapeMarkdown(formData.telegram)}
+📧 *Email*: ${escapeMarkdown(formData.email)}
+💬 *Питання*:
+_${escapeMarkdown(formData.question)}_
+    `.trim();
+
+    try {
+      // Відправка в Telegram
+      const telegramResponse = await fetch("/api/send-telegram", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: telegramMessage }),
+      });
+
+      if (!telegramResponse.ok) {
+        const errorData = await telegramResponse.json();
+        throw new Error(errorData.details || "Failed to send Telegram message");
+      }
+
+      // Відправка в Google Sheets
+      const sheetsResponse = await fetch("/api/google-sheets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "contact",
+          data: {
+            name: formData.name,
+            telegram: formData.telegram,
+            email: formData.email,
+            question: formData.question,
+          },
+        }),
+      });
+
+      if (!sheetsResponse.ok) {
+        throw new Error("Failed to add data to Google Sheets");
+      }
+
+      setStatus("success");
+      setFormData({ name: "", telegram: "", email: "", question: "" });
+      setTimeout(() => setStatus("idle"), 3000);
+    } catch (error) {
+      console.error("Error:", error);
+      setStatus("error");
+      setTimeout(() => setStatus("idle"), 3000);
+    }
   };
 
   return (
@@ -45,7 +109,7 @@ export default function Contact() {
           alt="Sweet 2"
           width={400}
           height={400}
-          className="absolute -right-20 sm:-right-40 lg:-right-85 z-15 rotate-10 bottom-30 md:bottom-20 lg:bottom-0 drop-shadow-2xl w-48 h-48 sm:w-72 sm:h-72 lg:w-96 lg:h-96"
+          className="absolute -right-20 sm:-right-40 lg:-right-85 z-15 rotate-10 bottom-45 md:bottom-20 lg:bottom-0 drop-shadow-2xl w-48 h-48 sm:w-72 sm:h-72 lg:w-96 lg:h-96"
           sizes="100vw (max-width: 600px) 48vw, (max-width: 1024px) 28vw, 23vw"
           placeholder="blur"
           quality={75}
@@ -54,7 +118,6 @@ export default function Contact() {
           {currentLocale === "pl" ? "Kontakt" : "Contact"}
         </h1>
         <div className="grid grid-cols-1 gap-8 mb-12 z-20">
-          {/* Left: Contact Message */}
           <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-[var(--brown-color)]/10 z-20">
             <p className="text-[var(--brown-color)]">
               {currentLocale === "pl"
@@ -62,7 +125,6 @@ export default function Contact() {
                 : "I’ll be happy to answer all your questions. Leave your details below, and I’ll get back to you as soon as possible:"}
             </p>
           </div>
-          {/* Right: Contact Form */}
           <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-[var(--brown-color)]/10">
             <div id="contact-form" className="space-y-4">
               <div>
@@ -130,23 +192,44 @@ export default function Contact() {
               <div className="flex justify-center items-center">
                 <button
                   onClick={handleSubmit}
-                  className="px-6 py-3 rounded-full font-bold text-white bg-[var(--brown-color)] hover:bg-[var(--accent-color)] transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                  disabled={status === "loading"}
+                  className={`px-6 py-3 rounded-full font-bold text-white bg-[var(--brown-color)] hover:bg-[var(--accent-color)] transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
+                    status === "loading" ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                 >
-                  {currentLocale === "pl" ? "Wyślij" : "Send"}
+                  {status === "loading"
+                    ? currentLocale === "pl"
+                      ? "Wysyłanie..."
+                      : "Sending..."
+                    : currentLocale === "pl"
+                    ? "Wyślij"
+                    : "Send"}
                 </button>
               </div>
+              {status === "success" && (
+                <p className="text-green-600 text-center">
+                  {currentLocale === "pl"
+                    ? "Wiadomość wysłana pomyślnie!"
+                    : "Message sent successfully!"}
+                </p>
+              )}
+              {status === "error" && (
+                <p className="text-red-600 text-center">
+                  {currentLocale === "pl"
+                    ? "Błąd podczas wysyłania wiadomości. Spróbuj ponownie."
+                    : "Error sending message. Please try again."}
+                </p>
+              )}
             </div>
           </div>
         </div>
-
-        {/* Social Media Section */}
         <div className="text-center">
           <p className="text-[var(--brown-color)] mb-4">
             {currentLocale === "pl"
               ? "Śledź mnie, aby być na bieżąco z warsztatami i nowościami ze świata piekarnictwa:"
               : "Follow me to stay updated on workshops and baking news:"}
           </p>
-          <div className="flex justify-center gap-4">
+          <div className="flex justify-center items-center flex-col md:flex-row gap-4">
             <Link
               href="https://instagram.com/slaviksemkiv"
               target="_blank"
@@ -156,7 +239,7 @@ export default function Contact() {
               slaviksemkiv
             </Link>
             <Link
-              href="https://t.me/slaviksemkiv" // Replace with actual Telegram link
+              href="https://t.me/slaviksemkiv"
               target="_blank"
               className="flex items-center gap-2 text-[var(--brown-color)] hover:text-[var(--accent-color)] transition-colors"
             >
@@ -164,7 +247,7 @@ export default function Contact() {
               Telegram
             </Link>
             <Link
-              href="https://wa.me/1234567890" // Replace with actual WhatsApp link
+              href="https://wa.me/1234567890"
               target="_blank"
               className="flex items-center gap-2 text-[var(--brown-color)] hover:text-[var(--accent-color)] transition-colors"
             >
