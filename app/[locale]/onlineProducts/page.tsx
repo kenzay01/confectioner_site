@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useItems } from "@/context/itemsContext";
 import { OnlineProduct } from "@/types/products";
+import AnimatedSection from "@/components/AnimatedSection";
 
 export default function OnlineProducts() {
   const currentLocale = useCurrentLanguage() as "pl" | "en";
@@ -12,7 +13,7 @@ export default function OnlineProducts() {
   return (
     <div className="md:pt-0 pt-14 bg-[var(--main-color)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl sm:text-4xl font-bold text-[var(--brown-color)] mb-8 text-center">
+        <h1 className="text-3xl sm:text-4xl font-bold  mb-8 text-center">
           {currentLocale === "pl"
             ? "Online produkty od Szefa Jarosława Semkiwa"
             : "Online Products by Chef Yaroslav Semkiv"}
@@ -30,9 +31,9 @@ export default function OnlineProducts() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {onlineProducts.map((product: OnlineProduct) => (
-              <div
+              <AnimatedSection
                 key={product.id}
-                className="bg-white/95 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-[var(--brown-color)]/10"
+                className="bg-white/95 backdrop-blur-sm rounded-3xl p-6 shadow-lg"
               >
                 <Link
                   href={`/${currentLocale}/onlineProducts/product-${product.id}`}
@@ -53,13 +54,13 @@ export default function OnlineProducts() {
                     </span>
                   </div>
                 </Link>
-                <h2 className="text-xl font-semibold text-[var(--brown-color)] mb-2">
+                <h2 className="text-xl font-semibold  mb-2">
                   {product.title[currentLocale]}
                 </h2>
-                <p className="text-[var(--brown-color)] mb-4 line-clamp-3">
+                <p className=" mb-4 line-clamp-3">
                   {product.description[currentLocale]}
                 </p>
-                <div className="text-2xl font-bold text-[var(--brown-color)] mb-4">
+                <div className="text-2xl font-bold  mb-4">
                   {product.price} zł
                 </div>
                 <Link
@@ -68,7 +69,7 @@ export default function OnlineProducts() {
                 >
                   {currentLocale === "pl" ? "Kupić" : "Buy Now"}
                 </Link>
-              </div>
+              </AnimatedSection>
             ))}
           </div>
         )}

@@ -8,6 +8,7 @@ import sweet1 from "@/public/materials/sweet1.png";
 import sweet2 from "@/public/materials/sweet2.png";
 import { Masterclass } from "@/types/masterclass";
 import { useItems } from "@/context/itemsContext";
+import AnimatedSection from "../AnimatedSection"; // Імпортуйте утилітний компонент
 
 export default function HeroBanner() {
   const currentLocale = useCurrentLanguage() as "pl" | "en";
@@ -30,10 +31,9 @@ export default function HeroBanner() {
       const prevDate = new Date(prev.date);
       const currDate = new Date(curr.date);
       return currDate < prevDate ? curr : prev;
-    }, upcomingMasterclasses[0]); // Use first item as initial value
+    }, upcomingMasterclasses[0]);
   }, [masterclasses]);
 
-  // Format date for display
   const formatDate = (masterclass: Masterclass): string => {
     if (masterclass.dateType === "single") {
       const date = new Date(masterclass.date);
@@ -58,31 +58,10 @@ export default function HeroBanner() {
   };
 
   return (
-    <section className="relative h-150 flex items-center justify-center overflow-hidden">
-      {/* Content */}
+    <AnimatedSection className="relative h-140 flex items-center justify-center overflow-hidden">
       <div className="relative z-10 text-center max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative h-[500px] bg-white/95 backdrop-blur-sm rounded-3xl p-8 sm:p-12 lg:p-16 shadow-lg border border-[var(--brown-color)]/10 flex flex-col justify-center">
-          <Image
-            src={sweet1}
-            alt="Sweet 1"
-            width={400}
-            height={400}
-            className="absolute -left-25 sm:-left-40 lg:-left-55 z-15 rotate-40 bottom-15 md:bottom-20 lg:bottom-10 drop-shadow-2xl w-48 h-48 sm:w-68 sm:h-68 lg:w-92 lg:h-92"
-            sizes="100vw (max-width: 600px) 48vw, (max-width: 1024px) 28vw, 23vw"
-            placeholder="blur"
-            quality={75}
-          />
-          <Image
-            src={sweet2}
-            alt="Sweet 2"
-            width={400}
-            height={400}
-            className="absolute -right-20 sm:-right-40 lg:-right-55 z-15 rotate-25 top-30 md:top-20 lg:top-10 drop-shadow-2xl w-48 h-48 sm:w-72 sm:h-72 lg:w-96 lg:h-96"
-            sizes="100vw (max-width: 600px) 48vw, (max-width: 1024px) 28vw, 23vw"
-            placeholder="blur"
-            quality={75}
-          />
-          <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-[var(--brown-color)] mb-6 leading-tight">
+        <div className="relative h-[500px] bg-white/95 backdrop-blur-sm rounded-3xl p-8 sm:p-12 lg:p-16 flex flex-col justify-center">
+          <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold mb-6 leading-tight">
             {loading
               ? "Loading..."
               : error
@@ -136,7 +115,7 @@ export default function HeroBanner() {
             </div>
           </div>
           <div className="mb-8">
-            <span className="text-4xl sm:text-5xl font-bold text-[var(--brown-color)]">
+            <span className="text-4xl sm:text-5xl font-bold">
               {loading
                 ? "Loading..."
                 : error
@@ -162,12 +141,12 @@ export default function HeroBanner() {
               {loading
                 ? "Loading..."
                 : currentLocale === "pl"
-                ? "Zarejestruj się"
+                ? "Weź udział"
                 : "Sign Up"}
             </Link>
           </div>
         </div>
       </div>
-    </section>
+    </AnimatedSection>
   );
 }

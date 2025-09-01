@@ -10,6 +10,7 @@ import { pl, enGB } from "date-fns/locale";
 import { Masterclass } from "@/types/masterclass";
 import { ArrowLeft } from "lucide-react";
 import PaymentModal from "@/components/PaymentModal";
+import AnimatedSection from "@/components/AnimatedSection";
 
 export default function MasterClassPage() {
   const router = useRouter();
@@ -90,7 +91,7 @@ export default function MasterClassPage() {
             <ArrowLeft className="inline-block mr-2" />
             {currentLocale === "pl" ? "Powrót" : "Back"}
           </button>
-          <h1 className="text-3xl sm:text-4xl font-bold text-[var(--brown-color)] mb-8 text-center">
+          <h1 className="text-3xl sm:text-4xl font-bold  mb-8 text-center">
             {masterclass.title[currentLocale]}
           </h1>
           <p className="text-center text-[var(--accent-color)] text-xl">
@@ -104,7 +105,7 @@ export default function MasterClassPage() {
   }
 
   return (
-    <div className="md:pt-0 pt-14 min-h-screen bg-[var(--main-color)]">
+    <AnimatedSection className="md:pt-0 pt-14 min-h-screen bg-[var(--main-color)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <button
           className="mb-4 px-4 py-2 rounded bg-[var(--brown-color)] text-white flex items-center hover:bg-[var(--accent-color)] transition-colors"
@@ -128,9 +129,9 @@ export default function MasterClassPage() {
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </div>
-          <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-[var(--brown-color)]/10">
+          <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-6  ">
             <div className="space-y-4">
-              <h1 className="text-3xl sm:text-4xl font-bold text-[var(--brown-color)] mb-4">
+              <h1 className="text-3xl sm:text-4xl font-bold  mb-4">
                 {masterclass.title[currentLocale]}
               </h1>
               <div className="flex items-center gap-2 text-[var(--accent-color)]">
@@ -150,18 +151,13 @@ export default function MasterClassPage() {
                     : "slots available"}
                 </span>
               </div>
-              <div className="text-2xl font-bold text-[var(--brown-color)]">
-                {masterclass.price} zł
-              </div>
-              <p className="text-[var(--brown-color)]">
-                {masterclass.description[currentLocale]}
-              </p>
+              <div className="text-2xl font-bold ">{masterclass.price} zł</div>
               <button
                 onClick={() => setIsModalOpen(true)}
                 disabled={
                   masterclass.availableSlots - masterclass.pickedSlots <= 0
                 }
-                className={`inline-block px-6 py-3 rounded-full font-bold text-white transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
+                className={`inline-block px-6 py-3 rounded-full font-bold text-white transition-all duration-300 transform hover:scale-105  hover:shadow-xl ${
                   masterclass.availableSlots - masterclass.pickedSlots > 0
                     ? "bg-[var(--brown-color)] hover:bg-[var(--accent-color)]"
                     : "bg-gray-400 cursor-not-allowed"
@@ -178,8 +174,16 @@ export default function MasterClassPage() {
             </div>
           </div>
         </div>
+        <div>
+          <h2 className="text-2xl sm:text-3xl font-bold  mb-6 text-center">
+            {currentLocale === "pl" ? "Opis" : "Description"}
+          </h2>
+          <p className="whitespace-pre-line text-[var(--accent-color)]">
+            {masterclass.description[currentLocale]}
+          </p>
+        </div>
         <div className="mt-12">
-          <h2 className="text-2xl sm:text-3xl font-bold text-[var(--brown-color)] mb-6 text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold  mb-6 text-center">
             {currentLocale === "pl"
               ? "Najczęściej zadawane pytania"
               : "Frequently Asked Questions"}
@@ -190,12 +194,12 @@ export default function MasterClassPage() {
                 (item: { question: string; answer: string }, index: number) => (
                   <div
                     key={index}
-                    className="bg-white/95 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-[var(--brown-color)]/10"
+                    className="bg-white/95 backdrop-blur-sm rounded-3xl p-6  "
                   >
-                    <h3 className="text-lg font-semibold text-[var(--brown-color)] mb-2">
+                    <h3 className="text-lg font-semibold  mb-2">
                       {item.question}
                     </h3>
-                    <p className="text-[var(--brown-color)]">{item.answer}</p>
+                    <p className="">{item.answer}</p>
                   </div>
                 )
               )
@@ -218,6 +222,6 @@ export default function MasterClassPage() {
           }}
         />
       </div>
-    </div>
+    </AnimatedSection>
   );
 }

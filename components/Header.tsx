@@ -42,7 +42,7 @@ const Header = () => {
   return (
     <header className="md:relative fixed top-0 left-0 right-0 z-50 bg-[var(--main-color)] shadow-lg md:shadow-none">
       <div className="max-w-7xl mx-auto overflow-hidden">
-        <div className="flex justify-between items-center h-14 sm:h-24 border-b-2 mx-3 sm:mx-6 lg:mx-8 border-black">
+        <div className="flex justify-between items-center h-14 sm:h-24 mx-3 sm:mx-6 lg:mx-8 ">
           {/* Left side - Logo */}
           <div
             onClick={() => router.push(`/${currentLocale}`)}

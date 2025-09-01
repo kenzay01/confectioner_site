@@ -3,11 +3,17 @@ import { locales } from "@/i18n/config";
 import { Metadata } from "next";
 import "../globals.css";
 import { Montserrat } from "next/font/google";
+import localFont from "next/font/local";
 import { ItemsProvider } from "@/context/itemsContext";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
   variable: "--font-montserrat",
+});
+
+const helvetica = localFont({
+  src: "../../public/fonts/HelveticaNeueBlack.otf",
+  variable: "--font-helvetica-neue",
 });
 
 export async function generateStaticParams() {
@@ -27,7 +33,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pl" className={`${montserrat.variable} font-sans`}>
+    <html lang="pl" className={`${helvetica.variable} font-sans`}>
       <body>
         <Header />
         <ItemsProvider>

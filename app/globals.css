@@ -1,16 +1,17 @@
 @import "tailwindcss";
 
 html {
-  @apply m-0 p-0 box-border bg-[#F0EADE];
+  @apply m-0 p-0 box-border bg-[#ffffff];
 }
 
 * > button {
   @apply cursor-pointer;
 }
 
+/* #f0eade */
 :root {
   --brown-color: #502d1c;
-  --main-color: #f0eade;
+  --main-color: #ffffff;
   --accent-color: #423c36;
   --brown-hover: #6b3e29; /* Derived lighter shade for hover */
   --brown-light: #f9e7e2; /* Light background for error message */
@@ -18,7 +19,7 @@ html {
 }
 
 body {
-  font-family: var(--font-montserrat);
+  font-family: var(--font-helvetica-neue);
 }
 
 /* Custom Tailwind utilities for the new colors */

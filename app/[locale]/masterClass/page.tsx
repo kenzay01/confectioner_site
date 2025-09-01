@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import { Calendar, MapPin, Users } from "lucide-react";
 import Image from "next/image";
@@ -8,6 +8,243 @@ import { Masterclass } from "@/types/masterclass";
 import { useItems } from "@/context/itemsContext";
 import { format, isSameDay, addDays, isBefore } from "date-fns";
 import { pl, enGB } from "date-fns/locale";
+import AnimatedSection from "@/components/AnimatedSection";
+
+const formatDate = (
+  masterclass: Masterclass,
+  currentLocale: "pl" | "en"
+): string => {
+  const locale = currentLocale === "pl" ? pl : enGB;
+  if (masterclass.dateType === "single") {
+    const date = new Date(masterclass.date);
+    const formattedDate = format(date, "PPP", { locale });
+    return `${formattedDate}`;
+  } else {
+    const startDate = new Date(masterclass.date);
+    const endDate = new Date(masterclass.dateEnd || masterclass.date);
+    return `${format(startDate, "MMM d", { locale })} - ${format(
+      endDate,
+      "MMM d, yyyy",
+      { locale }
+    )}`;
+  }
+};
+
+// Функція для перевірки, чи закінчився майстер-клас (залишаємо без змін)
+const isMasterclassEnded = (masterclass: Masterclass): boolean => {
+  const endDate = new Date(masterclass.dateEnd || masterclass.date);
+  endDate.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return endDate < today;
+};
+
+// Компонент слайдера
+const SliderSection = ({ masterclasses }: { masterclasses: Masterclass[] }) => {
+  const currentLocale = useCurrentLanguage() as "pl" | "en";
+  const [currentSlide, setCurrentSlide] = useState(1); // Починаємо з першого реального слайду (індекс 1 через клон)
+  const [isTransitioning, setIsTransitioning] = useState(true);
+
+  // Створюємо масив із клонованими слайдами: [останній, ...оригінальні, перший]
+  const extendedMasterclasses = useMemo(() => {
+    if (masterclasses.length === 0) return [];
+    return [
+      masterclasses[masterclasses.length - 1], // Клон останнього
+      ...masterclasses, // Оригінальні слайди
+      masterclasses[0], // Клон першого
+    ];
+  }, [masterclasses]);
+
+  // Обробка переходу для циклічності
+  useEffect(() => {
+    if (masterclasses.length <= 1) return; // Немає сенсу для циклічності, якщо 1 або 0 слайдів
+
+    if (currentSlide === 0) {
+      // Якщо на клонованому останньому слайді, переміщаємо до передостаннього реального
+      setTimeout(() => {
+        setIsTransitioning(false);
+        setCurrentSlide(masterclasses.length);
+      }, 500); // Чекаємо завершення анімації
+    } else if (currentSlide === extendedMasterclasses.length - 1) {
+      // Якщо на клонованому першому слайді, переміщаємо до першого реального
+      setTimeout(() => {
+        setIsTransitioning(false);
+        setCurrentSlide(1);
+      }, 500); // Чекаємо завершення анімації
+    } else {
+      setIsTransitioning(true);
+    }
+  }, [currentSlide, masterclasses.length, extendedMasterclasses.length]);
+
+  // Навігація
+  const nextSlide = () => {
+    setCurrentSlide((prev) => prev + 1);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => prev - 1);
+  };
+
+  const [mobileSlide, setMobileSlide] = useState("");
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 640) {
+        setMobileSlide("50px");
+      } else {
+        setMobileSlide("160px");
+      }
+    };
+
+    handleResize(); // Встановлюємо початкове значення
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return (
+    <div className="mt-12">
+      <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center">
+        {currentLocale === "pl" ? "Galeria wydarzeń" : "Event Gallery"}
+      </h2>
+      {masterclasses.length === 0 && (
+        <p className="text-center text-[var(--accent-color)]">
+          {currentLocale === "pl"
+            ? "Brak dostępnych wydarzeń"
+            : "No events available"}
+        </p>
+      )}
+      <AnimatedSection className="relative w-full overflow-hidden">
+        <div
+          className="flex"
+          style={{
+            transform: `translateX(calc(-${
+              currentSlide * 80
+            }% + ${mobileSlide}))`,
+            gap: "16px", // Відстань між слайдами
+            transition: isTransitioning ? "transform 0.5s ease-in-out" : "none", // Вимикаємо анімацію для безшовного переходу
+          }}
+        >
+          {extendedMasterclasses.map((masterclass, index) => {
+            const isEnded = isMasterclassEnded(masterclass);
+            return (
+              <div
+                key={`${masterclass.id}-${index}`} // Унікальний ключ для клонованих слайдів
+                className="flex-shrink-0 px-2"
+                style={{
+                  width: `calc(80% - 16px)`, // 80% ширини для основного слайду
+                }}
+              >
+                <div className="relative min-h-screen sm:min-h-[80vh] rounded-lg overflow-hidden">
+                  <Image
+                    src={
+                      masterclass.backgroundImage ||
+                      masterclass.photo ||
+                      "/placeholder.jpg"
+                    }
+                    alt={masterclass.title[currentLocale]}
+                    layout="fill"
+                    objectFit="cover"
+                    className="absolute inset-0 w-full h-full object-cover z-0"
+                    placeholder="blur"
+                    blurDataURL="/placeholder.jpg"
+                    priority
+                    quality={75}
+                    sizes="100vw (max-width: 600px) 100vw, (max-width: 1024px) 80vw, 70vw"
+                  />
+                  <div className="absolute inset-0 w-full h-full bg-black/40 z-10"></div>
+                  <div className="h-full  bg-black/40 flex items-center justify-center min-h-screen sm:min-h-screen z-15">
+                    <div className="bg-white p-6 rounded-lg text-center max-w-sm z-15">
+                      <h3 className="text-3xl font-bold mb-4 ">
+                        {masterclass.title[currentLocale]}
+                      </h3>
+                      <div className="flex flex-col gap-2 justify-center items-start text-[var(--accent-color)]">
+                        <div className="flex items-center justify-center gap-2">
+                          <Calendar className="w-6 h-6" />
+                          <span>{formatDate(masterclass, currentLocale)}</span>
+                        </div>
+                        <div className="flex items-center justify-center gap-2">
+                          <MapPin className="w-6 h-6" />
+                          <span>{masterclass.location[currentLocale]}</span>
+                        </div>
+                        <div className="flex items-center justify-center gap-2">
+                          <Users className="w-6 h-6" />
+                          <span>
+                            {masterclass.availableSlots -
+                              masterclass.pickedSlots}{" "}
+                            {currentLocale === "pl"
+                              ? "wolnych miejsc"
+                              : "slots available"}
+                          </span>
+                        </div>
+                        <div className="text-3xl font-bold mt-4">
+                          {masterclass.price} zł
+                        </div>
+                      </div>
+                      {isEnded ? (
+                        <p className="text-[var(--accent-color)] font-semibold mt-4">
+                          {currentLocale === "pl"
+                            ? "To wydarzenie się zakończyło"
+                            : "This event has ended"}
+                        </p>
+                      ) : (
+                        <Link
+                          href={`/${currentLocale}/masterClass/masterclass-${masterclass.id}`}
+                          className={`inline-block px-6 py-3 rounded-full font-bold text-white mt-4 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
+                            masterclass.availableSlots -
+                              masterclass.pickedSlots >
+                            0
+                              ? "bg-[var(--brown-color)] hover:bg-[var(--accent-color)]"
+                              : "bg-gray-400 cursor-not-allowed"
+                          }`}
+                        >
+                          {masterclass.availableSlots -
+                            masterclass.pickedSlots >
+                          0
+                            ? currentLocale === "pl"
+                              ? "Zarezerwuj"
+                              : "Book Now"
+                            : currentLocale === "pl"
+                            ? "Dołącz do listy oczekujących"
+                            : "Join Waitlist"}
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <button
+          onClick={prevSlide}
+          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-[var(--brown-color)]/80 text-white p-2 rounded-full hover:bg-[var(--accent-color)] transition-colors"
+        >
+          &larr;
+        </button>
+        <button
+          onClick={nextSlide}
+          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-[var(--brown-color)]/80 text-white p-2 rounded-full hover:bg-[var(--accent-color)] transition-colors"
+        >
+          &rarr;
+        </button>
+        {/* <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+          {masterclasses.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index + 1)} // Зміщуємо індекс через клон
+              className={`w-3 h-3 rounded-full ${
+                index + 1 === currentSlide
+                  ? "bg-[var(--brown-color)]"
+                  : "bg-gray-400"
+              }`}
+            />
+          ))}
+        </div> */}
+      </AnimatedSection>
+    </div>
+  );
+};
 
 export default function MasterClass() {
   const currentLocale = useCurrentLanguage() as "pl" | "en";
@@ -126,29 +363,29 @@ export default function MasterClass() {
     };
 
     return (
-      <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-[var(--brown-color)]/10">
+      <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-6">
         <div className="flex justify-between items-center mb-4">
           <button
             onClick={prevMonth}
-            className="text-[var(--brown-color)] hover:text-[var(--accent-color)]"
+            className="hover:text-[var(--accent-color)]"
           >
             &larr;
           </button>
-          <h3 className="text-lg font-semibold text-[var(--brown-color)]">
+          <h3 className="text-lg font-semibold">
             {format(new Date(currentYear, currentMonth), "MMMM yyyy", {
               locale,
             })}
           </h3>
           <button
             onClick={nextMonth}
-            className="text-[var(--brown-color)] hover:text-[var(--accent-color)]"
+            className="hover:text-[var(--accent-color)]"
           >
             &rarr;
           </button>
         </div>
         <div className="grid grid-cols-7 gap-1 text-center text-sm">
           {weekdays.map((day: string, i: number) => (
-            <div key={i} className="font-medium text-[var(--brown-color)]">
+            <div key={i} className="font-medium">
               {day}
             </div>
           ))}
@@ -171,7 +408,7 @@ export default function MasterClass() {
                     ? isPastDay
                       ? "bg-gray-300 text-gray-600"
                       : "bg-[var(--accent-color)] text-white"
-                    : "text-[var(--brown-color)]"
+                    : ""
                 } ${
                   isSelected ? "ring-2 ring-[var(--brown-color)]" : ""
                 } hover:bg-[var(--brown-color)]/20`}
@@ -188,120 +425,130 @@ export default function MasterClass() {
 
   return (
     <div className="md:pt-0 pt-14 min-h-screen bg-[var(--main-color)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl sm:text-4xl font-bold text-[var(--brown-color)] mb-8 text-center">
+      <div className=" py-8">
+        <h1 className="max-w-7xl mx-auto text-3xl sm:text-4xl font-bold mb-8 text-center">
           {currentLocale === "pl" ? "Warsztaty" : "Masterclasses"}
         </h1>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Side: Masterclass List */}
-          {loading ? (
-            <p className="lg:col-span-2 self-center text-center text-[var(--accent-color)]">
-              Loading...
-            </p>
-          ) : error ? (
-            <p className="lg:col-span-2 self-center text-center text-red-500">
-              {error}
-            </p>
-          ) : masterclasses.length === 0 ||
-            (!selectedDate && !filteredMasterclass) ? (
-            <p className="lg:col-span-2 self-center text-center text-[var(--accent-color)]">
-              {currentLocale === "pl"
-                ? "Brak nadchodzących warsztatów"
-                : "No upcoming masterclasses available"}
-            </p>
-          ) : !filteredMasterclass && selectedDate ? (
-            <p className="lg:col-span-2 self-center text-center text-[var(--accent-color)]">
-              {currentLocale === "pl"
-                ? "Brak warsztatów dla wybranej daty"
-                : "No masterclasses for the selected date"}
-            </p>
-          ) : (
-            filteredMasterclass && (
-              <div className="lg:col-span-2 space-y-6">
-                <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-[var(--brown-color)]/10 flex flex-col sm:flex-row gap-4">
-                  <div className="flex-shrink-0">
-                    <Image
-                      src={filteredMasterclass.photo || "/placeholder.jpg"}
-                      alt={filteredMasterclass.title[currentLocale]}
-                      width={200}
-                      height={200}
-                      className={`rounded-lg object-cover w-48 h-48 sm:w-64 sm:h-64 ${
-                        isMasterclassEnded(filteredMasterclass)
-                          ? "grayscale"
-                          : ""
-                      }`}
-                      placeholder="blur"
-                      blurDataURL="/placeholder.jpg"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <h2 className="text-xl sm:text-2xl font-semibold text-[var(--brown-color)] mb-2">
-                      {filteredMasterclass.title[currentLocale]}
-                    </h2>
-                    <div className="flex items-center gap-2 text-[var(--accent-color)] mb-2">
-                      <Calendar className="w-5 h-5" />
-                      <span>{formatDate(filteredMasterclass)}</span>
+          <div className="lg:col-span-2 space-y-6 md:order-1 order-2">
+            {loading ? (
+              <p className="lg:col-span-2 self-center text-center text-[var(--accent-color)]">
+                Loading...
+              </p>
+            ) : error ? (
+              <p className="lg:col-span-2 self-center text-center text-red-500">
+                {error}
+              </p>
+            ) : masterclasses.length === 0 ||
+              (!selectedDate && !filteredMasterclass) ? (
+              <p className="lg:col-span-2 self-center text-center text-[var(--accent-color)]">
+                {currentLocale === "pl"
+                  ? "Brak nadchodzących warsztatów"
+                  : "No upcoming masterclasses available"}
+              </p>
+            ) : !filteredMasterclass && selectedDate ? (
+              <p className="lg:col-span-2 self-center text-center text-[var(--accent-color)]">
+                {currentLocale === "pl"
+                  ? "Brak warsztatów dla wybranej daty"
+                  : "No masterclasses for the selected date"}
+              </p>
+            ) : (
+              filteredMasterclass && (
+                <AnimatedSection
+                  className="lg:col-span-2 space-y-6"
+                  direction="left"
+                >
+                  <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-6 flex flex-col sm:flex-row gap-4">
+                    <div className="flex-shrink-0">
+                      <Image
+                        src={filteredMasterclass.photo || "/placeholder.jpg"}
+                        alt={filteredMasterclass.title[currentLocale]}
+                        width={200}
+                        height={200}
+                        className={`rounded-lg object-cover w-48 h-48 sm:w-64 sm:h-64 ${
+                          isMasterclassEnded(filteredMasterclass)
+                            ? "grayscale"
+                            : ""
+                        }`}
+                        placeholder="blur"
+                        blurDataURL="/placeholder.jpg"
+                      />
                     </div>
-                    <div className="flex items-center gap-2 text-[var(--accent-color)] mb-2">
-                      <MapPin className="w-5 h-5" />
-                      <span>{filteredMasterclass.location[currentLocale]}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-[var(--accent-color)] mb-4">
-                      <Users className="w-5 h-5" />
-                      <span>
-                        {filteredMasterclass.availableSlots -
-                          filteredMasterclass.pickedSlots}{" "}
-                        {currentLocale === "pl"
-                          ? "wolnych miejsc"
-                          : "slots available"}
-                      </span>
-                    </div>
-                    <div className="text-2xl font-bold text-[var(--brown-color)] mb-4">
-                      {filteredMasterclass.price} zł
-                    </div>
-                    {isMasterclassEnded(filteredMasterclass) ? (
-                      <p className="text-[var(--accent-color)] font-semibold">
-                        {currentLocale === "pl"
-                          ? "To wydarzenie się zakończyło"
-                          : "This event has ended"}
-                      </p>
-                    ) : (
-                      <Link
-                        href={`/${currentLocale}/masterClass/masterclass-${filteredMasterclass.id}`}
-                        className={`inline-block px-6 py-3 rounded-full font-bold text-white transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
-                          filteredMasterclass.availableSlots -
+                    <div className="flex-1">
+                      <h2 className="text-xl sm:text-2xl font-semibold  mb-2">
+                        {filteredMasterclass.title[currentLocale]}
+                      </h2>
+                      <div className="flex items-center gap-2 text-[var(--accent-color)] mb-2">
+                        <Calendar className="w-5 h-5" />
+                        <span>{formatDate(filteredMasterclass)}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[var(--accent-color)] mb-2">
+                        <MapPin className="w-5 h-5" />
+                        <span>
+                          {filteredMasterclass.location[currentLocale]}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[var(--accent-color)] mb-4">
+                        <Users className="w-5 h-5" />
+                        <span>
+                          {filteredMasterclass.availableSlots -
+                            filteredMasterclass.pickedSlots}{" "}
+                          {currentLocale === "pl"
+                            ? "wolnych miejsc"
+                            : "slots available"}
+                        </span>
+                      </div>
+                      <div className="text-2xl font-bold  mb-4">
+                        {filteredMasterclass.price} zł
+                      </div>
+                      {isMasterclassEnded(filteredMasterclass) ? (
+                        <p className="text-[var(--accent-color)] font-semibold">
+                          {currentLocale === "pl"
+                            ? "To wydarzenie się zakończyło"
+                            : "This event has ended"}
+                        </p>
+                      ) : (
+                        <Link
+                          href={`/${currentLocale}/masterClass/masterclass-${filteredMasterclass.id}`}
+                          className={`inline-block px-6 py-3 rounded-full font-bold text-white transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
+                            filteredMasterclass.availableSlots -
+                              filteredMasterclass.pickedSlots >
+                            0
+                              ? "bg-[var(--brown-color)] hover:bg-[var(--accent-color)]"
+                              : "bg-gray-400 cursor-not-allowed"
+                          }`}
+                        >
+                          {filteredMasterclass.availableSlots -
                             filteredMasterclass.pickedSlots >
                           0
-                            ? "bg-[var(--brown-color)] hover:bg-[var(--accent-color)]"
-                            : "bg-gray-400 cursor-not-allowed"
-                        }`}
-                      >
-                        {filteredMasterclass.availableSlots -
-                          filteredMasterclass.pickedSlots >
-                        0
-                          ? currentLocale === "pl"
-                            ? "Zarezerwuj"
-                            : "Book Now"
-                          : currentLocale === "pl"
-                          ? "Dołącz do listy oczekujących"
-                          : "Join Waitlist"}
-                      </Link>
-                    )}
+                            ? currentLocale === "pl"
+                              ? "Zarezerwuj"
+                              : "Book Now"
+                            : currentLocale === "pl"
+                            ? "Dołącz do listy oczekujących"
+                            : "Join Waitlist"}
+                        </Link>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </div>
-            )
-          )}
+                </AnimatedSection>
+              )
+            )}
+          </div>
 
           {/* Right Side: Calendar */}
-          <div className="lg:col-span-1">
+          <AnimatedSection
+            className="lg:col-span-1 md:order-2 order-1"
+            direction="right"
+          >
             <CustomCalendar />
-          </div>
+          </AnimatedSection>
         </div>
-
-        {/* Gallery Section */}
-        <div className="mt-12">
-          <h2 className="text-2xl sm:text-3xl font-bold text-[var(--brown-color)] mb-6 text-center">
+        <SliderSection masterclasses={masterclasses} />
+        {/* Slider Section */}
+        {/* <div className="mt-12 ">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center">
             {currentLocale === "pl" ? "Galeria wydarzeń" : "Event Gallery"}
           </h2>
           {masterclasses.length === 0 && (
@@ -311,55 +558,128 @@ export default function MasterClass() {
                 : "No events available"}
             </p>
           )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {masterclasses.map((masterclass) => {
-              const isEnded = isMasterclassEnded(masterclass);
-              return (
-                <div
-                  key={masterclass.id}
-                  className={`group relative rounded-lg overflow-hidden ${
-                    isEnded ? "cursor-not-allowed" : ""
-                  }`}
-                >
-                  <Image
-                    src={masterclass.photo || "/placeholder.jpg"}
-                    alt={masterclass.title[currentLocale]}
-                    width={400}
-                    height={300}
-                    className={`w-full h-64 object-cover ${
-                      isEnded
-                        ? "grayscale"
-                        : "group-hover:scale-105 transition-transform duration-300"
-                    }`}
-                    placeholder="blur"
-                    blurDataURL="/placeholder.jpg"
-                  />
+          <div className="relative  w-full overflow-hidden">
+            <div
+              className="flex transition-transform duration-500 ease-in-out "
+              style={{
+                transform: `translateX(-${
+                  currentSlide * (100 / masterclasses.length)
+                }%)`,
+                width: `${masterclasses.length * 100}%`,
+              }}
+            >
+              {masterclasses.map((masterclass) => {
+                const isEnded = isMasterclassEnded(masterclass);
+                return (
                   <div
-                    className={`absolute inset-0 bg-black/40 flex items-center justify-center ${
-                      isEnded
-                        ? "opacity-100"
-                        : "opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    }`}
+                    key={masterclass.id}
+                    className="w-full flex-shrink-0 px-2 "
+                    style={{
+                      width: `${100 / masterclasses.length}%`,
+                    }}
                   >
-                    <span className="text-white font-semibold text-center">
-                      {isEnded
-                        ? currentLocale === "pl"
-                          ? "Zakończono"
-                          : "Ended"
-                        : masterclass.title[currentLocale]}
-                    </span>
+                    <div
+                      className="min-h-screen rounded-lg overflow-hidden"
+                      style={{
+                        backgroundImage: `url(${
+                          masterclass.backgroundImage ||
+                          masterclass.photo ||
+                          "/placeholder.jpg"
+                        })`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }}
+                    >
+                      <div className="h-full bg-black/40 flex items-center justify-center min-h-screen">
+                        <div className="bg-white/80 p-6 rounded-lg text-center max-w-2xl">
+                          <h3 className="text-3xl font-bold mb-4 ">
+                            {masterclass.title[currentLocale]}
+                          </h3>
+                          <div className="flex flex-col gap-2 text-[var(--accent-color)]">
+                            <div className="flex items-center justify-center gap-2">
+                              <Calendar className="w-6 h-6" />
+                              <span>{formatDate(masterclass)}</span>
+                            </div>
+                            <div className="flex items-center justify-center gap-2">
+                              <MapPin className="w-6 h-6" />
+                              <span>{masterclass.location[currentLocale]}</span>
+                            </div>
+                            <div className="flex items-center justify-center gap-2">
+                              <Users className="w-6 h-6" />
+                              <span>
+                                {masterclass.availableSlots -
+                                  masterclass.pickedSlots}{" "}
+                                {currentLocale === "pl"
+                                  ? "wolnych miejsc"
+                                  : "slots available"}
+                              </span>
+                            </div>
+                            <div className="text-3xl font-bold mt-4">
+                              {masterclass.price} zł
+                            </div>
+                          </div>
+                          {isEnded ? (
+                            <p className="text-[var(--accent-color)] font-semibold mt-4">
+                              {currentLocale === "pl"
+                                ? "To wydarzenie się zakończyło"
+                                : "This event has ended"}
+                            </p>
+                          ) : (
+                            <Link
+                              href={`/${currentLocale}/masterClass/masterclass-${masterclass.id}`}
+                              className={`inline-block px-6 py-3 rounded-full font-bold text-white mt-4 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
+                                masterclass.availableSlots -
+                                  masterclass.pickedSlots >
+                                0
+                                  ? "bg-[var(--brown-color)] hover:bg-[var(--accent-color)]"
+                                  : "bg-gray-400 cursor-not-allowed"
+                              }`}
+                            >
+                              {masterclass.availableSlots -
+                                masterclass.pickedSlots >
+                              0
+                                ? currentLocale === "pl"
+                                  ? "Zarezerwuj"
+                                  : "Book Now"
+                                : currentLocale === "pl"
+                                ? "Dołącz do listy oczekujących"
+                                : "Join Waitlist"}
+                            </Link>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  {!isEnded && (
-                    <Link
-                      href={`/${currentLocale}/masterClass/masterclass-${masterclass.id}`}
-                      className="absolute inset-0"
-                    />
-                  )}
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+            <button
+              onClick={prevSlide}
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-[var(--brown-color)]/80 text-white p-2 rounded-full hover:bg-[var(--accent-color)] transition-colors"
+            >
+              &larr;
+            </button>
+            <button
+              onClick={nextSlide}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-[var(--brown-color)]/80 text-white p-2 rounded-full hover:bg-[var(--accent-color)] transition-colors"
+            >
+              &rarr;
+            </button>
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+              {masterclasses.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentSlide(index)}
+                  className={`w-3 h-3 rounded-full ${
+                    index === currentSlide
+                      ? "bg-[var(--brown-color)]"
+                      : "bg-gray-400"
+                  }`}
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

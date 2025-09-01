@@ -4,6 +4,7 @@ import { useCurrentLanguage } from "@//hooks/getCurrentLanguage";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Calendar, MapPin } from "lucide-react";
+import AnimatedSection from "@/components/AnimatedSection"; // Імпортуйте утилітний компонент
 
 export default function AboutMe() {
   const currentLocale = useCurrentLanguage() as "pl" | "en";
@@ -11,7 +12,7 @@ export default function AboutMe() {
 
   const biography = {
     pl: (
-      <div className="prose whitespace-break-spaces text-[var(--brown-color)]">
+      <div className="prose whitespace-break-spaces ">
         {`
       Witajcie wszyscy!
 
@@ -30,7 +31,7 @@ export default function AboutMe() {
       </div>
     ),
     en: (
-      <div className="prose whitespace-break-spaces text-[var(--brown-color)]">{`
+      <div className="prose whitespace-break-spaces ">{`
       Hello everyone!
 
       My name is Yaroslav Semkiv, and my culinary journey began at the age of 15. That’s when I first became fascinated with gastronomy and realized I wanted to dedicate my life to it. While studying at culinary school, I knew for certain that my future would be tied to cooking and baking.
@@ -202,12 +203,12 @@ export default function AboutMe() {
     <div className="md:pt-0 pt-14 min-h-screen bg-[var(--main-color)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Biography Section */}
-        <h1 className="text-3xl sm:text-4xl font-bold text-[var(--brown-color)] mb-8 text-center">
+        <h1 className="text-3xl sm:text-4xl font-bold  mb-8 text-center">
           {currentLocale === "pl" ? "Wszystko o Szefie" : "All About the Chef"}
         </h1>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           {/* Left: Image */}
-          <div className="relative group">
+          <AnimatedSection className="relative group" direction="left">
             <Image
               src="/chef.jpg"
               alt={
@@ -217,51 +218,52 @@ export default function AboutMe() {
               }
               width={600}
               height={400}
-              className="relative rounded-lg object-cover w-full h-[400px] shadow-lg transition-transform duration-300 group-hover:scale-[1.02]"
+              className="relative rounded-lg object-cover w-full h-[400px]  transition-transform duration-300 group-hover:scale-[1.02]"
               placeholder="blur"
               blurDataURL="/placeholder.jpg"
             />
-          </div>
+          </AnimatedSection>
           {/* Right: Biography */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-[var(--brown-color)]/10">
-            <div className="prose text-[var(--brown-color)]">
-              {biography[currentLocale]}
-            </div>
+          <AnimatedSection
+            className="bg-white/95 backdrop-blur-sm rounded-3xl p-6  "
+            direction="right"
+          >
+            <div className="prose ">{biography[currentLocale]}</div>
             <Link
               href={`/${currentLocale}/masterClass`}
-              className="inline-block px-6 py-3 rounded-full font-bold text-white bg-[var(--brown-color)] hover:bg-[var(--accent-color)] transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl mt-4"
+              className="inline-block px-6 py-3 rounded-full font-bold text-white bg-[var(--brown-color)] hover:bg-[var(--accent-color)] transition-all duration-300 transform hover:scale-105  hover:shadow-xl mt-4"
             >
               {currentLocale === "pl"
                 ? "Kalendarz wydarzeń"
                 : "Calendar of Events"}
             </Link>
-          </div>
+          </AnimatedSection>
         </div>
 
         {/* Past Events Section */}
-        <h2 className="text-2xl sm:text-3xl font-bold text-[var(--brown-color)] mb-6 text-center">
+        <h2 className="text-2xl sm:text-3xl font-bold  mb-6 text-center">
           {currentLocale === "pl"
             ? "Co już udało mi się przeprowadzić"
             : "What I’ve Already Conducted"}
         </h2>
         <div className="relative mb-12">
           {/* Slider Content */}
-          <div className="overflow-hidden">
+          <AnimatedSection className="overflow-hidden">
             <div
               className="flex transition-transform duration-500 ease-in-out"
               style={{ transform: `translateX(-${currentSlide * 100}%)` }}
             >
               {pastEvents.map((yearGroup) => (
                 <div key={yearGroup.year} className="min-w-full px-4">
-                  <div className="relative bg-white/95 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-[var(--brown-color)]/10">
-                    <h3 className="text-xl font-semibold text-[var(--brown-color)] mb-4 text-center">
+                  <div className="relative bg-white/95 backdrop-blur-sm rounded-3xl p-6  ">
+                    <h3 className="text-xl font-semibold  mb-4 text-center">
                       {yearGroup.year}
                     </h3>
                     <div className="max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-[var(--brown-color)]/50 scrollbar-track-transparent">
-                      <ul className=" list-inside text-[var(--brown-color)] space-y-2 pr-4 decoration-0">
+                      <ul className=" list-inside  space-y-2 pr-4 decoration-0">
                         {yearGroup.events.map((event, index) => (
                           <li key={index} className=" flex items-start gap-2">
-                            <MapPin className="w-4 h-4 mt-1 text-[var(--brown-color)]/60 flex-shrink-0" />
+                            <MapPin className="w-4 h-4 mt-1 /60 flex-shrink-0" />
                             {event[currentLocale]}
                           </li>
                         ))}
@@ -271,19 +273,19 @@ export default function AboutMe() {
                 </div>
               ))}
             </div>
-          </div>
+          </AnimatedSection>
 
           {/* Navigation Arrows */}
           <button
             onClick={prevSlide}
-            className="absolute top-1/2 left-0 transform -translate-y-1/2 bg-white/95 backdrop-blur-sm text-[var(--brown-color)] hover:bg-[var(--accent-color)] hover:text-white p-2 rounded-full shadow-lg transition-all duration-300"
+            className="absolute top-1/2 left-0 transform -translate-y-1/2 bg-white/95 backdrop-blur-sm  hover:bg-[var(--accent-color)] hover:text-white p-2 rounded-full  transition-all duration-300"
             disabled={currentSlide === 0}
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
           <button
             onClick={nextSlide}
-            className="absolute top-1/2 right-0 transform -translate-y-1/2 bg-white/95 backdrop-blur-sm text-[var(--brown-color)] hover:bg-[var(--accent-color)] hover:text-white p-2 rounded-full shadow-lg transition-all duration-300"
+            className="absolute top-1/2 right-0 transform -translate-y-1/2 bg-white/95 backdrop-blur-sm  hover:bg-[var(--accent-color)] hover:text-white p-2 rounded-full  transition-all duration-300"
             disabled={currentSlide === pastEvents.length - 1}
           >
             <ChevronRight className="w-6 h-6" />

@@ -25,4 +25,5 @@ export interface Masterclass {
     pl: { id: string; question: string; answer: string }[];
     en: { id: string; question: string; answer: string }[];
   };
+  backgroundImage: string;
 }

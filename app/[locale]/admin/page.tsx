@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import { Masterclass } from "@/types/masterclass";
 import { OnlineProduct } from "@/types/products";
-// import { constants } from "crypto";
 import { useItems } from "@/context/itemsContext";
 
 interface FAQ {
@@ -44,6 +43,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     availableSlots: 0,
     pickedSlots: 0,
     faqs: { pl: [], en: [] },
+    backgroundImage: "", // Додано для фону
   });
   const [newProduct, setNewProduct] = useState<Partial<OnlineProduct>>({
     type: "course",
@@ -122,6 +122,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
         id: Date.now().toString(),
         pickedSlots: 0,
         faqs: newMasterclass.faqs || { pl: [], en: [] },
+        backgroundImage: newMasterclass.backgroundImage || "", // Додано фон
       } as Masterclass;
       try {
         const res = await fetch("/api/masterclasses", {
@@ -145,6 +146,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
             availableSlots: 0,
             pickedSlots: 0,
             faqs: { pl: [], en: [] },
+            backgroundImage: "", // Скидаємо фон
           });
           setNewFaq({
             question: "",
@@ -318,6 +320,20 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     }
   }
 
+  function handleBackgroundUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewMasterclass((prev) => ({
+          ...prev,
+          backgroundImage: reader.result as string,
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
   const addFaq = (
     setState:
       | React.Dispatch<React.SetStateAction<Partial<Masterclass>>>
@@ -408,7 +424,14 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
   }, [editingMasterclass, editingProduct]);
 
   return (
-    <div className="min-h-screen bg-[var(--main-color)] py-8 px-4 sm:px-6 lg:px-8">
+    <div
+      className="min-h-screen py-8 px-4 sm:px-6 lg:px-8"
+      style={{
+        backgroundImage: `url(${newMasterclass.backgroundImage || ""})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
       <div className="max-w-6xl mx-auto bg-brown p-6 rounded-lg shadow-lg">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-100">Адмін панель</h1>
@@ -675,6 +698,26 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     />
                   )}
                 </div>
+                <div className="flex items-start flex-col">
+                  <label className="block text-gray-100 mb-1">Фон</label>
+                  <label className="cursor-pointer bg-brown text-gray-100 py-2 rounded flex items-center gap-2">
+                    <ImageIcon size={20} />
+                    Додати фон
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleBackgroundUpload}
+                    />
+                  </label>
+                  {newMasterclass.backgroundImage && (
+                    <img
+                      src={newMasterclass.backgroundImage}
+                      alt="Background Preview"
+                      className="w-16 h-16 object-cover rounded"
+                    />
+                  )}
+                </div>
                 <div className="col-span-2">
                   <label className="block text-gray-100 mb-1">
                     FAQ ({language === "pl" ? "Польська" : "Англійська"})
@@ -803,7 +846,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                   <h2 className="text-xl font-semibold text-gray-100 mb-4">
                     Редагувати майстер-клас
                   </h2>
-                  <div className="grid grid-cols-2 sm:grid-cols2 gap-4 max-h-[70vh] overflow-y-auto">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto">
                     <div>
                       <label className="block text-gray-100 mb-1">
                         Тип дати
@@ -1009,6 +1052,32 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         <img
                           src={editingMasterclass.photo}
                           alt="Preview"
+                          className="w-16 h-16 object-cover rounded"
+                        />
+                      )}
+                    </div>
+                    <div className="flex items-start flex-col">
+                      <label className="block text-gray-100 mb-1">Фон</label>
+                      <label className="cursor-pointer bg-brown text-gray-100 py-2 rounded flex items-center gap-2">
+                        <ImageIcon size={20} />
+                        Змінити фон
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) =>
+                            handleImageUpload(
+                              e,
+                              setEditingMasterclass,
+                              "backgroundImage"
+                            )
+                          }
+                        />
+                      </label>
+                      {editingMasterclass.backgroundImage && (
+                        <img
+                          src={editingMasterclass.backgroundImage}
+                          alt="Background Preview"
                           className="w-16 h-16 object-cover rounded"
                         />
                       )}

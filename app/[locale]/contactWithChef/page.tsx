@@ -4,14 +4,15 @@ import Link from "next/link";
 import Image from "next/image";
 import sweet1 from "@/public/materials/bread1.png";
 import sweet2 from "@/public/materials/cruasan.png";
+import AnimatedSection from "@/components/AnimatedSection";
 
 export default function ContactChef() {
   const currentLocale = useCurrentLanguage() as "pl" | "en";
 
   return (
-    <div className="relative md:pt-0 pt-14 bg-[var(--main-color)] flex justify-center items-center min-h-140 overflow-hidden">
+    <AnimatedSection className="relative md:pt-0 pt-14 bg-[var(--main-color)] flex justify-center items-center min-h-140 overflow-hidden">
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Image
+        {/* <Image
           src={sweet1}
           alt="Sweet 1"
           width={400}
@@ -30,19 +31,19 @@ export default function ContactChef() {
           sizes="100vw (max-width: 600px) 48vw, (max-width: 1024px) 28vw, 23vw"
           placeholder="blur"
           quality={75}
-        />
-        <h1 className="text-3xl sm:text-4xl font-bold text-[var(--brown-color)] mb-8 text-center">
+        /> */}
+        <h1 className="text-3xl sm:text-4xl font-bold  mb-8 text-center">
           {currentLocale === "pl"
             ? "Chcę skontaktować się z Szefem"
             : "I Want to Contact the Chef"}
         </h1>
-        <div className="z-25 max-w-2xl mx-auto bg-white/95 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-[var(--brown-color)]/10">
-          <p className="text-[var(--brown-color)] mb-4 z-20">
+        <div className="z-25 max-w-2xl mx-auto bg-white/95 backdrop-blur-sm rounded-3xl p-6 ">
+          <p className=" mb-4 z-20">
             {currentLocale === "pl"
               ? "Jestem zawsze otwarty na pytania, konsultacje i nowe współprace."
               : "I’m always open to questions, consultations, and new collaborations."}
           </p>
-          <p className="text-[var(--brown-color)] mb-6 z-20">
+          <p className=" mb-6 z-20">
             {currentLocale === "pl"
               ? "Napisz, a na pewno znajdziemy format, który będzie odpowiedni właśnie dla Ciebie."
               : "Write to me, and we’ll surely find a format that suits you."}
@@ -55,6 +56,6 @@ export default function ContactChef() {
           </Link>
         </div>
       </div>
-    </div>
+    </AnimatedSection>
   );
 }

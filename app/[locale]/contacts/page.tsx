@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import sweet1 from "@/public/materials/bread2.png";
 import sweet2 from "@/public/materials/sweet4.png";
-
+import AnimatedSection from "@/components/AnimatedSection";
 export default function Contact() {
   const currentLocale = useCurrentLanguage() as "pl" | "en";
   const [formData, setFormData] = useState({
@@ -92,9 +92,9 @@ _${escapeMarkdown(formData.question)}_
   };
 
   return (
-    <div className="md:pt-0 pt-14 min-h-screen bg-[var(--main-color)] overflow-hidden">
+    <AnimatedSection className="md:pt-0 pt-14 min-h-screen bg-[var(--main-color)] overflow-hidden">
       <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Image
+        {/* <Image
           src={sweet1}
           alt="Sweet 1"
           width={400}
@@ -113,22 +113,22 @@ _${escapeMarkdown(formData.question)}_
           sizes="100vw (max-width: 600px) 48vw, (max-width: 1024px) 28vw, 23vw"
           placeholder="blur"
           quality={75}
-        />
-        <h1 className="text-3xl sm:text-4xl font-bold text-[var(--brown-color)] mb-8 text-center">
+        /> */}
+        <h1 className="text-3xl sm:text-4xl font-bold  mb-8 text-center">
           {currentLocale === "pl" ? "Kontakt" : "Contact"}
         </h1>
         <div className="grid grid-cols-1 gap-8 mb-12 z-20">
-          <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-[var(--brown-color)]/10 z-20">
-            <p className="text-[var(--brown-color)]">
+          <div className=" bg-white/95 backdrop-blur-sm rounded-3xl p-6   z-20">
+            <p className="">
               {currentLocale === "pl"
                 ? "Z przyjemnością odpowiem na wszystkie Twoje pytania. Zostaw swoje dane poniżej, a skontaktuję się z Tobą jak najszybciej:"
                 : "I’ll be happy to answer all your questions. Leave your details below, and I’ll get back to you as soon as possible:"}
             </p>
           </div>
-          <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-[var(--brown-color)]/10">
+          <div className=" bg-white/95 backdrop-blur-sm rounded-3xl p-6">
             <div id="contact-form" className="space-y-4">
               <div>
-                <label className="block text-[var(--brown-color)] font-medium mb-1">
+                <label className="block  font-medium mb-1">
                   {currentLocale === "pl" ? "Imię" : "Name"}
                 </label>
                 <input
@@ -143,7 +143,7 @@ _${escapeMarkdown(formData.question)}_
                 />
               </div>
               <div>
-                <label className="block text-[var(--brown-color)] font-medium mb-1">
+                <label className="block  font-medium mb-1">
                   {currentLocale === "pl"
                     ? "Nick w Telegramie"
                     : "Telegram Username"}
@@ -160,7 +160,7 @@ _${escapeMarkdown(formData.question)}_
                 />
               </div>
               <div>
-                <label className="block text-[var(--brown-color)] font-medium mb-1">
+                <label className="block  font-medium mb-1">
                   {currentLocale === "pl" ? "Poczta" : "Email"}
                 </label>
                 <input
@@ -175,7 +175,7 @@ _${escapeMarkdown(formData.question)}_
                 />
               </div>
               <div>
-                <label className="block text-[var(--brown-color)] font-medium mb-1">
+                <label className="block  font-medium mb-1">
                   {currentLocale === "pl" ? "Pytanie" : "Question"}
                 </label>
                 <textarea
@@ -193,7 +193,7 @@ _${escapeMarkdown(formData.question)}_
                 <button
                   onClick={handleSubmit}
                   disabled={status === "loading"}
-                  className={`px-6 py-3 rounded-full font-bold text-white bg-[var(--brown-color)] hover:bg-[var(--accent-color)] transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
+                  className={`px-6 py-3 rounded-full font-bold text-white bg-[var(--brown-color)] hover:bg-[var(--accent-color)] transition-all duration-300 transform hover:scale-105  hover:shadow-xl ${
                     status === "loading" ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                 >
@@ -224,7 +224,7 @@ _${escapeMarkdown(formData.question)}_
           </div>
         </div>
         <div className="text-center">
-          <p className="text-[var(--brown-color)] mb-4">
+          <p className=" mb-4">
             {currentLocale === "pl"
               ? "Śledź mnie, aby być na bieżąco z warsztatami i nowościami ze świata piekarnictwa:"
               : "Follow me to stay updated on workshops and baking news:"}
@@ -233,7 +233,7 @@ _${escapeMarkdown(formData.question)}_
             <Link
               href="https://instagram.com/slaviksemkiv"
               target="_blank"
-              className="flex items-center gap-2 text-[var(--brown-color)] hover:text-[var(--accent-color)] transition-colors"
+              className="flex items-center gap-2  hover:text-[var(--accent-color)] transition-colors"
             >
               <Instagram className="w-6 h-6" />
               slaviksemkiv
@@ -241,7 +241,7 @@ _${escapeMarkdown(formData.question)}_
             <Link
               href="https://t.me/slaviksemkiv"
               target="_blank"
-              className="flex items-center gap-2 text-[var(--brown-color)] hover:text-[var(--accent-color)] transition-colors"
+              className="flex items-center gap-2  hover:text-[var(--accent-color)] transition-colors"
             >
               <Send className="w-6 h-6" />
               Telegram
@@ -249,7 +249,7 @@ _${escapeMarkdown(formData.question)}_
             <Link
               href="https://wa.me/1234567890"
               target="_blank"
-              className="flex items-center gap-2 text-[var(--brown-color)] hover:text-[var(--accent-color)] transition-colors"
+              className="flex items-center gap-2  hover:text-[var(--accent-color)] transition-colors"
             >
               <MessageCircle className="w-6 h-6" />
               WhatsApp
@@ -257,6 +257,6 @@ _${escapeMarkdown(formData.question)}_
           </div>
         </div>
       </div>
-    </div>
+    </AnimatedSection>
   );
 }

@@ -186,7 +186,7 @@ export default function PaymentModal({
             setPage("info");
             setErrors({});
           }}
-          className="absolute top-4 right-4 text-[var(--brown-color)] hover:text-[var(--accent-color)] z-10"
+          className="absolute top-4 right-4  hover:text-[var(--accent-color)] z-10"
         >
           <X className="w-6 h-6" />
         </button>
@@ -198,7 +198,7 @@ export default function PaymentModal({
                 className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
                   item.type === "masterclass"
                     ? "bg-[var(--accent-color)]/10 text-[var(--accent-color)]"
-                    : "bg-[var(--brown-color)]/10 text-[var(--brown-color)]"
+                    : "bg-[var(--brown-color)]/10 "
                 }`}
               >
                 {item.type === "masterclass"
@@ -209,14 +209,14 @@ export default function PaymentModal({
                   ? "Produkt"
                   : "Product"}
               </span>
-              <h2 className="text-2xl font-bold text-[var(--brown-color)]">
+              <h2 className="text-2xl font-bold ">
                 {item.title[currentLocale]}
               </h2>
             </div>
-            <p className="text-[var(--brown-color)] font-medium">
+            <p className=" font-medium">
               {currentLocale === "pl" ? "Cena:" : "Price:"} {item.price} zł
             </p>
-            <div className="text-[var(--brown-color)] whitespace-pre-line line-clamp-6">
+            <div className=" whitespace-pre-line line-clamp-6">
               {item.type === "masterclass" ? (
                 <>
                   <p className="font-semibold">
@@ -252,12 +252,12 @@ export default function PaymentModal({
           </div>
         ) : (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-[var(--brown-color)]">
+            <h2 className="text-2xl font-bold ">
               {currentLocale === "pl" ? "Dane do płatności" : "Payment Details"}
             </h2>
             <div className="grid gap-4">
               <div>
-                <label className="block text-[var(--brown-color)] font-medium mb-1">
+                <label className="block  font-medium mb-1">
                   {currentLocale === "pl" ? "Imię i nazwisko" : "Full Name"}
                 </label>
                 <input
@@ -279,7 +279,7 @@ export default function PaymentModal({
                 )}
               </div>
               <div>
-                <label className="block text-[var(--brown-color)] font-medium mb-1">
+                <label className="block  font-medium mb-1">
                   {currentLocale === "pl" ? "Email" : "Email"}
                 </label>
                 <input
@@ -299,7 +299,7 @@ export default function PaymentModal({
                 )}
               </div>
               <div>
-                <label className="block text-[var(--brown-color)] font-medium mb-1">
+                <label className="block  font-medium mb-1">
                   {currentLocale === "pl"
                     ? "Numer WhatsApp"
                     : "WhatsApp Number"}
@@ -323,7 +323,7 @@ export default function PaymentModal({
                 )}
               </div>
               <div>
-                <label className="block text-[var(--brown-color)] font-medium mb-1">
+                <label className="block  font-medium mb-1">
                   {currentLocale === "pl" ? "Miejsce pracy" : "Workplace"}
                 </label>
                 <input
@@ -340,7 +340,7 @@ export default function PaymentModal({
                 />
               </div>
               <div>
-                <label className="block text-[var(--brown-color)] font-medium mb-1">
+                <label className="block  font-medium mb-1">
                   {currentLocale === "pl" ? "Zawód" : "Profession"}
                 </label>
                 <input
@@ -355,7 +355,7 @@ export default function PaymentModal({
                 />
               </div>
               <div>
-                <label className="flex items-center gap-2 text-[var(--brown-color)] font-medium mb-1">
+                <label className="flex items-center gap-2  font-medium mb-1">
                   <input
                     type="checkbox"
                     name="invoiceNeeded"
@@ -371,7 +371,7 @@ export default function PaymentModal({
               {formData.invoiceNeeded && (
                 <div className="grid gap-4 transition-all duration-300">
                   <div>
-                    <label className="block text-[var(--brown-color)] font-medium mb-1">
+                    <label className="block  font-medium mb-1">
                       {currentLocale === "pl" ? "Nazwa firmy" : "Company Name"}
                     </label>
                     <input
@@ -393,7 +393,7 @@ export default function PaymentModal({
                     )}
                   </div>
                   <div>
-                    <label className="block text-[var(--brown-color)] font-medium mb-1">
+                    <label className="block  font-medium mb-1">
                       {currentLocale === "pl"
                         ? "Numer NIP"
                         : "Tax Number (NIP)"}
@@ -415,7 +415,7 @@ export default function PaymentModal({
                     )}
                   </div>
                   <div>
-                    <label className="block text-[var(--brown-color)] font-medium mb-1">
+                    <label className="block  font-medium mb-1">
                       {currentLocale === "pl"
                         ? "Adres firmy"
                         : "Company Address"}
@@ -445,7 +445,7 @@ export default function PaymentModal({
               <div className="flex justify- gap-4">
                 <button
                   onClick={() => setPage("info")}
-                  className="flex-1 px-4 py-2 rounded font-bold text-[var(--brown-color)] border border-[var(--brown-color)] hover:bg-[var(--brown-color)] hover:text-white transition-all duration-300"
+                  className="flex-1 px-4 py-2 rounded font-bold  border border-[var(--brown-color)] hover:bg-[var(--brown-color)] hover:text-white transition-all duration-300"
                 >
                   {currentLocale === "pl" ? "Powrót" : "Back"}
                 </button>
