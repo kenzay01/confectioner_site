@@ -5,6 +5,7 @@ import "../globals.css";
 import { Montserrat } from "next/font/google";
 import localFont from "next/font/local";
 import { ItemsProvider } from "@/context/itemsContext";
+import Footer from "@/components/homePage/Footer";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -39,6 +40,9 @@ export default function RootLayout({
         <ItemsProvider>
           <main>{children}</main>
         </ItemsProvider>
+        <div className="overflow-hidden">
+          <Footer />
+        </div>
       </body>
     </html>
   );

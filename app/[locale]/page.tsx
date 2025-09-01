@@ -14,7 +14,6 @@ const HomePage = () => {
       <ExpertSection />
       <ReviewSection />
       <ProductSection />
-      <Footer />
     </div>
   );
 };

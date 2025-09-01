@@ -7,6 +7,7 @@ interface AnimatedSectionProps {
   className?: string;
   direction?: "left" | "right" | "up" | "down";
   delay?: number;
+  duration?: number;
 }
 
 const AnimatedSection: React.FC<AnimatedSectionProps> = ({
@@ -14,6 +15,7 @@ const AnimatedSection: React.FC<AnimatedSectionProps> = ({
   className,
   direction,
   delay,
+  duration = 0.75,
 }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
@@ -35,7 +37,7 @@ const AnimatedSection: React.FC<AnimatedSectionProps> = ({
     return isInView ? { opacity: 1, x: 0, y: 0 } : getInitialPosition();
   };
   const getTransition = () => {
-    return { duration: 0.75, delay: delay || 0 };
+    return { duration, delay: delay || 0 };
   };
 
   return (

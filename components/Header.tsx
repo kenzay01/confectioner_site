@@ -10,6 +10,7 @@ import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import { useDictionary } from "@/hooks/getDictionary";
 import { Locale } from "@/i18n/config";
 import LanguageSwitcher from "./LanguageSwitcher";
+import AnimatedSection from "./AnimatedSection";
 
 const Header = () => {
   const router = useRouter();
@@ -20,7 +21,6 @@ const Header = () => {
 
   // Normalize pathname for comparison (remove trailing slashes and handle locale)
   const normalizePath = (path: string) => {
-    // Remove trailing slash and ensure consistent format
     return path.replace(/\/$/, "").replace(/^\/$/, `/${currentLocale}`);
   };
 
@@ -42,7 +42,7 @@ const Header = () => {
   return (
     <header className="md:relative fixed top-0 left-0 right-0 z-50 bg-[var(--main-color)] shadow-lg md:shadow-none">
       <div className="max-w-7xl mx-auto overflow-hidden">
-        <div className="flex justify-between items-center h-14 sm:h-24 mx-3 sm:mx-6 lg:mx-8 ">
+        <div className="flex justify-between items-center h-14 sm:h-24 mx-3 sm:mx-6 lg:mx-8">
           {/* Left side - Logo */}
           <div
             onClick={() => router.push(`/${currentLocale}`)}
@@ -113,30 +113,43 @@ const Header = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="lg:hidden py-3 px-3 border-b-2 border-black bg-[var(--main-color)]">
-            <nav className="flex flex-col space-y-1 px-3 sm:px-4">
-              {navLinks.map((link) => {
-                const linkPath = `/${currentLocale}${link.link}`;
-                const isActive =
-                  normalizePath(pathname) === normalizePath(linkPath);
-                return (
-                  <Link
-                    key={link.link}
-                    href={linkPath}
-                    onClick={() => setIsMenuOpen(false)}
-                    className={`text-left text-[var(--main-color)] bg-[var(--brown-color)] transition-all duration-200 py-2 px-4 rounded-lg text-sm sm:text-base ${
-                      isActive ? "bg-[var(--accent-color)]" : ""
-                    }`}
-                  >
-                    {link.label}
-                  </Link>
-                );
-              })}
-            </nav>
-            <div className="px-3 sm:px-4 mt-4">
-              <LanguageSwitcher currentLocale={currentLocale} />
+          <AnimatedSection
+            direction="down"
+            duration={0.35}
+            className="lg:hidden fixed top-[50px] left-0 right-0 bottom-0 bg-[var(--main-color)] z-50 min-h-[100dvh] overflow-y-auto flex flex-col justify-center items-center pb-30"
+          >
+            <div className="py-3 px-3 flex flex-col items-center justify-center h-full">
+              <nav className="flex flex-col space-y-1 px-3 sm:px-4 flex-3 justify-end pb-6">
+                {navLinks.map((link) => {
+                  const linkPath = `/${currentLocale}${link.link}`;
+                  const isActive =
+                    normalizePath(pathname) === normalizePath(linkPath);
+                  return (
+                    <AnimatedSection
+                      key={link.link}
+                      className="py-2 px-4 text-center"
+                      direction="down"
+                      delay={0.2}
+                      duration={0.05 * (navLinks.indexOf(link) + 1)}
+                    >
+                      <Link
+                        href={linkPath}
+                        onClick={() => setIsMenuOpen(false)}
+                        className={`text-center transition-all duration-200 rounded-lg text-xl uppercase sm:text-base ${
+                          isActive ? "underline underline-offset-4" : ""
+                        }`}
+                      >
+                        {link.label}
+                      </Link>
+                    </AnimatedSection>
+                  );
+                })}
+              </nav>
+              <div className="px-3 sm:px-4 mt-4 flex-1 flex items-end">
+                <LanguageSwitcher currentLocale={currentLocale} />
+              </div>
             </div>
-          </div>
+          </AnimatedSection>
         )}
       </div>
     </header>
