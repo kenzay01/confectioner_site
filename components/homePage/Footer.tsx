@@ -4,6 +4,9 @@ import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import { useDictionary } from "@/hooks/getDictionary";
 import { Locale } from "@/i18n/config";
 import AnimatedSection from "../AnimatedSection"; // Імпортуйте утилітний компонент
+import Image from "next/image";
+import logo from "@/public/logo-removebg-preview.png";
+import {Instagram} from "lucide-react";
 
 export default function Footer() {
   const currentLocale = useCurrentLanguage();
@@ -11,21 +14,32 @@ export default function Footer() {
   const navLinks = [
     { link: "/aboutMe", label: dict?.header.aboutMe || "O mnie" },
     {
-      link: "/contactWithChef",
-      label:
-        dict?.header.contactWithChef || "Skontaktuj się kept z szefem kuchni",
+      link: "https://instagram.com/slaviksemkiv", icon: <Instagram className="w-6 h-6" />, type: "social"
     },
     { link: "/contacts", label: dict?.header.contacts || "Kontakty" },
   ];
   return (
     <AnimatedSection
-      className="text-black text-center py-4 mt-8"
+      className="text-black text-center py-4"
       direction="right"
     >
-      <h1 className="text-3xl font-bold mb-4">Nieznany piekarz</h1>
+      <div className="flex justify-center h-24 mb-8 pr-4">
+        <Image src={logo} alt="logo" width={600} height={600} className="w-auto h-42 object-cover"/>
+      </div>
       <nav className="flex justify-center space-x-4">
         {navLinks.map((link) => {
           const linkPath = `/${currentLocale}${link.link}`;
+          if (link.type === "social") {
+            return (
+              <Link
+                key={link.link}
+                href={link.link}
+                className="flex items-center text-black transition-colors px-2 py-1 text-sm sm:text-base font-medium group relative cursor-pointer"
+              >
+                {link.icon}
+              </Link>
+            );
+          }
           return (
             <Link
               key={link.link}

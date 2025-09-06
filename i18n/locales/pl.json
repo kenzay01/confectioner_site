@@ -1,7 +1,7 @@
 {
   "header": {
     "home": "Główna",
-    "masterClass": "Warsztaty",
+    "masterClass": "Szkolenia",
     "aboutMe": "O mnie",
     "onlineProducts": "Produkty online",
     "contactWithChef": "Skontaktuj się z szefem kuchni",
@@ -9,7 +9,7 @@
   },
   "home": {
     "banner": {
-      "title": "Warsztaty z ciasta francuskiego i półfrancuskiego",
+      "title": "Szkolenia z ciasta francuskiego i półfrancuskiego",
       "date": "22–23 września",
       "location": "Tychy",
       "forAllLevels": "Dla wszystkich poziomów przygotowania",
@@ -17,10 +17,10 @@
       "bookButton": "Zajmij miejsce"
     },
     "expert": {
-      "title": "Kto prowadzi warsztaty?",
+      "title": "Kto prowadzi szkolenia?",
       "subtitle": "Poznajmy się!",
-      "description": "Jestem Jarosław Semkiw, piekarz i cukiernik, który uwielbia ciasto we wszystkich jego formach. Na warsztatach przygotujemy zarówno klasykę, jak i nowoczesne trendy słodkiej wypieki: rogaliki, danki, flany, palmier i wiele innych.",
-      "limitedSeats": "Liczba miejsc ograniczona, więc zdążcie zarezerwować miejsce. Do zobaczenia na warsztatach."
+      "description": "Jestem Jarosław Semkiw, piekarz i cukiernik, który uwielbia ciasto we wszystkich jego formach. Na szkoleniach przygotujemy zarówno klasykę, jak i nowoczesne trendy słodkiej wypieki: rogaliki, danki, flany, palmier i wiele innych.",
+      "limitedSeats": "Liczba miejsc ograniczona, więc zdążcie zarezerwować miejsce. Do zobaczenia na szkoleniach."
     },
     "reviews": {
       "title": "A co o nim mówią?",

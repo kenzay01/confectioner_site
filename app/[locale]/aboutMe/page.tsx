@@ -66,7 +66,7 @@ export default function AboutMe() {
           en: "Comprehensive support for opening a new bakery in Grudziądz",
         },
         {
-          pl: "Warsztaty z nadzień i ciasta półfrancuskiego dla Sowa",
+          pl: "Szkolenia z nadzień i ciasta półfrancuskiego dla Sowa",
           en: "Workshops on fillings and puff pastry for Sowa",
         },
         {

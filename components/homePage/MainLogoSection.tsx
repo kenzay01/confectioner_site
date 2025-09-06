@@ -14,7 +14,7 @@ export default function MainLogoSection() {
         className="w-102 h-auto"
       />
       <h1 className="text-2xl sm:text-4xl text-center ">
-        Warsztaty <br /> z <br /> nowoczesnego piekarnictwa
+        Szkolenia <br /> z <br /> nowoczesnego piekarnictwa
       </h1>
     </AnimatedSection>
   );

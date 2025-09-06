@@ -7,17 +7,15 @@ import Image from "next/image";
 import sweet1 from "@/public/materials/bread2.png";
 import sweet2 from "@/public/materials/sweet4.png";
 import AnimatedSection from "@/components/AnimatedSection";
+
 export default function Contact() {
   const currentLocale = useCurrentLanguage() as "pl" | "en";
   const [formData, setFormData] = useState({
     name: "",
-    telegram: "",
     email: "",
     question: "",
   });
-  const [status, setStatus] = useState<
-    "idle" | "loading" | "success" | "error"
-  >("idle");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -43,7 +41,6 @@ export default function Contact() {
 📩 *Нове повідомлення з форми контактів*
 
 👤 *Ім'я*: ${escapeMarkdown(formData.name)}
-📲 *Telegram*: ${escapeMarkdown(formData.telegram)}
 📧 *Email*: ${escapeMarkdown(formData.email)}
 💬 *Питання*:
 _${escapeMarkdown(formData.question)}_
@@ -70,7 +67,6 @@ _${escapeMarkdown(formData.question)}_
           type: "contact",
           data: {
             name: formData.name,
-            telegram: formData.telegram,
             email: formData.email,
             question: formData.question,
           },
@@ -82,7 +78,7 @@ _${escapeMarkdown(formData.question)}_
       }
 
       setStatus("success");
-      setFormData({ name: "", telegram: "", email: "", question: "" });
+      setFormData({ name: "", email: "", question: "" });
       setTimeout(() => setStatus("idle"), 3000);
     } catch (error) {
       console.error("Error:", error);
@@ -114,22 +110,22 @@ _${escapeMarkdown(formData.question)}_
           placeholder="blur"
           quality={75}
         /> */}
-        <h1 className="text-3xl sm:text-4xl font-bold  mb-8 text-center">
+        <h1 className="text-3xl sm:text-4xl font-bold mb-8 text-center">
           {currentLocale === "pl" ? "Kontakt" : "Contact"}
         </h1>
         <div className="grid grid-cols-1 gap-8 mb-12 z-20">
-          <div className=" bg-white/95 backdrop-blur-sm rounded-3xl p-6   z-20">
+          <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-6 z-20">
             <p className="">
               {currentLocale === "pl"
                 ? "Z przyjemnością odpowiem na wszystkie Twoje pytania. Zostaw swoje dane poniżej, a skontaktuję się z Tobą jak najszybciej:"
                 : "I’ll be happy to answer all your questions. Leave your details below, and I’ll get back to you as soon as possible:"}
             </p>
           </div>
-          <div className=" bg-white/95 backdrop-blur-sm rounded-3xl p-6">
+          <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-6">
             <div id="contact-form" className="space-y-4">
               <div>
-                <label className="block  font-medium mb-1">
-                  {currentLocale === "pl" ? "Imię" : "Name"}
+                <label className="block font-medium mb-1">
+                  {currentLocale === "pl" ? "Imię i nazwisko" : "Name and surname"}
                 </label>
                 <input
                   type="text"
@@ -138,29 +134,13 @@ _${escapeMarkdown(formData.question)}_
                   onChange={handleInputChange}
                   className="w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]"
                   placeholder={
-                    currentLocale === "pl" ? "Twoje imię" : "Your name"
+                    currentLocale === "pl" ? "Twoje imię i nazwisko" : "Your name and surname"
                   }
+                  required
                 />
               </div>
               <div>
-                <label className="block  font-medium mb-1">
-                  {currentLocale === "pl"
-                    ? "Nick w Telegramie"
-                    : "Telegram Username"}
-                </label>
-                <input
-                  type="text"
-                  name="telegram"
-                  value={formData.telegram}
-                  onChange={handleInputChange}
-                  className="w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]"
-                  placeholder={
-                    currentLocale === "pl" ? "@TwójNick" : "@YourUsername"
-                  }
-                />
-              </div>
-              <div>
-                <label className="block  font-medium mb-1">
+                <label className="block font-medium mb-1">
                   {currentLocale === "pl" ? "Poczta" : "Email"}
                 </label>
                 <input
@@ -172,10 +152,11 @@ _${escapeMarkdown(formData.question)}_
                   placeholder={
                     currentLocale === "pl" ? "Twój email" : "Your email"
                   }
+                  required
                 />
               </div>
               <div>
-                <label className="block  font-medium mb-1">
+                <label className="block font-medium mb-1">
                   {currentLocale === "pl" ? "Pytanie" : "Question"}
                 </label>
                 <textarea
@@ -193,7 +174,7 @@ _${escapeMarkdown(formData.question)}_
                 <button
                   onClick={handleSubmit}
                   disabled={status === "loading"}
-                  className={`px-6 py-3 rounded-full font-bold text-white bg-[var(--brown-color)] hover:bg-[var(--accent-color)] transition-all duration-300 transform hover:scale-105  hover:shadow-xl ${
+                  className={`px-6 py-3 rounded-full font-bold text-white bg-[var(--brown-color)] hover:bg-[var(--accent-color)] transition-all duration-300 transform hover:scale-105 hover:shadow-xl ${
                     status === "loading" ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                 >
@@ -224,7 +205,7 @@ _${escapeMarkdown(formData.question)}_
           </div>
         </div>
         <div className="text-center">
-          <p className=" mb-4">
+          <p className="mb-4">
             {currentLocale === "pl"
               ? "Śledź mnie, aby być na bieżąco z warsztatami i nowościami ze świata piekarnictwa:"
               : "Follow me to stay updated on workshops and baking news:"}
@@ -233,7 +214,7 @@ _${escapeMarkdown(formData.question)}_
             <Link
               href="https://instagram.com/slaviksemkiv"
               target="_blank"
-              className="flex items-center gap-2  hover:text-[var(--accent-color)] transition-colors"
+              className="flex items-center gap-2 hover:text-[var(--accent-color)] transition-colors"
             >
               <Instagram className="w-6 h-6" />
               slaviksemkiv
@@ -241,7 +222,7 @@ _${escapeMarkdown(formData.question)}_
             <Link
               href="https://t.me/slaviksemkiv"
               target="_blank"
-              className="flex items-center gap-2  hover:text-[var(--accent-color)] transition-colors"
+              className="flex items-center gap-2 hover:text-[var(--accent-color)] transition-colors"
             >
               <Send className="w-6 h-6" />
               Telegram
@@ -249,7 +230,7 @@ _${escapeMarkdown(formData.question)}_
             <Link
               href="https://wa.me/1234567890"
               target="_blank"
-              className="flex items-center gap-2  hover:text-[var(--accent-color)] transition-colors"
+              className="flex items-center gap-2 hover:text-[var(--accent-color)] transition-colors"
             >
               <MessageCircle className="w-6 h-6" />
               WhatsApp

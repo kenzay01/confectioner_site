@@ -9,6 +9,7 @@ import { useItems } from "@/context/itemsContext";
 import { format, isSameDay, addDays, isBefore } from "date-fns";
 import { pl, enGB } from "date-fns/locale";
 import AnimatedSection from "@/components/AnimatedSection";
+import bread2 from "@/public/materials/bread2.png";
 
 const formatDate = (
   masterclass: Masterclass,
@@ -202,7 +203,7 @@ const SliderSection = ({ masterclasses }: { masterclasses: Masterclass[] }) => {
                             masterclass.pickedSlots >
                           0
                             ? currentLocale === "pl"
-                              ? "Zarezerwuj"
+                              ? "Weź udział"
                               : "Book Now"
                             : currentLocale === "pl"
                             ? "Dołącz do listy oczekujących"
@@ -425,11 +426,11 @@ export default function MasterClass() {
 
   return (
     <div className="md:pt-0 pt-14 min-h-screen bg-[var(--main-color)]">
-      <div className=" py-8">
-        <h1 className="max-w-7xl mx-auto text-3xl sm:text-4xl font-bold mb-8 text-center">
-          {currentLocale === "pl" ? "Warsztaty" : "Masterclasses"}
-        </h1>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className=" py-8 relative">
+        <div className="absolute -top-20 sm:-top-25 left-1/2 transform -translate-x-1/2 z-[200] w-full flex justify-center">
+          <Image src={bread2} alt="bread" width={600} height={600} className="w-auto h-92"/>
+        </div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8 mt-24">
           {/* Left Side: Masterclass List */}
           <div className="lg:col-span-2 space-y-6 md:order-1 order-2">
             {loading ? (
@@ -523,7 +524,7 @@ export default function MasterClass() {
                             filteredMasterclass.pickedSlots >
                           0
                             ? currentLocale === "pl"
-                              ? "Zarezerwuj"
+                              ? "Weź udział"
                               : "Book Now"
                             : currentLocale === "pl"
                             ? "Dołącz do listy oczekujących"
@@ -639,7 +640,7 @@ export default function MasterClass() {
                                 masterclass.pickedSlots >
                               0
                                 ? currentLocale === "pl"
-                                  ? "Zarezerwuj"
+                                  ? "Weź udział"
                                   : "Book Now"
                                 : currentLocale === "pl"
                                 ? "Dołącz do listy oczekujących"

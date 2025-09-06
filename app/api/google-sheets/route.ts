@@ -40,11 +40,9 @@ export async function POST(req: NextRequest) {
 
     if (type === "contact") {
       // Дані для аркуша "Контакти"
-      const { name, telegram, email, question } = data;
-      values = [
-        [timestamp, name || "", telegram || "", email || "", question || ""],
-      ];
-      range = "Контакти!A:E"; // Аркуш "Контакти", колонки A-E
+      const { name, email, question } = data;
+      values = [[timestamp, name || "", email || "", question || ""]];
+      range = "Контакти!A:D"; // Оновлено до A-D, видалено колонку для Telegram
     } else if (type === "payment") {
       // Дані для аркуша "Оплати"
       const {
@@ -72,7 +70,7 @@ export async function POST(req: NextRequest) {
           companyAddress || "",
         ],
       ];
-      range = "Оплати!A:J"; // Аркуш "Оплати", колонки A-J
+      range = "Оплати!A:J"; // Без змін, оскільки Telegram тут не використовується
     } else {
       return new Response(JSON.stringify({ message: "Invalid type" }), {
         status: 400,

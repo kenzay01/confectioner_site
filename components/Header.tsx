@@ -26,21 +26,21 @@ const Header = () => {
 
   const navLinks = [
     { link: "/", label: dict?.header.home || "Główna" },
-    { link: "/masterClass", label: dict?.header.masterClass || "Warsztaty" },
+    { link: "/masterClass", label: dict?.header.masterClass || "Szkolenia" },
     { link: "/aboutMe", label: dict?.header.aboutMe || "O mnie" },
     {
       link: "/onlineProducts",
       label: dict?.header.onlineProducts || "Produkty online",
     },
-    {
-      link: "/contactWithChef",
-      label: dict?.header.contactWithChef || "Skontaktuj się z szefem kuchni",
-    },
+    // {
+    //   link: "/contactWithChef",
+    //   label: dict?.header.contactWithChef || "Skontaktuj się z szefem kuchni",
+    // },
     { link: "/contacts", label: dict?.header.contacts || "Kontakty" },
   ];
 
   return (
-    <header className="md:relative fixed top-0 left-0 right-0 z-50 bg-[var(--main-color)] shadow-lg md:shadow-none">
+    <header className="md:relative fixed top-0 left-0 right-0 z-[250] bg-[var(--main-color)] shadow-lg md:shadow-none">
       <div className="max-w-7xl mx-auto overflow-hidden">
         <div className="flex justify-between items-center h-14 sm:h-24 mx-3 sm:mx-6 lg:mx-8">
           {/* Left side - Logo */}
@@ -104,9 +104,9 @@ const Header = () => {
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             {isMenuOpen ? (
-              <X size={18} className="sm:size-6" />
+              <X className="w-12" />
             ) : (
-              <Menu size={18} className="sm:size-6" />
+              <Menu className="w-12 scale-x-150" />
             )}
           </button>
         </div>
@@ -116,7 +116,7 @@ const Header = () => {
           <AnimatedSection
             direction="down"
             duration={0.35}
-            className="lg:hidden fixed top-[50px] left-0 right-0 bottom-0 bg-[var(--main-color)] z-50 min-h-[100dvh] overflow-y-auto flex flex-col justify-center items-center pb-30"
+            className="lg:hidden fixed top-[50px] left-0 right-0 bottom-0 bg-[var(--main-color)] z-[250] min-h-[100dvh] overflow-y-auto flex flex-col justify-center items-center pb-30"
           >
             <div className="py-3 px-3 flex flex-col items-center justify-center h-full">
               <nav className="flex flex-col space-y-1 px-3 sm:px-4 flex-3 justify-end pb-6">

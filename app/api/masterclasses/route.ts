@@ -18,7 +18,7 @@ export async function GET() {
     if (!fileExists) {
       await fs.mkdir(path.dirname(masterclassesFile), { recursive: true });
       await fs.writeFile(masterclassesFile, JSON.stringify([]));
-      console.log(`Created ${masterclassesFile}`);
+      // console.log(`Created ${masterclassesFile}`);
     }
     const fileContents = await fs.readFile(masterclassesFile, "utf-8");
     const masterclasses = fileContents
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     if (!fileExists) {
       await fs.mkdir(path.dirname(masterclassesFile), { recursive: true });
       await fs.writeFile(masterclassesFile, JSON.stringify([]));
-      console.log(`Created ${masterclassesFile}`);
+      // console.log(`Created ${masterclassesFile}`);
     }
     const fileContents = await fs.readFile(masterclassesFile, "utf-8");
     const masterclasses = fileContents
