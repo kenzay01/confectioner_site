@@ -1,11 +1,8 @@
 "use client";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
-import { useDictionary } from "@/hooks/getDictionary";
-import { Locale } from "@/i18n/config";
 
 export default function TermsOfService() {
   const currentLocale = useCurrentLanguage();
-  const { dict } = useDictionary(currentLocale as Locale);
 
   return (
     <div className="min-h-screen bg-[var(--main-color)] pt-20 px-4">
@@ -20,7 +17,7 @@ export default function TermsOfService() {
               <section>
                 <h2 className="text-xl font-semibold mb-3">1. Postanowienia ogólne</h2>
                 <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
-                  <li>Niniejszy regulamin określa zasady korzystania ze strony internetowej prowadzonej przez Yaroslav Semkiv ("Nieznany piekarz"), w tym zasady zakupu szkoleń oferowanych przez Administratora.</li>
+                  <li>Niniejszy regulamin określa zasady korzystania ze strony internetowej prowadzonej przez Yaroslav Semkiv (&quot;Nieznany piekarz&quot;), w tym zasady zakupu szkoleń oferowanych przez Administratora.</li>
                   <li>Właścicielem Strony jest Yaroslav Semkiv Nieznany piekarz, z siedzibą w Warszawie, ul. Franciszka Adolfa Achera 9/U1, 02-495, wpisanym do CEIDG/KRS, NIP: 5272748962, REGON: 5286780087, kontakt: slaviksemkiv12@gmail.com</li>
                   <li>Kontakt z Administratorem możliwy jest drogą elektroniczną pod adresem e-mail: slaviksemkiv12@gmail.com.</li>
                   <li>Regulamin jest udostępniany nieodpłatnie na Stronie w formie umożliwiającej jego pobranie, utrwalenie i wydrukowanie.</li>
@@ -139,7 +136,7 @@ export default function TermsOfService() {
               <section>
                 <h2 className="text-xl font-semibold mb-3">1. General Provisions</h2>
                 <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
-                  <li>These Terms of Service define the rules for using the website operated by Yaroslav Semkiv ("Unknown Baker"), including the rules for purchasing training offered by the Administrator.</li>
+                  <li>These Terms of Service define the rules for using the website operated by Yaroslav Semkiv (&quot;Unknown Baker&quot;), including the rules for purchasing training offered by the Administrator.</li>
                   <li>The website owner is Yaroslav Semkiv Unknown Baker, based in Warsaw, ul. Franciszka Adolfa Achera 9/U1, 02-495, registered in CEIDG/KRS, NIP: 5272748962, REGON: 5286780087, contact: slaviksemkiv12@gmail.com</li>
                   <li>Contact with the Administrator is possible electronically at: slaviksemkiv12@gmail.com.</li>
                   <li>The Terms of Service are made available free of charge on the Website in a form that allows downloading, recording and printing.</li>
@@ -152,7 +149,7 @@ export default function TermsOfService() {
                 <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
                   <li><strong>User/Client</strong> – a person using the Website and making a training purchase.</li>
                   <li><strong>Administrator/Seller</strong> – website owner, training organizer.</li>
-                  <li><strong>Training</strong> – educational service (stationary or online) available in the Website's offer.</li>
+                  <li><strong>Training</strong> – educational service (stationary or online) available in the Website&apos;s offer.</li>
                   <li><strong>Contract</strong> – sales/service contract concluded between the Client and the Seller.</li>
                 </ul>
               </section>
@@ -203,11 +200,11 @@ export default function TermsOfService() {
                   <li>A Client who is a consumer has the right to withdraw from the contract within 14 days from its conclusion, without giving a reason.</li>
                   <li>The right of withdrawal does not apply if:
                     <ul className="list-disc list-inside mt-2 ml-4 space-y-1">
-                      <li>training was fully completed before the 14-day period (with Client's consent),</li>
+                      <li>training was fully completed before the 14-day period (with Client&apos;s consent),</li>
                       <li>the Client gained access to online materials in digital version, which are non-returnable after use begins.</li>
                     </ul>
                   </li>
-                  <li>To withdraw from the contract, the Client should send an appropriate statement to the Administrator's email address.</li>
+                  <li>To withdraw from the contract, the Client should send an appropriate statement to the Administrator&apos;s email address.</li>
                 </ol>
               </section>
 
@@ -224,7 +221,7 @@ export default function TermsOfService() {
                 <h2 className="text-xl font-semibold mb-3">9. Liability</h2>
                 <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
                   <li>The Administrator is not liable for interruptions in Website functioning caused by failures beyond their control.</li>
-                  <li>The Administrator is not responsible for inability to participate in training due to reasons on the Client's side (e.g., lack of Internet access, incorrect order data).</li>
+                  <li>The Administrator is not responsible for inability to participate in training due to reasons on the Client&apos;s side (e.g., lack of Internet access, incorrect order data).</li>
                 </ol>
               </section>
 
@@ -232,14 +229,14 @@ export default function TermsOfService() {
                 <h2 className="text-xl font-semibold mb-3">10. Copyright</h2>
                 <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
                   <li>Training materials are legally protected and may only be used by the Client for their own needs.</li>
-                  <li>Copying, distributing, or sharing them with third parties without Administrator's consent is prohibited.</li>
+                  <li>Copying, distributing, or sharing them with third parties without Administrator&apos;s consent is prohibited.</li>
                 </ol>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold mb-3">11. Personal Data and Cookies</h2>
                 <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
-                  <li>The Administrator processes Clients' personal data in accordance with applicable law, including GDPR.</li>
+                  <li>The Administrator processes Clients&apos; personal data in accordance with applicable law, including GDPR.</li>
                   <li>Detailed information regarding personal data processing and cookies is contained in the Privacy Policy available on the Website.</li>
                 </ol>
               </section>

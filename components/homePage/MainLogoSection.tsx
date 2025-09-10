@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import AnimatedSection from "../AnimatedSection";
 
 export default function MainLogoSection() {

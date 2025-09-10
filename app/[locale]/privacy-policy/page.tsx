@@ -1,11 +1,8 @@
 "use client";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
-import { useDictionary } from "@/hooks/getDictionary";
-import { Locale } from "@/i18n/config";
 
 export default function PrivacyPolicy() {
   const currentLocale = useCurrentLanguage();
-  const { dict } = useDictionary(currentLocale as Locale);
 
   return (
     <div className="min-h-screen bg-[var(--main-color)] pt-20 px-4">
