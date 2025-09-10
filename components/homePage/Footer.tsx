@@ -4,8 +4,6 @@ import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import { useDictionary } from "@/hooks/getDictionary";
 import { Locale } from "@/i18n/config";
 import AnimatedSection from "../AnimatedSection"; // Імпортуйте утилітний компонент
-import Image from "next/image";
-import logo from "@/public/logo-removebg-preview.png";
 import {Instagram} from "lucide-react";
 
 export default function Footer() {
@@ -18,15 +16,30 @@ export default function Footer() {
     },
     { link: "/contacts", label: dict?.header.contacts || "Kontakty" },
   ];
+  
+  const legalLinks = [
+    { link: "/privacy-policy", label: dict?.footer?.privacyPolicy || "Polityka prywatności" },
+    { link: "/terms-of-service", label: dict?.footer?.termsOfService || "Regulamin" },
+  ];
   return (
     <AnimatedSection
       className="text-black text-center py-4"
       direction="right"
     >
       <div className="flex justify-center h-24 mb-8 pr-4">
-        <Image src={logo} alt="logo" width={600} height={600} className="w-auto h-42 object-cover"/>
+        <div className="relative w-32 h-24">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-contain"
+          >
+            <source src="/white_BG.mp4" type="video/mp4" />
+          </video>
+        </div>
       </div>
-      <nav className="flex justify-center space-x-4">
+      <nav className="flex justify-center space-x-4 mb-4">
         {navLinks.map((link) => {
           const linkPath = `/${currentLocale}${link.link}`;
           if (link.type === "social") {
@@ -54,6 +67,22 @@ export default function Footer() {
           );
         })}
       </nav>
+      
+      {/* Legal Links */}
+      <div className="flex justify-center space-x-6 text-xs text-gray-600">
+        {legalLinks.map((link) => {
+          const linkPath = `/${currentLocale}${link.link}`;
+          return (
+            <Link
+              key={link.link}
+              href={linkPath}
+              className="hover:text-black transition-colors underline"
+            >
+              {link.label}
+            </Link>
+          );
+        })}
+      </div>
     </AnimatedSection>
   );
 }

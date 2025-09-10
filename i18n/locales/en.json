@@ -39,5 +39,9 @@
         "buyButton": "Buy Now!"
       }
     }
+  },
+  "footer": {
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service"
   }
 }
