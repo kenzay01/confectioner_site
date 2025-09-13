@@ -18,7 +18,7 @@ export default function TermsOfService() {
                 <h2 className="text-xl font-semibold mb-3">1. Postanowienia ogólne</h2>
                 <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
                   <li>Niniejszy regulamin określa zasady korzystania ze strony internetowej prowadzonej przez Yaroslav Semkiv (&quot;Nieznany piekarz&quot;), w tym zasady zakupu szkoleń oferowanych przez Administratora.</li>
-                  <li>Właścicielem Strony jest Yaroslav Semkiv Nieznany piekarz, z siedzibą w Warszawie, ul. Franciszka Adolfa Achera 9/U1, 02-495, wpisanym do CEIDG/KRS, NIP: 5272748962, REGON: 5286780087, kontakt: slaviksemkiv12@gmail.com</li>
+                  <li>Właścicielem Strony jest Yaroslav Semkiv Nieznany piekarz, z siedzibą w Warszawie, ul. Franciszka Adolfa Achera 9/U1, 02-495, wpisanym do CEIDG/KRS, NIP: 5272748962, REGON: 528678087, kontakt: slaviksemkiv12@gmail.com</li>
                   <li>Kontakt z Administratorem możliwy jest drogą elektroniczną pod adresem e-mail: slaviksemkiv12@gmail.com.</li>
                   <li>Regulamin jest udostępniany nieodpłatnie na Stronie w formie umożliwiającej jego pobranie, utrwalenie i wydrukowanie.</li>
                   <li>Zakup szkolenia oznacza akceptację niniejszego Regulaminu.</li>
@@ -130,6 +130,19 @@ export default function TermsOfService() {
                   <li>W sprawach nieuregulowanych niniejszym Regulaminem zastosowanie mają przepisy Kodeksu cywilnego oraz ustawy o prawach konsumenta.</li>
                 </ol>
               </section>
+
+              <section>
+                <h2 className="text-xl font-semibold mb-3">13. Dodatkowe informacje</h2>
+                <div className="text-gray-700 leading-relaxed ml-4">
+                  <p>Imię: Yaroslav</p>
+                  <p>Nazwisko: Semkiv</p>
+                  <p>Firma prowadzącego: Yaroslav Semkiv NIEZNANY PIEKARZ</p>
+                  <p>NIP: 5272748962</p>
+                  <p>REGON: 528678087</p>
+                  <p>Forma prawna: CEIDG - Osoba fizyczna prowadząca działalność gospodarczą</p>
+                  <p>Rekwizyty: 08 1160 2202 0000 0006 2929 4950</p>
+                </div>
+              </section>
             </>
           ) : (
             <>
@@ -137,7 +150,7 @@ export default function TermsOfService() {
                 <h2 className="text-xl font-semibold mb-3">1. General Provisions</h2>
                 <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
                   <li>These Terms of Service define the rules for using the website operated by Yaroslav Semkiv (&quot;Unknown Baker&quot;), including the rules for purchasing training offered by the Administrator.</li>
-                  <li>The website owner is Yaroslav Semkiv Unknown Baker, based in Warsaw, ul. Franciszka Adolfa Achera 9/U1, 02-495, registered in CEIDG/KRS, NIP: 5272748962, REGON: 5286780087, contact: slaviksemkiv12@gmail.com</li>
+                  <li>The website owner is Yaroslav Semkiv Unknown Baker, based in Warsaw, ul. Franciszka Adolfa Achera 9/U1, 02-495, registered in CEIDG/KRS, NIP: 5272748962, REGON: 528678087, contact: slaviksemkiv12@gmail.com</li>
                   <li>Contact with the Administrator is possible electronically at: slaviksemkiv12@gmail.com.</li>
                   <li>The Terms of Service are made available free of charge on the Website in a form that allows downloading, recording and printing.</li>
                   <li>Purchasing training means accepting these Terms of Service.</li>
@@ -248,6 +261,19 @@ export default function TermsOfService() {
                   <li>Polish law applies to contracts concluded between the Client and Administrator.</li>
                   <li>In matters not regulated by these Terms of Service, the provisions of the Civil Code and the Consumer Rights Act apply.</li>
                 </ol>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold mb-3">13. Additional Information</h2>
+                <div className="text-gray-700 leading-relaxed ml-4">
+                  <p>First Name: Yaroslav</p>
+                  <p>Last Name: Semkiv</p>
+                  <p>Company: Yaroslav Semkiv NIEZNANY PIEKARZ</p>
+                  <p>NIP: 5272748962</p>
+                  <p>REGON: 528678087</p>
+                  <p>Legal Form: CEIDG - Individual Entrepreneur</p>
+                  <p>Account Details: 08 1160 2202 0000 0006 2929 4950</p>
+                </div>
               </section>
             </>
           )}
