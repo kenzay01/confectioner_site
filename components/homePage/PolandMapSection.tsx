@@ -20,7 +20,7 @@ interface LeafletMarker {
   addTo: (map: LeafletMap) => LeafletMarker;
   bindPopup: (content: string) => LeafletMarker;
   bindTooltip: (content: string, options?: Record<string, unknown>) => LeafletMarker;
-  on: (event: string, handler: (e?: Event) => void) => LeafletMarker;
+  on: (event: string, handler: (e?: { originalEvent: Event }) => void) => LeafletMarker;
 }
 
 interface LeafletIcon {
@@ -102,7 +102,7 @@ export default function PolandMapSection() {
       // Додаємо глобальну функцію для обробки кліків
       window.selectCity = (cityName: string) => {
         console.log('Global click handler:', cityName);
-        setSelectedCity(selectedCity === cityName ? null : cityName);
+        setSelectedCity(prevSelected => prevSelected === cityName ? null : cityName);
       };
       
       const mapInstance = L.map(mapRef.current, {
@@ -180,16 +180,16 @@ export default function PolandMapSection() {
 
         const marker = L.marker([city.lat, city.lng], { icon: customIcon })
           .addTo(mapInstance)
-          .on('click', (e?: Event) => {
-            if (e) {
-              (e as MouseEvent).stopPropagation();
+          .on('click', (e?: { originalEvent: Event }) => {
+            if (e && e.originalEvent) {
+              e.originalEvent.stopPropagation();
             }
             console.log('Leaflet click on city:', city.name);
-            setSelectedCity(selectedCity === city.name ? null : city.name);
+            setSelectedCity(prevSelected => prevSelected === city.name ? null : city.name);
           })
-          .on('mousedown', (e?: Event) => {
-            if (e) {
-              (e as MouseEvent).stopPropagation();
+          .on('mousedown', (e?: { originalEvent: Event }) => {
+            if (e && e.originalEvent) {
+              e.originalEvent.stopPropagation();
             }
           });
 
