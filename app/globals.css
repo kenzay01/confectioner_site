@@ -19,7 +19,8 @@ html {
 }
 
 body {
-  font-family: var(--font-helvetica-neue);
+  font-family: var(--font-montserrat);
+  font-weight: 700;
 }
 
 /* Custom Tailwind utilities for the new colors */

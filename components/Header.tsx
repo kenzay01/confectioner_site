@@ -36,7 +36,7 @@ const Header = () => {
     //   link: "/contactWithChef",
     //   label: dict?.header.contactWithChef || "Skontaktuj się z szefem kuchni",
     // },
-    { link: "/contacts", label: dict?.header.contacts || "Kontakty" },
+    { link: "/contacts", label: dict?.header.contacts || "Kontakt" },
   ];
 
   return (
@@ -100,13 +100,13 @@ const Header = () => {
 
           {/* Mobile Menu Button */}
           <button
-            className="lg:hidden p-2 sm:p-3 rounded-lg text-black hover:bg-[var(--main-color)]/10 transition-colors active:bg-white/20"
+            className="lg:hidden p-2 sm:p-3 rounded-lg text-gray-600 hover:bg-[var(--main-color)]/10 transition-colors active:bg-white/20"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             {isMenuOpen ? (
-              <X className="w-12" />
+              <X className="w-12 text-gray-600" />
             ) : (
-              <Menu className="w-12 scale-x-150" />
+              <Menu className="w-12 scale-x-150 text-gray-600" />
             )}
           </button>
         </div>

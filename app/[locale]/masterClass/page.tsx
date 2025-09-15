@@ -139,19 +139,21 @@ const SliderSection = ({ masterclasses }: { masterclasses: Masterclass[] }) => {
                 <div className="relative min-h-screen sm:min-h-[80vh] rounded-lg overflow-hidden">
                   <Image
                     src={
-                      masterclass.backgroundImage ||
                       masterclass.photo ||
                       "/placeholder.jpg"
                     }
                     alt={masterclass.title[currentLocale]}
-                    layout="fill"
-                    objectFit="cover"
+                    fill
                     className="absolute inset-0 w-full h-full object-cover z-0"
                     placeholder="blur"
                     blurDataURL="/placeholder.jpg"
                     priority
                     quality={75}
                     sizes="100vw (max-width: 600px) 100vw, (max-width: 1024px) 80vw, 70vw"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = "/placeholder.jpg";
+                    }}
                   />
                   <div className="absolute inset-0 w-full h-full bg-black/40 z-10"></div>
                   <div className="h-full  bg-black/40 flex items-center justify-center min-h-screen sm:min-h-screen z-15">
@@ -171,8 +173,8 @@ const SliderSection = ({ masterclasses }: { masterclasses: Masterclass[] }) => {
                         <div className="flex items-center justify-center gap-2">
                           <Users className="w-6 h-6" />
                           <span>
-                            {masterclass.availableSlots -
-                              masterclass.pickedSlots}{" "}
+                            {(masterclass.availableSlots || 0) -
+                              (masterclass.pickedSlots || 0)}{" "}
                             {currentLocale === "pl"
                               ? "wolnych miejsc"
                               : "slots available"}
@@ -192,15 +194,15 @@ const SliderSection = ({ masterclasses }: { masterclasses: Masterclass[] }) => {
                         <Link
                           href={`/${currentLocale}/masterClass/masterclass-${masterclass.id}`}
                           className={`inline-block px-6 py-3 rounded-full font-bold text-white mt-4 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
-                            masterclass.availableSlots -
-                              masterclass.pickedSlots >
+                            (masterclass.availableSlots || 0) -
+                              (masterclass.pickedSlots || 0) >
                             0
                               ? "bg-[var(--brown-color)] hover:bg-[var(--accent-color)]"
                               : "bg-gray-400 cursor-not-allowed"
                           }`}
                         >
-                          {masterclass.availableSlots -
-                            masterclass.pickedSlots >
+                          {(masterclass.availableSlots || 0) -
+                            (masterclass.pickedSlots || 0) >
                           0
                             ? currentLocale === "pl"
                               ? "Weź udział"
@@ -251,8 +253,14 @@ export default function MasterClass() {
   const currentLocale = useCurrentLanguage() as "pl" | "en";
   const { masterclasses, loading, error } = useItems();
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0); // Normalize today for comparison
+  const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth());
+  const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
+  
+  const today = useMemo(() => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }, []);
 
   // Get unique dates for all masterclasses
   const eventDates = useMemo(() => {
@@ -272,30 +280,30 @@ export default function MasterClass() {
     return dates;
   }, [masterclasses]);
 
-  // Filter masterclasses for the selected date or next upcoming event
-  const filteredMasterclass = useMemo(() => {
-    if (masterclasses.length === 0) return null;
+  // Filter masterclasses for the selected date or show only the nearest upcoming event
+  const filteredMasterclasses = useMemo(() => {
+    if (masterclasses.length === 0) return [];
 
     if (!selectedDate) {
-      // Filter out past masterclasses and select the earliest upcoming one
+      // Show only the nearest upcoming masterclass
       const upcomingMasterclasses = masterclasses.filter((mc) => {
         const endDate = new Date(mc.dateEnd || mc.date);
-        endDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999); // End of day
         return !isBefore(endDate, today);
       });
-      return (
-        upcomingMasterclasses.sort(
-          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-        )[0] || null
+      const sortedUpcoming = upcomingMasterclasses.sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
       );
+      // Return only the first (nearest) masterclass
+      return sortedUpcoming.length > 0 ? [sortedUpcoming[0]] : [];
     }
 
     // Find masterclasses matching the selected date
-    const matchedMasterclass = masterclasses.find((mc) => {
+    const matchedMasterclasses = masterclasses.filter((mc) => {
       const startDate = new Date(mc.date);
       const endDate = new Date(mc.dateEnd || mc.date);
       startDate.setHours(0, 0, 0, 0);
-      endDate.setHours(0, 0, 0, 0);
+      endDate.setHours(23, 59, 59, 999);
       const normalizedSelectedDate = new Date(selectedDate);
       normalizedSelectedDate.setHours(0, 0, 0, 0);
 
@@ -308,8 +316,8 @@ export default function MasterClass() {
       );
     });
 
-    return matchedMasterclass || null;
-  }, [masterclasses, selectedDate]);
+    return matchedMasterclasses;
+  }, [masterclasses, selectedDate, today]);
 
   // Check if a masterclass has ended
   const isMasterclassEnded = (masterclass: Masterclass): boolean => {
@@ -338,12 +346,10 @@ export default function MasterClass() {
 
   // Custom Calendar Component
   const CustomCalendar = () => {
-    const [currentMonth, setCurrentMonth] = useState(today.getMonth());
-    const [currentYear, setCurrentYear] = useState(today.getFullYear());
     const locale = currentLocale === "pl" ? pl : enGB;
 
-    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-    const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+    const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+    const firstDayOfMonth = new Date(calendarYear, calendarMonth, 1).getDay();
     const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
     const weekdays = Array.from(
       { length: 7 },
@@ -354,13 +360,21 @@ export default function MasterClass() {
     );
 
     const prevMonth = () => {
-      setCurrentMonth((prev) => (prev === 0 ? 11 : prev - 1));
-      if (currentMonth === 0) setCurrentYear((prev) => prev - 1);
+      if (calendarMonth === 0) {
+        setCalendarYear(calendarYear - 1);
+        setCalendarMonth(11);
+      } else {
+        setCalendarMonth(calendarMonth - 1);
+      }
     };
 
     const nextMonth = () => {
-      setCurrentMonth((prev) => (prev === 11 ? 0 : prev + 1));
-      if (currentMonth === 11) setCurrentYear((prev) => prev + 1);
+      if (calendarMonth === 11) {
+        setCalendarYear(calendarYear + 1);
+        setCalendarMonth(0);
+      } else {
+        setCalendarMonth(calendarMonth + 1);
+      }
     };
 
     return (
@@ -368,20 +382,22 @@ export default function MasterClass() {
         <div className="flex justify-between items-center mb-4">
           <button
             onClick={prevMonth}
-            className="hover:text-[var(--accent-color)]"
+            className="p-2 rounded-full hover:bg-[var(--brown-color)] hover:text-white transition-all duration-200 font-bold text-lg cursor-pointer"
+            type="button"
           >
-            &larr;
+            ←
           </button>
           <h3 className="text-lg font-semibold">
-            {format(new Date(currentYear, currentMonth), "MMMM yyyy", {
+            {format(new Date(calendarYear, calendarMonth), "MMMM yyyy", {
               locale,
             })}
           </h3>
           <button
             onClick={nextMonth}
-            className="hover:text-[var(--accent-color)]"
+            className="p-2 rounded-full hover:bg-[var(--brown-color)] hover:text-white transition-all duration-200 font-bold text-lg cursor-pointer"
+            type="button"
           >
-            &rarr;
+            →
           </button>
         </div>
         <div className="grid grid-cols-7 gap-1 text-center text-sm">
@@ -394,28 +410,34 @@ export default function MasterClass() {
             <div key={`empty-${i}`} />
           ))}
           {days.map((day) => {
-            const date = new Date(currentYear, currentMonth, day);
+            const date = new Date(calendarYear, calendarMonth, day);
             const isEventDay = eventDates.some((eventDate) =>
               isSameDay(eventDate, date)
             );
             const isSelected = selectedDate && isSameDay(date, selectedDate);
+            const isToday = isSameDay(date, today);
             const isPastDay = isBefore(date, today);
             return (
               <button
                 key={day}
                 onClick={() => setSelectedDate(date)}
-                className={`p-2 rounded-full ${
+                className={`p-2 rounded-full relative ${
                   isEventDay
                     ? isPastDay
                       ? "bg-gray-300 text-gray-600"
                       : "bg-[var(--accent-color)] text-white"
+                    : isToday
+                    ? "bg-[var(--brown-color)]/30 text-[var(--brown-color)] font-bold"
                     : ""
                 } ${
-                  isSelected ? "ring-2 ring-[var(--brown-color)]" : ""
-                } hover:bg-[var(--brown-color)]/20`}
+                  isSelected ? "ring-2 ring-[var(--brown-color)] ring-offset-1" : ""
+                } hover:bg-[var(--brown-color)]/20 transition-all duration-200`}
                 disabled={isPastDay && !isEventDay}
               >
                 {day}
+                {isToday && (
+                  <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-[var(--brown-color)] rounded-full"></div>
+                )}
               </button>
             );
           })}
@@ -427,12 +449,13 @@ export default function MasterClass() {
   return (
     <div className="md:pt-0 pt-14 min-h-screen bg-[var(--main-color)]">
       <div className=" py-8 relative">
-        <div className="absolute -top-20 sm:-top-25 left-1/2 transform -translate-x-1/2 z-[200] w-full flex justify-center">
+        <div className="absolute -top-20 sm:-top-25 left-1/2 transform -translate-x-1/2 z-10 w-full flex justify-center pointer-events-none">
           <Image src={bread2} alt="bread" width={600} height={600} className="w-auto h-92"/>
         </div>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8 mt-24">
-          {/* Left Side: Masterclass List */}
-          <div className="lg:col-span-2 space-y-6 md:order-1 order-2">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-24">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Side: Masterclass List */}
+            <div className="lg:col-span-2 space-y-6 md:order-1 order-2">
             {loading ? (
               <p className="lg:col-span-2 self-center text-center text-[var(--accent-color)]">
                 Loading...
@@ -441,69 +464,71 @@ export default function MasterClass() {
               <p className="lg:col-span-2 self-center text-center text-red-500">
                 {error}
               </p>
-            ) : masterclasses.length === 0 ||
-              (!selectedDate && !filteredMasterclass) ? (
+            ) : filteredMasterclasses.length === 0 ? (
               <p className="lg:col-span-2 self-center text-center text-[var(--accent-color)]">
-                {currentLocale === "pl"
+                {selectedDate
+                  ? currentLocale === "pl"
+                    ? "Brak warsztatów dla wybranej daty"
+                    : "No masterclasses for the selected date"
+                  : currentLocale === "pl"
                   ? "Brak nadchodzących warsztatów"
                   : "No upcoming masterclasses available"}
               </p>
-            ) : !filteredMasterclass && selectedDate ? (
-              <p className="lg:col-span-2 self-center text-center text-[var(--accent-color)]">
-                {currentLocale === "pl"
-                  ? "Brak warsztatów dla wybranej daty"
-                  : "No masterclasses for the selected date"}
-              </p>
             ) : (
-              filteredMasterclass && (
-                <AnimatedSection
-                  className="lg:col-span-2 space-y-6"
-                  direction="left"
-                >
+              <div className="lg:col-span-2 space-y-6">
+                {filteredMasterclasses.map((masterclass) => (
+                  <AnimatedSection
+                    key={masterclass.id}
+                    direction="left"
+                  >
                   <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-6 flex flex-col sm:flex-row gap-4">
                     <div className="flex-shrink-0">
                       <Image
-                        src={filteredMasterclass.photo || "/placeholder.jpg"}
-                        alt={filteredMasterclass.title[currentLocale]}
+                        src={masterclass.photo || "/placeholder.jpg"}
+                        alt={masterclass.title[currentLocale]}
                         width={200}
                         height={200}
                         className={`rounded-lg object-cover w-48 h-48 sm:w-64 sm:h-64 ${
-                          isMasterclassEnded(filteredMasterclass)
+                          isMasterclassEnded(masterclass)
                             ? "grayscale"
                             : ""
                         }`}
                         placeholder="blur"
                         blurDataURL="/placeholder.jpg"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "/placeholder.jpg";
+                        }}
                       />
                     </div>
                     <div className="flex-1">
                       <h2 className="text-xl sm:text-2xl font-semibold  mb-2">
-                        {filteredMasterclass.title[currentLocale]}
+                        {masterclass.title[currentLocale]}
                       </h2>
                       <div className="flex items-center gap-2 text-[var(--accent-color)] mb-2">
                         <Calendar className="w-5 h-5" />
-                        <span>{formatDate(filteredMasterclass)}</span>
+                        <span>{formatDate(masterclass)}</span>
                       </div>
                       <div className="flex items-center gap-2 text-[var(--accent-color)] mb-2">
                         <MapPin className="w-5 h-5" />
                         <span>
-                          {filteredMasterclass.location[currentLocale]}
+                          {masterclass.location[currentLocale]}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-[var(--accent-color)] mb-4">
                         <Users className="w-5 h-5" />
                         <span>
-                          {filteredMasterclass.availableSlots -
-                            filteredMasterclass.pickedSlots}{" "}
+                          {(masterclass.availableSlots || 0) -
+                            (masterclass.pickedSlots || 0)}{" "}
                           {currentLocale === "pl"
                             ? "wolnych miejsc"
                             : "slots available"}
                         </span>
                       </div>
                       <div className="text-2xl font-bold  mb-4">
-                        {filteredMasterclass.price} zł
+                        {masterclass.price} zł
                       </div>
-                      {isMasterclassEnded(filteredMasterclass) ? (
+                      {isMasterclassEnded(masterclass) ? (
                         <p className="text-[var(--accent-color)] font-semibold">
                           {currentLocale === "pl"
                             ? "To wydarzenie się zakończyło"
@@ -511,17 +536,17 @@ export default function MasterClass() {
                         </p>
                       ) : (
                         <Link
-                          href={`/${currentLocale}/masterClass/masterclass-${filteredMasterclass.id}`}
+                          href={`/${currentLocale}/masterClass/masterclass-${masterclass.id}`}
                           className={`inline-block px-6 py-3 rounded-full font-bold text-white transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
-                            filteredMasterclass.availableSlots -
-                              filteredMasterclass.pickedSlots >
+                            (masterclass.availableSlots || 0) -
+                              (masterclass.pickedSlots || 0) >
                             0
                               ? "bg-[var(--brown-color)] hover:bg-[var(--accent-color)]"
                               : "bg-gray-400 cursor-not-allowed"
                           }`}
                         >
-                          {filteredMasterclass.availableSlots -
-                            filteredMasterclass.pickedSlots >
+                          {(masterclass.availableSlots || 0) -
+                            (masterclass.pickedSlots || 0) >
                           0
                             ? currentLocale === "pl"
                               ? "Weź udział"
@@ -533,21 +558,22 @@ export default function MasterClass() {
                       )}
                     </div>
                   </div>
-                </AnimatedSection>
-              )
+                  </AnimatedSection>
+                ))}
+              </div>
             )}
           </div>
 
-          {/* Right Side: Calendar */}
-          <AnimatedSection
-            className="lg:col-span-1 md:order-2 order-1"
-            direction="right"
-          >
-            <CustomCalendar />
-          </AnimatedSection>
+            {/* Right Side: Calendar */}
+            <div className="lg:col-span-1 md:order-2 order-1">
+              <CustomCalendar />
+            </div>
+          </div>
         </div>
-        <SliderSection masterclasses={masterclasses} />
-        {/* Slider Section */}
+        
+        {/* Event Gallery Slider Section */}
+        <SliderSection masterclasses={filteredMasterclasses} />
+        
         {/* <div className="mt-12 ">
           <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center">
             {currentLocale === "pl" ? "Galeria wydarzeń" : "Event Gallery"}

@@ -265,7 +265,7 @@ export default function PaymentModal({
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleInputChange}
-                  className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] ${
+                  className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
                     errors.fullName ? "border-red-500" : ""
                   }`}
                   placeholder={
@@ -287,7 +287,7 @@ export default function PaymentModal({
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] ${
+                  className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
                     errors.email ? "border-red-500" : ""
                   }`}
                   placeholder={
@@ -309,7 +309,7 @@ export default function PaymentModal({
                   name="whatsapp"
                   value={formData.whatsapp}
                   onChange={handleInputChange}
-                  className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] ${
+                  className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
                     errors.whatsapp ? "border-red-500" : ""
                   }`}
                   placeholder={
@@ -331,7 +331,7 @@ export default function PaymentModal({
                   name="workplace"
                   value={formData.workplace}
                   onChange={handleInputChange}
-                  className="w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]"
+                  className="w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600"
                   placeholder={
                     currentLocale === "pl"
                       ? "Twoje miejsce pracy"
@@ -348,7 +348,7 @@ export default function PaymentModal({
                   name="profession"
                   value={formData.profession}
                   onChange={handleInputChange}
-                  className="w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]"
+                  className="w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600"
                   placeholder={
                     currentLocale === "pl" ? "Twój zawód" : "Your profession"
                   }
@@ -379,7 +379,7 @@ export default function PaymentModal({
                       name="companyName"
                       value={formData.companyName}
                       onChange={handleInputChange}
-                      className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] ${
+                      className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
                         errors.companyName ? "border-red-500" : ""
                       }`}
                       placeholder={
@@ -403,7 +403,7 @@ export default function PaymentModal({
                       name="nip"
                       value={formData.nip}
                       onChange={handleInputChange}
-                      className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] ${
+                      className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
                         errors.nip ? "border-red-500" : ""
                       }`}
                       placeholder={
@@ -425,7 +425,7 @@ export default function PaymentModal({
                       name="companyAddress"
                       value={formData.companyAddress}
                       onChange={handleInputChange}
-                      className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] ${
+                      className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
                         errors.companyAddress ? "border-red-500" : ""
                       }`}
                       placeholder={

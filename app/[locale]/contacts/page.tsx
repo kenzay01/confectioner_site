@@ -132,26 +132,20 @@ _${escapeMarkdown(formData.question)}_
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className="w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]"
-                  placeholder={
-                    currentLocale === "pl" ? "Twoje imię i nazwisko" : "Your name and surname"
-                  }
+                  className="w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600"
                   required
                 />
               </div>
               <div>
                 <label className="block font-medium mb-1">
-                  {currentLocale === "pl" ? "Poczta" : "Email"}
+                  {currentLocale === "pl" ? "Adres e-mail" : "Email"}
                 </label>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]"
-                  placeholder={
-                    currentLocale === "pl" ? "Twój email" : "Your email"
-                  }
+                  className="w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600"
                   required
                 />
               </div>
@@ -163,11 +157,8 @@ _${escapeMarkdown(formData.question)}_
                   name="question"
                   value={formData.question}
                   onChange={handleInputChange}
-                  className="w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]"
+                  className="w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600"
                   rows={4}
-                  placeholder={
-                    currentLocale === "pl" ? "Twoje pytanie" : "Your question"
-                  }
                 />
               </div>
               <div className="flex justify-center items-center">
