@@ -29,10 +29,10 @@ export default function LanguageSwitcher({
         <div key={locale} className="flex items-center">
           <Link
             href={getLocalizedPath(locale)}
-            className={`px-2 py-1 text-sm rounded transition-colors ${
+            className={`btn-unified px-2 py-1 text-sm ${
               currentLocale === locale
-                ? "bg-[var(--brown-color)] text-[var(--main-color)]"
-                : "text-[var(--accent-color)] hover:text-[var(--main-color)] hover:bg-[var(--accent-color)]"
+                ? "bg-gray-200 border-gray-600"
+                : ""
             }`}
           >
             {localeNames[locale]}

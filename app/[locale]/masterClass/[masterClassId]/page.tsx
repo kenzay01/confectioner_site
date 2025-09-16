@@ -85,7 +85,7 @@ export default function MasterClassPage() {
       <div className="md:pt-0 pt-14 min-h-screen bg-[var(--main-color)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <button
-            className="mb-4 px-4 py-2 rounded bg-[var(--brown-color)] text-white flex items-center hover:bg-[var(--accent-color)] transition-colors"
+            className="mb-4 btn-unified flex items-center"
             onClick={() => router.back()}
           >
             <ArrowLeft className="inline-block mr-2" />
@@ -108,7 +108,7 @@ export default function MasterClassPage() {
     <AnimatedSection className="md:pt-0 pt-14 min-h-screen bg-[var(--main-color)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <button
-          className="mb-4 px-4 py-2 rounded bg-[var(--brown-color)] text-white flex items-center hover:bg-[var(--accent-color)] transition-colors"
+          className="mb-4 btn-unified flex items-center"
           onClick={() => router.back()}
         >
           <ArrowLeft className="inline-block mr-2" />
@@ -157,10 +157,10 @@ export default function MasterClassPage() {
                 disabled={
                   masterclass.availableSlots - masterclass.pickedSlots <= 0
                 }
-                className={`inline-block px-6 py-3 rounded-full font-bold text-white transition-all duration-300 transform hover:scale-105  hover:shadow-xl ${
+                className={`btn-unified px-6 py-3 ${
                   masterclass.availableSlots - masterclass.pickedSlots > 0
-                    ? "bg-[var(--brown-color)] hover:bg-[var(--accent-color)]"
-                    : "bg-gray-400 cursor-not-allowed"
+                    ? ""
+                    : "opacity-50 cursor-not-allowed"
                 }`}
               >
                 {masterclass.availableSlots - masterclass.pickedSlots > 0

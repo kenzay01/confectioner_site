@@ -335,7 +335,7 @@ export default function PolandMapSection() {
               {/* Close Button */}
               <button
                 onClick={() => setSelectedCity(null)}
-                className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors duration-200 z-10"
+                className="absolute top-4 right-4 btn-unified p-2 rounded-full z-10"
               >
                 <X className="w-6 h-6 text-gray-500 hover:text-[var(--brown-color)]" />
               </button>

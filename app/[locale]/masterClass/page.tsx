@@ -193,12 +193,12 @@ const SliderSection = ({ masterclasses }: { masterclasses: Masterclass[] }) => {
                       ) : (
                         <Link
                           href={`/${currentLocale}/masterClass/masterclass-${masterclass.id}`}
-                          className={`inline-block px-6 py-3 rounded-full font-bold text-white mt-4 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
+                          className={`btn-unified px-6 py-3 mt-4 ${
                             (masterclass.availableSlots || 0) -
                               (masterclass.pickedSlots || 0) >
                             0
-                              ? "bg-[var(--brown-color)] hover:bg-[var(--accent-color)]"
-                              : "bg-gray-400 cursor-not-allowed"
+                              ? ""
+                              : "opacity-50 cursor-not-allowed"
                           }`}
                         >
                           {(masterclass.availableSlots || 0) -
@@ -221,13 +221,13 @@ const SliderSection = ({ masterclasses }: { masterclasses: Masterclass[] }) => {
         </div>
         <button
           onClick={prevSlide}
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-[var(--brown-color)]/80 text-white p-2 rounded-full hover:bg-[var(--accent-color)] transition-colors"
+          className="absolute left-4 top-1/2 transform -translate-y-1/2 btn-unified p-2 rounded-full"
         >
           &larr;
         </button>
         <button
           onClick={nextSlide}
-          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-[var(--brown-color)]/80 text-white p-2 rounded-full hover:bg-[var(--accent-color)] transition-colors"
+          className="absolute right-4 top-1/2 transform -translate-y-1/2 btn-unified p-2 rounded-full"
         >
           &rarr;
         </button>
@@ -382,7 +382,7 @@ export default function MasterClass() {
         <div className="flex justify-between items-center mb-4">
           <button
             onClick={prevMonth}
-            className="p-2 rounded-full hover:bg-[var(--brown-color)] hover:text-white transition-all duration-200 font-bold text-lg cursor-pointer"
+            className="btn-unified p-2 rounded-full"
             type="button"
           >
             ←
@@ -394,7 +394,7 @@ export default function MasterClass() {
           </h3>
           <button
             onClick={nextMonth}
-            className="p-2 rounded-full hover:bg-[var(--brown-color)] hover:text-white transition-all duration-200 font-bold text-lg cursor-pointer"
+            className="btn-unified p-2 rounded-full"
             type="button"
           >
             →
@@ -537,12 +537,12 @@ export default function MasterClass() {
                       ) : (
                         <Link
                           href={`/${currentLocale}/masterClass/masterclass-${masterclass.id}`}
-                          className={`inline-block px-6 py-3 rounded-full font-bold text-white transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
+                          className={`btn-unified px-6 py-3 ${
                             (masterclass.availableSlots || 0) -
                               (masterclass.pickedSlots || 0) >
                             0
-                              ? "bg-[var(--brown-color)] hover:bg-[var(--accent-color)]"
-                              : "bg-gray-400 cursor-not-allowed"
+                              ? ""
+                              : "opacity-50 cursor-not-allowed"
                           }`}
                         >
                           {(masterclass.availableSlots || 0) -
@@ -682,13 +682,13 @@ export default function MasterClass() {
             </div>
             <button
               onClick={prevSlide}
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-[var(--brown-color)]/80 text-white p-2 rounded-full hover:bg-[var(--accent-color)] transition-colors"
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 btn-unified p-2 rounded-full"
             >
               &larr;
             </button>
             <button
               onClick={nextSlide}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-[var(--brown-color)]/80 text-white p-2 rounded-full hover:bg-[var(--accent-color)] transition-colors"
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 btn-unified p-2 rounded-full"
             >
               &rarr;
             </button>

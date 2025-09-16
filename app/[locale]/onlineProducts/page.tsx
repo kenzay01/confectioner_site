@@ -65,7 +65,7 @@ export default function OnlineProducts() {
                 </div>
                 <Link
                   href={`/${currentLocale}/onlineProducts/product-${product.id}`}
-                  className="inline-block px-6 py-3 rounded-full font-bold text-white bg-[var(--brown-color)] hover:bg-[var(--accent-color)] transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                  className="btn-unified px-6 py-3"
                 >
                   {currentLocale === "pl" ? "Kupić" : "Buy Now"}
                 </Link>

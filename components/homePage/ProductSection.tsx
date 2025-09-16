@@ -43,7 +43,7 @@ export default function ProductSection() {
                 <p className="text-lg text-[var(--accent-color)] leading-relaxed">
                   {dict?.home?.products?.book?.description}
                 </p>
-                <button className="bg-[var(--brown-color)] hover:bg-[var(--accent-color)] text-white font-bold text-lg px-8 py-3 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                <button className="btn-unified text-lg px-8 py-3">
                   {dict?.home?.products?.book?.buyButton}
                 </button>
               </AnimatedSection>

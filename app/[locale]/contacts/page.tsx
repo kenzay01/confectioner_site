@@ -165,7 +165,7 @@ _${escapeMarkdown(formData.question)}_
                 <button
                   onClick={handleSubmit}
                   disabled={status === "loading"}
-                  className={`px-6 py-3 rounded-full font-bold text-white bg-[var(--brown-color)] hover:bg-[var(--accent-color)] transition-all duration-300 transform hover:scale-105 hover:shadow-xl ${
+                  className={`btn-unified px-6 py-3 ${
                     status === "loading" ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                 >

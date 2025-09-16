@@ -239,7 +239,7 @@ export default function PaymentModal({
             </div>
             <button
               onClick={() => setPage("form")}
-              className="w-full px-6 py-3 rounded-full font-bold text-white bg-[var(--brown-color)] hover:bg-[var(--accent-color)] transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+              className="w-full btn-unified"
             >
               {currentLocale === "pl"
                 ? item.type === "masterclass"
@@ -268,11 +268,11 @@ export default function PaymentModal({
                   className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
                     errors.fullName ? "border-red-500" : ""
                   }`}
-                  placeholder={
-                    currentLocale === "pl"
-                      ? "Twoje imię i nazwisko"
-                      : "Your full name"
-                  }
+                  // placeholder={
+                  //   currentLocale === "pl"
+                  //     ? "Twoje imię i nazwisko"
+                  //     : "Your full name"
+                  // }
                 />
                 {errors.fullName && (
                   <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>
@@ -290,9 +290,9 @@ export default function PaymentModal({
                   className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
                     errors.email ? "border-red-500" : ""
                   }`}
-                  placeholder={
-                    currentLocale === "pl" ? "Twój email" : "Your email"
-                  }
+                  // placeholder={
+                  //   currentLocale === "pl" ? "Twój email" : "Your email"
+                  // }
                 />
                 {errors.email && (
                   <p className="text-red-500 text-sm mt-1">{errors.email}</p>
@@ -312,11 +312,11 @@ export default function PaymentModal({
                   className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
                     errors.whatsapp ? "border-red-500" : ""
                   }`}
-                  placeholder={
-                    currentLocale === "pl"
-                      ? "+48 123 456 789"
-                      : "+48 123 456 789"
-                  }
+                  // placeholder={
+                  //   currentLocale === "pl"
+                  //     ? "+48 123 456 789"
+                  //     : "+48 123 456 789"
+                  // }
                 />
                 {errors.whatsapp && (
                   <p className="text-red-500 text-sm mt-1">{errors.whatsapp}</p>
@@ -332,11 +332,11 @@ export default function PaymentModal({
                   value={formData.workplace}
                   onChange={handleInputChange}
                   className="w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600"
-                  placeholder={
-                    currentLocale === "pl"
-                      ? "Twoje miejsce pracy"
-                      : "Your workplace"
-                  }
+                  // placeholder={
+                  //   currentLocale === "pl"
+                  //     ? "Twoje miejsce pracy"
+                  //     : "Your workplace"
+                  // }
                 />
               </div>
               <div>
@@ -349,9 +349,9 @@ export default function PaymentModal({
                   value={formData.profession}
                   onChange={handleInputChange}
                   className="w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600"
-                  placeholder={
-                    currentLocale === "pl" ? "Twój zawód" : "Your profession"
-                  }
+                  // placeholder={
+                  //   currentLocale === "pl" ? "Twój zawód" : "Your profession"
+                  // }
                 />
               </div>
               <div>
@@ -382,9 +382,9 @@ export default function PaymentModal({
                       className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
                         errors.companyName ? "border-red-500" : ""
                       }`}
-                      placeholder={
-                        currentLocale === "pl" ? "Nazwa firmy" : "Company name"
-                      }
+                      // placeholder={
+                      //   currentLocale === "pl" ? "Nazwa firmy" : "Company name"
+                      // }
                     />
                     {errors.companyName && (
                       <p className="text-red-500 text-sm mt-1">
@@ -406,9 +406,9 @@ export default function PaymentModal({
                       className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
                         errors.nip ? "border-red-500" : ""
                       }`}
-                      placeholder={
-                        currentLocale === "pl" ? "Numer NIP" : "Tax number"
-                      }
+                      // placeholder={
+                      //   currentLocale === "pl" ? "Numer NIP" : "Tax number"
+                      // }
                     />
                     {errors.nip && (
                       <p className="text-red-500 text-sm mt-1">{errors.nip}</p>
@@ -428,11 +428,11 @@ export default function PaymentModal({
                       className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
                         errors.companyAddress ? "border-red-500" : ""
                       }`}
-                      placeholder={
-                        currentLocale === "pl"
-                          ? "Adres firmy"
-                          : "Company address"
-                      }
+                      // placeholder={
+                      //   currentLocale === "pl"
+                      //     ? "Adres firmy"
+                      //     : "Company address"
+                      // }
                     />
                     {errors.companyAddress && (
                       <p className="text-red-500 text-sm mt-1">
@@ -445,14 +445,14 @@ export default function PaymentModal({
               <div className="flex justify- gap-4">
                 <button
                   onClick={() => setPage("info")}
-                  className="flex-1 px-4 py-2 rounded font-bold  border border-[var(--brown-color)] hover:bg-[var(--brown-color)] hover:text-white transition-all duration-300"
+                  className="flex-1 btn-unified"
                 >
                   {currentLocale === "pl" ? "Powrót" : "Back"}
                 </button>
                 <button
                   onClick={handleSubmit}
                   disabled={status === "loading"}
-                  className={`flex-1 px-6 py-3 rounded-full font-bold text-white bg-[var(--brown-color)] hover:bg-[var(--accent-color)] transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
+                  className={`flex-1 btn-unified ${
                     status === "loading" ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                 >
