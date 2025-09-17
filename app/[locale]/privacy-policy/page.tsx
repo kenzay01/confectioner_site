@@ -92,7 +92,53 @@ export default function PrivacyPolicy() {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold mb-3">9. Kontakt</h2>
+                <h2 className="text-xl font-semibold mb-3">9. Udostępnianie danych osobowych</h2>
+                <p className="text-gray-700 leading-relaxed mb-2">Dane osobowe mogą być udostępniane:</p>
+                <ul className="list-disc list-inside text-gray-700 space-y-1">
+                  <li>Dostawcom usług technicznych (hosting, obsługa płatności)</li>
+                  <li>Organom publicznym na podstawie obowiązujących przepisów prawa</li>
+                  <li>Partnerom biznesowym wyłącznie w celu realizacji umów</li>
+                </ul>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold mb-3">10. Bezpieczeństwo danych</h2>
+                <p className="text-gray-700 leading-relaxed">
+                  Administrator stosuje odpowiednie środki techniczne i organizacyjne w celu ochrony 
+                  danych osobowych przed nieuprawnionym dostępem, utratą, zniszczeniem lub modyfikacją. 
+                  Dane są przechowywane na bezpiecznych serwerach z szyfrowaniem SSL.
+                </p>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold mb-3">11. Przekazywanie danych do państw trzecich</h2>
+                <p className="text-gray-700 leading-relaxed">
+                  Dane osobowe mogą być przekazywane do państw trzecich wyłącznie w przypadku, gdy 
+                  Komisja Europejska uznała dany kraj za zapewniający odpowiedni poziom ochrony danych 
+                  lub gdy zastosowano odpowiednie zabezpieczenia prawne.
+                </p>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold mb-3">12. Zmiany w Polityce Prywatności</h2>
+                <p className="text-gray-700 leading-relaxed">
+                  Administrator zastrzega sobie prawo do wprowadzania zmian w Polityce Prywatności. 
+                  O wszelkich zmianach użytkownicy będą informowani poprzez publikację na stronie 
+                  internetowej. Zmiany wchodzą w życie po ich opublikowaniu.
+                </p>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold mb-3">13. Prawo do skargi</h2>
+                <p className="text-gray-700 leading-relaxed">
+                  Osoba, której dane dotyczą, ma prawo wniesienia skargi do organu nadzorczego 
+                  (Prezes Urzędu Ochrony Danych Osobowych) w przypadku naruszenia przepisów o ochronie 
+                  danych osobowych.
+                </p>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold mb-3">14. Kontakt</h2>
                 <p className="text-gray-700 leading-relaxed">
                   W sprawach dotyczących przetwarzania danych osobowych prosimy o kontakt: 
                   slaviksemkiv12@gmail.com
@@ -178,7 +224,53 @@ export default function PrivacyPolicy() {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold mb-3">9. Contact</h2>
+                <h2 className="text-xl font-semibold mb-3">9. Sharing Personal Data</h2>
+                <p className="text-gray-700 leading-relaxed mb-2">Personal data may be shared with:</p>
+                <ul className="list-disc list-inside text-gray-700 space-y-1">
+                  <li>Technical service providers (hosting, payment processing)</li>
+                  <li>Public authorities based on applicable legal provisions</li>
+                  <li>Business partners solely for contract performance purposes</li>
+                </ul>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold mb-3">10. Data Security</h2>
+                <p className="text-gray-700 leading-relaxed">
+                  The controller applies appropriate technical and organizational measures to protect 
+                  personal data against unauthorized access, loss, destruction, or modification. 
+                  Data is stored on secure servers with SSL encryption.
+                </p>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold mb-3">11. Transfer of Data to Third Countries</h2>
+                <p className="text-gray-700 leading-relaxed">
+                  Personal data may be transferred to third countries only when the European Commission 
+                  has recognized a given country as ensuring an adequate level of data protection or 
+                  when appropriate legal safeguards are applied.
+                </p>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold mb-3">12. Changes to Privacy Policy</h2>
+                <p className="text-gray-700 leading-relaxed">
+                  The controller reserves the right to make changes to the Privacy Policy. 
+                  Users will be informed of any changes by publishing them on the website. 
+                  Changes take effect after publication.
+                </p>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold mb-3">13. Right to Complain</h2>
+                <p className="text-gray-700 leading-relaxed">
+                  The data subject has the right to lodge a complaint with the supervisory authority 
+                  (President of the Personal Data Protection Office) in case of violation of personal 
+                  data protection regulations.
+                </p>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold mb-3">14. Contact</h2>
                 <p className="text-gray-700 leading-relaxed">
                   For matters related to personal data processing, please contact: 
                   slaviksemkiv12@gmail.com

@@ -20,6 +20,7 @@ export default function Footer() {
   const legalLinks = [
     { link: "/privacy-policy", label: dict?.footer?.privacyPolicy || "Polityka prywatności" },
     { link: "/terms-of-service", label: dict?.footer?.termsOfService || "Regulamin" },
+    { link: "/sales-regulations", label: dict?.footer?.salesRegulations || "Regulamin sprzedaży" },
   ];
   return (
     <AnimatedSection
