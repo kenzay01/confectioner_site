@@ -19,7 +19,7 @@ export default function PrivacyPolicy() {
                 <p className="text-gray-700 leading-relaxed">
                   Niniejsza Polityka Prywatności określa zasady przetwarzania i ochrony danych osobowych 
                   użytkowników strony internetowej prowadzonej przez Yaroslav Semkiv, z siedzibą w Warszawie, 
-                  ul. Franciszka Adolfa Achera 9/U1, 02-495, NIP: 5272748962, REGON: 5286780087.
+                  ul. Franciszka Adolfa Achera 9/U1, 02-495, NIP: 5272748962, REGON: 528678087.
                 </p>
               </section>
 
@@ -152,7 +152,7 @@ export default function PrivacyPolicy() {
                 <p className="text-gray-700 leading-relaxed">
                   This Privacy Policy defines the rules for processing and protecting personal data 
                   of users of the website operated by Yaroslav Semkiv, based in Warsaw, 
-                  ul. Franciszka Adolfa Achera 9/U1, 02-495, NIP: 5272748962, REGON: 5286780087.
+                  ul. Franciszka Adolfa Achera 9/U1, 02-495, NIP: 5272748962, REGON: 528678087.
                 </p>
               </section>
 
