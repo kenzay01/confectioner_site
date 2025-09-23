@@ -138,7 +138,7 @@ export default function PolandMapSection() {
         const masterclass = masterclasses.find(mc => mc.id === city.masterclassId);
         if (!masterclass) return;
 
-        // Створюємо custom HTML маркер в стилі сайту
+        // Створюємо custom HTML маркер у вигляді піна локації
         const markerHtml = `
           <div class="custom-marker-container" style="position: relative;">
             <div class="pulse-ring" style="
@@ -146,27 +146,28 @@ export default function PolandMapSection() {
               top: 50%;
               left: 50%;
               transform: translate(-50%, -50%);
-              width: 80px;
-              height: 80px;
+              width: 64px;
+              height: 64px;
               border-radius: 50%;
-              background: rgba(80, 45, 28, 0.2);
+              background: rgba(80, 45, 28, 0.15);
               animation: pulse 2s infinite;
             "></div>
             <div class="marker-content" style="
               position: relative;
               z-index: 10;
-              width: 64px;
-              height: 64px;
+              width: 40px;
+              height: 40px;
               display: flex;
               align-items: center;
               justify-content: center;
               cursor: pointer;
               transition: all 0.3s ease;
               filter: drop-shadow(0 6px 20px rgba(0,0,0,0.25));
-              border-radius: 16px;
-              overflow: hidden;
             " onclick="window.selectCity('${city.name}')">
-              <img src="${masterclass.photo}" alt="${city.name}" style="width: 100%; height: 100%; object-fit: cover; pointer-events: none;" />
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" style="pointer-events: none;">
+                <path d="M12 2C8.13401 2 5 5.13401 5 9C5 13.25 9.5 18.5 11.29 20.46C11.68 20.89 12.32 20.89 12.71 20.46C14.5 18.5 19 13.25 19 9C19 5.13401 15.866 2 12 2Z" fill="var(--brown-color)"/>
+                <circle cx="12" cy="9" r="3" fill="white"/>
+              </svg>
             </div>
           </div>
         `;
@@ -174,8 +175,8 @@ export default function PolandMapSection() {
         const customIcon = L.divIcon({
           html: markerHtml,
           className: 'custom-leaflet-marker',
-          iconSize: [64, 64],
-          iconAnchor: [32, 32],
+          iconSize: [40, 40],
+          iconAnchor: [20, 40],
         });
 
         const marker = L.marker([city.lat, city.lng], { icon: customIcon })
@@ -222,15 +223,13 @@ export default function PolandMapSection() {
           font-size: 14px !important;
           box-shadow: 0 8px 25px rgba(80, 45, 28, 0.3) !important;
         }
-        .custom-tooltip:before {
-          border-top-color: var(--brown-color) !important;
-        }
+        .custom-tooltip:before { border-top-color: var(--brown-color) !important; }
         .marker-content:hover {
-          transform: scale(1.15);
+          transform: scale(1.1);
           filter: drop-shadow(0 8px 25px rgba(80, 45, 28, 0.4));
         }
         .marker-content:active {
-          transform: scale(1.05);
+          transform: scale(1.02);
         }
         .custom-leaflet-marker {
           pointer-events: auto !important;
@@ -307,11 +306,11 @@ export default function PolandMapSection() {
         </div>
 
         {/* Real Map Container */}
-        <div className="relative mb-12">
+        <div className="relative mb-12 z-0">
           <div 
             ref={mapRef}
-            className="w-full h-96 sm:h-[500px] rounded-2xl shadow-xl border border-gray-200 overflow-hidden"
-            style={{ minHeight: '400px' }}
+            className="w-full h-96 sm:h-[500px] rounded-2xl shadow-xl border border-gray-200 overflow-hidden relative z-0"
+            style={{ minHeight: '400px', isolation: 'isolate' }}
           />
           
           {!leafletLoaded && (
