@@ -131,42 +131,90 @@ export default function PaymentModal({
     setStatus("loading");
 
     try {
+      // Генеруємо унікальний sessionId
+      const sessionId = `${item.type}_${item.id}_${Date.now()}`;
+      
+      // Зберігаємо дані платежу в localStorage для сторінки статусу
       const paymentData = {
-        timestamp: new Date().toLocaleString("uk-UA", {
-          timeZone: "Europe/Kiev",
-        }),
+        sessionId,
         itemType: item.type,
         itemId: item.id,
-        ...formData,
+        itemTitle: item.title[currentLocale],
+        formData,
+        price: item.price,
+        amount: item.price * 100, // конвертуємо в grosze
+        timestamp: Date.now(),
       };
-      const existingPayments = JSON.parse(
-        localStorage.getItem("payments") || "[]"
-      );
-      existingPayments.push(paymentData);
-      localStorage.setItem("payments", JSON.stringify(existingPayments));
+      
+      localStorage.setItem("paymentData", JSON.stringify(paymentData));
 
-      setStatus("success");
-      setFormData({
-        fullName: "",
-        email: "",
-        whatsapp: "",
-        workplace: "",
-        profession: "",
-        invoiceNeeded: false,
-        companyName: "",
-        nip: "",
-        companyAddress: "",
+      // Створюємо платіж через Przelewy24
+      const response = await fetch("/api/create-payment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          amount: item.price * 100, // kwota w groszach
+          itemType: item.type,
+          itemId: item.id,
+          sessionId: sessionId,
+          email: formData.email,
+          fullName: formData.fullName,
+          whatsapp: formData.whatsapp,
+        }),
       });
 
-      setTimeout(() => {
-        // window.location.href = `https://payment-provider.com/pay?item=${item.type}&id=${item.id}&amount=${item.price}`;
-        onClose();
-      }, 1000);
+      const result = await response.json();
+
+      if (result.success) {
+        setStatus("success");
+        
+        // Оновлюємо дані в localStorage з token'ом
+        const updatedPaymentData = {
+          ...paymentData,
+          token: result.token,
+        };
+        localStorage.setItem("paymentData", JSON.stringify(updatedPaymentData));
+
+        // Перенаправляємо на сторінку оплати Przelewy24
+        setTimeout(() => {
+          window.location.href = result.paymentUrl;
+        }, 1000);
+      } else {
+        throw new Error(result.error || "Failed to create payment");
+      }
+
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error creating payment:", error);
       setStatus("error");
+      
+      // Показуємо помилку користувачу
+      alert(
+        currentLocale === "pl"
+          ? "Błąd podczas tworzenia płatności. Spróbuj ponownie."
+          : "Error creating payment. Please try again."
+      );
+      
       setTimeout(() => setStatus("idle"), 3000);
     }
+  };
+
+  const resetModal = () => {
+    setPage("info");
+    setErrors({});
+    setStatus("idle");
+    setFormData({
+      fullName: "",
+      email: "",
+      whatsapp: "",
+      workplace: "",
+      profession: "",
+      invoiceNeeded: false,
+      companyName: "",
+      nip: "",
+      companyAddress: "",
+    });
   };
 
   if (!isOpen) return null;
@@ -183,10 +231,9 @@ export default function PaymentModal({
         <button
           onClick={() => {
             onClose();
-            setPage("info");
-            setErrors({});
+            resetModal();
           }}
-          className="absolute top-4 right-4  hover:text-[var(--accent-color)] z-10"
+          className="absolute top-4 right-4 hover:text-[var(--accent-color)] z-10"
         >
           <X className="w-6 h-6" />
         </button>
@@ -198,7 +245,7 @@ export default function PaymentModal({
                 className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
                   item.type === "masterclass"
                     ? "bg-[var(--accent-color)]/10 text-[var(--accent-color)]"
-                    : "bg-[var(--brown-color)]/10 "
+                    : "bg-[var(--brown-color)]/10"
                 }`}
               >
                 {item.type === "masterclass"
@@ -209,14 +256,14 @@ export default function PaymentModal({
                   ? "Produkt"
                   : "Product"}
               </span>
-              <h2 className="text-2xl font-bold ">
+              <h2 className="text-2xl font-bold">
                 {item.title[currentLocale]}
               </h2>
             </div>
-            <p className=" font-medium">
+            <p className="font-medium">
               {currentLocale === "pl" ? "Cena:" : "Price:"} {item.price} zł
             </p>
-            <div className=" whitespace-pre-line line-clamp-6">
+            <div className="whitespace-pre-line line-clamp-6">
               {item.type === "masterclass" ? (
                 <>
                   <p className="font-semibold">
@@ -252,12 +299,12 @@ export default function PaymentModal({
           </div>
         ) : (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold ">
+            <h2 className="text-2xl font-bold">
               {currentLocale === "pl" ? "Dane do płatności" : "Payment Details"}
             </h2>
             <div className="grid gap-4">
               <div>
-                <label className="block  font-medium mb-1">
+                <label className="block font-medium mb-1">
                   {currentLocale === "pl" ? "Imię i nazwisko" : "Full Name"}
                 </label>
                 <input
@@ -268,18 +315,13 @@ export default function PaymentModal({
                   className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
                     errors.fullName ? "border-red-500" : ""
                   }`}
-                  // placeholder={
-                  //   currentLocale === "pl"
-                  //     ? "Twoje imię i nazwisko"
-                  //     : "Your full name"
-                  // }
                 />
                 {errors.fullName && (
                   <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>
                 )}
               </div>
               <div>
-                <label className="block  font-medium mb-1">
+                <label className="block font-medium mb-1">
                   {currentLocale === "pl" ? "Email" : "Email"}
                 </label>
                 <input
@@ -290,16 +332,13 @@ export default function PaymentModal({
                   className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
                     errors.email ? "border-red-500" : ""
                   }`}
-                  // placeholder={
-                  //   currentLocale === "pl" ? "Twój email" : "Your email"
-                  // }
                 />
                 {errors.email && (
                   <p className="text-red-500 text-sm mt-1">{errors.email}</p>
                 )}
               </div>
               <div>
-                <label className="block  font-medium mb-1">
+                <label className="block font-medium mb-1">
                   {currentLocale === "pl"
                     ? "Numer WhatsApp"
                     : "WhatsApp Number"}
@@ -312,18 +351,13 @@ export default function PaymentModal({
                   className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
                     errors.whatsapp ? "border-red-500" : ""
                   }`}
-                  // placeholder={
-                  //   currentLocale === "pl"
-                  //     ? "+48 123 456 789"
-                  //     : "+48 123 456 789"
-                  // }
                 />
                 {errors.whatsapp && (
                   <p className="text-red-500 text-sm mt-1">{errors.whatsapp}</p>
                 )}
               </div>
               <div>
-                <label className="block  font-medium mb-1">
+                <label className="block font-medium mb-1">
                   {currentLocale === "pl" ? "Miejsce pracy" : "Workplace"}
                 </label>
                 <input
@@ -332,15 +366,10 @@ export default function PaymentModal({
                   value={formData.workplace}
                   onChange={handleInputChange}
                   className="w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600"
-                  // placeholder={
-                  //   currentLocale === "pl"
-                  //     ? "Twoje miejsce pracy"
-                  //     : "Your workplace"
-                  // }
                 />
               </div>
               <div>
-                <label className="block  font-medium mb-1">
+                <label className="block font-medium mb-1">
                   {currentLocale === "pl" ? "Zawód" : "Profession"}
                 </label>
                 <input
@@ -349,13 +378,10 @@ export default function PaymentModal({
                   value={formData.profession}
                   onChange={handleInputChange}
                   className="w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600"
-                  // placeholder={
-                  //   currentLocale === "pl" ? "Twój zawód" : "Your profession"
-                  // }
                 />
               </div>
               <div>
-                <label className="flex items-center gap-2  font-medium mb-1">
+                <label className="flex items-center gap-2 font-medium mb-1">
                   <input
                     type="checkbox"
                     name="invoiceNeeded"
@@ -371,7 +397,7 @@ export default function PaymentModal({
               {formData.invoiceNeeded && (
                 <div className="grid gap-4 transition-all duration-300">
                   <div>
-                    <label className="block  font-medium mb-1">
+                    <label className="block font-medium mb-1">
                       {currentLocale === "pl" ? "Nazwa firmy" : "Company Name"}
                     </label>
                     <input
@@ -382,9 +408,6 @@ export default function PaymentModal({
                       className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
                         errors.companyName ? "border-red-500" : ""
                       }`}
-                      // placeholder={
-                      //   currentLocale === "pl" ? "Nazwa firmy" : "Company name"
-                      // }
                     />
                     {errors.companyName && (
                       <p className="text-red-500 text-sm mt-1">
@@ -393,7 +416,7 @@ export default function PaymentModal({
                     )}
                   </div>
                   <div>
-                    <label className="block  font-medium mb-1">
+                    <label className="block font-medium mb-1">
                       {currentLocale === "pl"
                         ? "Numer NIP"
                         : "Tax Number (NIP)"}
@@ -406,16 +429,13 @@ export default function PaymentModal({
                       className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
                         errors.nip ? "border-red-500" : ""
                       }`}
-                      // placeholder={
-                      //   currentLocale === "pl" ? "Numer NIP" : "Tax number"
-                      // }
                     />
                     {errors.nip && (
                       <p className="text-red-500 text-sm mt-1">{errors.nip}</p>
                     )}
                   </div>
                   <div>
-                    <label className="block  font-medium mb-1">
+                    <label className="block font-medium mb-1">
                       {currentLocale === "pl"
                         ? "Adres firmy"
                         : "Company Address"}
@@ -428,11 +448,6 @@ export default function PaymentModal({
                       className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
                         errors.companyAddress ? "border-red-500" : ""
                       }`}
-                      // placeholder={
-                      //   currentLocale === "pl"
-                      //     ? "Adres firmy"
-                      //     : "Company address"
-                      // }
                     />
                     {errors.companyAddress && (
                       <p className="text-red-500 text-sm mt-1">
@@ -442,10 +457,11 @@ export default function PaymentModal({
                   </div>
                 </div>
               )}
-              <div className="flex justify- gap-4">
+              <div className="flex justify-between gap-4">
                 <button
                   onClick={() => setPage("info")}
                   className="flex-1 btn-unified"
+                  disabled={status === "loading"}
                 >
                   {currentLocale === "pl" ? "Powrót" : "Back"}
                 </button>
@@ -458,25 +474,25 @@ export default function PaymentModal({
                 >
                   {status === "loading"
                     ? currentLocale === "pl"
-                      ? "Wysyłanie..."
-                      : "Sending..."
+                      ? "Tworzenie płatności..."
+                      : "Creating payment..."
                     : currentLocale === "pl"
-                    ? "Oplatiti"
-                    : "Pay Now"}
+                    ? "Zapłać teraz"
+                    : "Pay now"}
                 </button>
               </div>
               {status === "success" && (
                 <p className="text-green-600 text-center">
                   {currentLocale === "pl"
-                    ? "Dane zapisane pomyślnie! Przekierowanie do płatności..."
-                    : "Data saved successfully! Redirecting to payment..."}
+                    ? "Przekierowanie do płatności..."
+                    : "Redirecting to payment..."}
                 </p>
               )}
               {status === "error" && (
                 <p className="text-red-500 text-center">
                   {currentLocale === "pl"
-                    ? "Błąd podczas zapisywania danych. Spróbuj ponownie."
-                    : "Error saving data. Please try again."}
+                    ? "Sprawdź wszystkie pola i spróbuj ponownie."
+                    : "Please check all fields and try again."}
                 </p>
               )}
             </div>
