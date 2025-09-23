@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   CheckCircle,
@@ -43,7 +43,7 @@ type PaymentStatus =
   | "not_found"
   | "unknown";
 
-export default function PaymentStatusPage() {
+function PaymentStatusContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentLocale = useCurrentLanguage() as "pl" | "en";
@@ -451,5 +451,17 @@ export default function PaymentStatusPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PaymentStatusPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <PaymentStatusContent />
+    </Suspense>
   );
 }

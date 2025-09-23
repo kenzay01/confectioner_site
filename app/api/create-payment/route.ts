@@ -1,10 +1,11 @@
 // app/api/create-payment/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import crypto from 'crypto';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { amount, itemType, itemId, sessionId } = body;
+    const { amount, itemType, sessionId } = body;
 
     // Конфігурація Przelewy24
     // Для sandbox використовуємо тестові дані
@@ -41,7 +42,6 @@ export async function POST(req: NextRequest) {
     const baseUrl = "https://sandbox.przelewy24.pl/api/v1"
 
     // Створюємо hash для автентифікації
-    const crypto = require('crypto');
     
     // Конвертуємо amount в grosz (1 zł = 100 gr)
     const amountInGrosz = Math.round(amount * 100);
@@ -57,7 +57,6 @@ export async function POST(req: NextRequest) {
     // Очищаємо всі значення від пробілів та перевіряємо кодування
     const cleanSessionId = sessionIdStr.trim();
     const cleanMerchantId = merchantIdStr.trim();
-    const cleanPosId = String(posId).trim();
     const cleanAmount = amountStr.trim();
     const cleanCurrency = currencyStr.trim();
     const cleanCrcKey = crcKeyStr.trim();

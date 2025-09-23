@@ -1,5 +1,6 @@
 // app/api/payment-webhook/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import crypto from 'crypto';
 
 export async function POST(req: NextRequest) {
   try {
@@ -26,7 +27,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const crypto = require('crypto');
     const hashString = `${merchantId}|${posId}|${sessionId}|${amount}|${originAmount}|${currency}|${orderId}|${methodId}|${statement}|${crcKey}`;
     const calculatedSign = crypto.createHash('md5').update(hashString).digest('hex');
 
@@ -80,7 +80,6 @@ async function verifyTransaction(sessionId: string, amount: number, orderId: num
       : "https://secure.przelewy24.pl/api/v1";
 
     // Створюємо hash для верифікації
-    const crypto = require('crypto');
     const hashString = `${sessionId}|${orderId}|${amount}|${crcKey}`;
     const sign = crypto.createHash('md5').update(hashString).digest('hex');
 
