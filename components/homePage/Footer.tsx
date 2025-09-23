@@ -14,7 +14,7 @@ export default function Footer() {
     {
       link: "https://instagram.com/slaviksemkiv", icon: <Instagram className="w-6 h-6" />, type: "social"
     },
-    { link: "/contacts", label: dict?.header.contacts || "Kontakty" },
+    { link: "/contacts", label: dict?.header.contacts || "Kontakt" },
   ];
   
   const legalLinks = [
@@ -30,10 +30,13 @@ export default function Footer() {
         <div className="relative w-32 h-24">
           <video
             autoPlay
-            loop
             muted
             playsInline
             className="w-full h-full object-contain"
+            onEnded={(e) => {
+              e.currentTarget.pause();
+              e.currentTarget.currentTime = e.currentTarget.duration;
+            }}
           >
             <source src="/white_BG.mp4" type="video/mp4" />
           </video>

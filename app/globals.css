@@ -19,7 +19,8 @@ html {
 }
 
 body {
-  font-family: var(--font-helvetica-neue);
+  font-family: var(--font-montserrat);
+  font-weight: 700;
 }
 
 /* Custom Tailwind utilities for the new colors */
@@ -41,5 +42,24 @@ body {
   }
   .ring-brown {
     --tw-ring-color: var(--brown-color);
+  }
+}
+
+/* Unified button styles */
+@layer components {
+  .btn-primary {
+    @apply px-4 py-2 rounded bg-white border border-gray-400 text-gray-700 hover:bg-gray-200 hover:border-gray-600 transition-all duration-300 font-bold;
+  }
+  
+  .btn-secondary {
+    @apply px-4 py-2 rounded bg-white border border-gray-400 text-gray-700 hover:bg-gray-200 hover:border-gray-600 transition-all duration-300 font-bold;
+  }
+  
+  .btn-icon {
+    @apply p-2 rounded bg-white border border-gray-400 text-gray-700 hover:bg-gray-200 hover:border-gray-600 transition-all duration-200 font-bold text-lg cursor-pointer;
+  }
+  
+  .btn-unified {
+    @apply px-4 py-2 rounded bg-white border border-gray-400 text-gray-700 hover:bg-gray-200 hover:border-gray-600 transition-all duration-300 font-bold cursor-pointer;
   }
 }

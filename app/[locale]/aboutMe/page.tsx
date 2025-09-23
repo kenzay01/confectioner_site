@@ -1,14 +1,12 @@
 "use client";
-import { useState } from "react";
 import { useCurrentLanguage } from "@//hooks/getCurrentLanguage";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Calendar, MapPin } from "lucide-react";
 import AnimatedSection from "@/components/AnimatedSection"; // Імпортуйте утилітний компонент
+import PolandMapSection from "@/components/homePage/PolandMapSection";
 
 export default function AboutMe() {
   const currentLocale = useCurrentLanguage() as "pl" | "en";
-  const [currentSlide, setCurrentSlide] = useState(0);
 
   const biography = {
     pl: (
@@ -49,155 +47,7 @@ export default function AboutMe() {
     ),
   };
 
-  const pastEvents = [
-    {
-      year: 2024,
-      events: [
-        {
-          pl: "Szkolenie w Warsaw Pastry Academy – duży kurs piekarski (3. edycja)",
-          en: "Training at Warsaw Pastry Academy – major baking course (3rd edition)",
-        },
-        {
-          pl: "Technologiczne wdrożenie nowego parku maszynowego dla poprawy jakości i efektywności produkcji",
-          en: "Technological implementation of new machinery for improved quality and production efficiency",
-        },
-        {
-          pl: "Kompleksowe wsparcie przy otwarciu nowej cukierni-piekarni w Grudziądzu",
-          en: "Comprehensive support for opening a new bakery in Grudziądz",
-        },
-        {
-          pl: "Szkolenia z nadzień i ciasta półfrancuskiego dla Sowa",
-          en: "Workshops on fillings and puff pastry for Sowa",
-        },
-        {
-          pl: "Szkolenie z chlebów na zakwasie w kawiarni Doza (Warszawa)",
-          en: "Sourdough bread training at Doza café (Warsaw)",
-        },
-        {
-          pl: "Kursy z chlebów na zakwasie i ciasta półfrancuskiego w cukierni Małgosia (Radzymin)",
-          en: "Sourdough bread and puff pastry courses at Małgosia bakery (Radzymin)",
-        },
-        {
-          pl: "Szkolenie z chlebów na zakwasie i ciasta drożdżowego w piekarni Dańca (Zakopane)",
-          en: "Sourdough bread and yeast dough training at Dańca bakery (Zakopane)",
-        },
-        {
-          pl: "Trening z ciasta drożdżowego i nadzień w piekarni Ozdowscy (Kutno)",
-          en: "Yeast dough and fillings training at Ozdowscy bakery (Kutno)",
-        },
-        {
-          pl: "Technologiczne wdrożenie nowego parku maszynowego w Kazimierzu Dolnym",
-          en: "Technological implementation of new machinery in Kazimierz Dolny",
-        },
-        {
-          pl: "Cykl treningów „Zrozum swoją zakwas” razem z Asociacją Rzemieślników",
-          en: "Series of workshops 'Understand Your Sourdough' with the Craftsmen Association",
-        },
-        {
-          pl: "Szkolenie z ciasta drożdżowego i odroczonego wypieku w cukierni Gagatek (Wieluń)",
-          en: "Yeast dough and delayed baking training at Gagatek bakery (Wieluń)",
-        },
-        {
-          pl: "Szkolenie z ciasta półfrancuskiego i odroczonej fermentacji w Białej Podlaskiej",
-          en: "Puff pastry and delayed fermentation training in Biała Podlaska",
-        },
-        {
-          pl: "Trening z ciasta półfrancuskiego i nadzień w piekarni Montag (Łódź)",
-          en: "Puff pastry and fillings training at Montag bakery (Łódź)",
-        },
-        {
-          pl: "Szkolenie z chlebów na zakwasie w cukierni Sowa",
-          en: "Sourdough bread training at Sowa bakery",
-        },
-        {
-          pl: "Kompleksowe wdrożenie technologii i nowego sprzętu w cukierni Malinka (Żabno)",
-          en: "Comprehensive technology and equipment implementation at Malinka bakery (Żabno)",
-        },
-        {
-          pl: "Masterclass z panettone w piekarni Świeżo Upieczona (Kraków)",
-          en: "Panettone masterclass at Świeżo Upieczona bakery (Kraków)",
-        },
-        {
-          pl: "Szkolenie z ciasta półfrancuskiego w piekarni Sekrety Piekarza (Kraków)",
-          en: "Puff pastry training at Sekrety Piekarza bakery (Kraków)",
-        },
-        {
-          pl: "Wdrożenie półautomatycznej linii do rogalików w Dopiewie",
-          en: "Implementation of a semi-automatic croissant line in Dopiewo",
-        },
-        {
-          pl: "Trening w piekarni Otrębusy z ciasta półfrancuskiego i nadzień",
-          en: "Puff pastry and fillings training at Otrębusy bakery",
-        },
-      ],
-    },
-    {
-      year: 2023,
-      events: [
-        {
-          pl: "Szkolenie w Warsaw Pastry Academy — duży kurs piekarski (4. edycja)",
-          en: "Training at Warsaw Pastry Academy – major baking course (4th edition)",
-        },
-        {
-          pl: "Trening w piekarni ABC (Gdynia) z ciasta półfrancuskiego i chlebów na zakwasie",
-          en: "Puff pastry and sourdough bread training at ABC bakery (Gdynia)",
-        },
-        {
-          pl: "Szkolenie w cukierni Sobczak (Poznań) z ciasta półfrancuskiego",
-          en: "Puff pastry training at Sobczak bakery (Poznań)",
-        },
-        {
-          pl: "Prezentacja maszyn i szkolenie technologiczne w firmie INplus",
-          en: "Machinery presentation and technological training at INplus",
-        },
-        {
-          pl: "Kompleksowe wdrożenie technologii i sprzętu w piekarni ABC (Gdynia)",
-          en: "Comprehensive technology and equipment implementation at ABC bakery (Gdynia)",
-        },
-      ],
-    },
-    {
-      year: 2022,
-      events: [
-        {
-          pl: "Szkolenie w piekarni Frydrych (Krosno) z chlebów na zakwasie i wypieków skandynawskich",
-          en: "Sourdough bread and Scandinavian baking training at Frydrych bakery (Krosno)",
-        },
-      ],
-    },
-    {
-      year: 2021,
-      events: [
-        {
-          pl: "Szkolenie w Omni Kaiser Patisserie z francuskiego chleba",
-          en: "French bread training at Omni Kaiser Patisserie",
-        },
-        {
-          pl: "Szkolenie w cukierni GIGI z ciasta półfrancuskiego",
-          en: "Puff pastry training at GIGI bakery",
-        },
-        {
-          pl: "Szkolenie w cukierni MISS MELLOW z chlebów na zakwasie",
-          en: "Sourdough bread training at MISS MELLOW bakery",
-        },
-      ],
-    },
-  ];
-
-  // Slider navigation
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % pastEvents.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide(
-      (prev) => (prev - 1 + pastEvents.length) % pastEvents.length
-    );
-  };
-
-  const goToSlide = (index: number) => {
-    setCurrentSlide(index);
-  };
+  
 
   return (
     <div className="md:pt-0 pt-14 min-h-screen bg-[var(--main-color)]">
@@ -208,17 +58,17 @@ export default function AboutMe() {
         </h1>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           {/* Left: Image */}
-          <AnimatedSection className="relative group" direction="left">
+          <AnimatedSection className="relative group mt-8 sm:mt-10 lg:mt-12" direction="left">
             <Image
-              src="/chef.jpg"
+              src="/slavik.jpg"
               alt={
                 currentLocale === "pl"
                   ? "Szef Jarosław Semkiw"
                   : "Chef Yaroslav Semkiv"
               }
-              width={600}
-              height={400}
-              className="relative rounded-lg object-cover w-full h-[400px]  transition-transform duration-300 group-hover:scale-[1.02]"
+              width={400}
+              height={600}
+              className="relative rounded-lg object-cover w-full h-[500px] sm:h-[600px] lg:h-[700px] transition-transform duration-300 group-hover:scale-[1.02]"
               placeholder="blur"
               blurDataURL="/placeholder.jpg"
             />
@@ -231,7 +81,7 @@ export default function AboutMe() {
             <div className="prose ">{biography[currentLocale]}</div>
             <Link
               href={`/${currentLocale}/masterClass`}
-              className="inline-block px-6 py-3 rounded-full font-bold text-white bg-[var(--brown-color)] hover:bg-[var(--accent-color)] transition-all duration-300 transform hover:scale-105  hover:shadow-xl mt-4"
+              className="inline-block btn-unified px-6 py-3 mt-4"
             >
               {currentLocale === "pl"
                 ? "Kalendarz wydarzeń"
@@ -240,74 +90,7 @@ export default function AboutMe() {
           </AnimatedSection>
         </div>
 
-        {/* Past Events Section */}
-        <h2 className="text-2xl sm:text-3xl font-bold  mb-6 text-center">
-          {currentLocale === "pl"
-            ? "Co już udało mi się przeprowadzić"
-            : "What I’ve Already Conducted"}
-        </h2>
-        <div className="relative mb-12">
-          {/* Slider Content */}
-          <AnimatedSection className="overflow-hidden">
-            <div
-              className="flex transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-            >
-              {pastEvents.map((yearGroup) => (
-                <div key={yearGroup.year} className="min-w-full px-4">
-                  <div className="relative bg-white/95 backdrop-blur-sm rounded-3xl p-6  ">
-                    <h3 className="text-xl font-semibold  mb-4 text-center">
-                      {yearGroup.year}
-                    </h3>
-                    <div className="max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-[var(--brown-color)]/50 scrollbar-track-transparent">
-                      <ul className=" list-inside  space-y-2 pr-4 decoration-0">
-                        {yearGroup.events.map((event, index) => (
-                          <li key={index} className=" flex items-start gap-2">
-                            <MapPin className="w-4 h-4 mt-1 /60 flex-shrink-0" />
-                            {event[currentLocale]}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </AnimatedSection>
-
-          {/* Navigation Arrows */}
-          <button
-            onClick={prevSlide}
-            className="absolute top-1/2 left-0 transform -translate-y-1/2 bg-white/95 backdrop-blur-sm  hover:bg-[var(--accent-color)] hover:text-white p-2 rounded-full  transition-all duration-300"
-            disabled={currentSlide === 0}
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-          <button
-            onClick={nextSlide}
-            className="absolute top-1/2 right-0 transform -translate-y-1/2 bg-white/95 backdrop-blur-sm  hover:bg-[var(--accent-color)] hover:text-white p-2 rounded-full  transition-all duration-300"
-            disabled={currentSlide === pastEvents.length - 1}
-          >
-            <ChevronRight className="w-6 h-6" />
-          </button>
-
-          {/* Pagination Dots */}
-          <div className="flex justify-center mt-4 space-x-2">
-            {pastEvents.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => goToSlide(index)}
-                className={`w-3 h-3 rounded-full ${
-                  currentSlide === index
-                    ? "bg-[var(--accent-color)]"
-                    : "bg-[var(--brown-color)]/50 hover:bg-[var(--brown-color)]"
-                } transition-colors duration-300`}
-              >
-                <span className="sr-only">Slide {index + 1}</span>
-              </button>
-            ))}
-          </div>
-        </div>
+        <PolandMapSection />
       </div>
     </div>
   );

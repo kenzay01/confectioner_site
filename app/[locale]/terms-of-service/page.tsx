@@ -1,3 +1,4 @@
+
 "use client";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 
@@ -62,10 +63,12 @@ export default function TermsOfService() {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold mb-3">6. Realizacja usług</h2>
+                <h2 className="text-xl font-semibold mb-3">6. Realizacja usług i dostawa</h2>
                 <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
                   <li>W przypadku szkoleń stacjonarnych – udział w szkoleniu jest możliwy po dokonaniu pełnej płatności.</li>
-                  <li>W przypadku szkoleń online – dostęp do materiałów szkoleniowych przekazywany jest drogą elektroniczną po zaksięgowaniu wpłaty.</li>
+                  <li>W przypadku kursów online – dostęp do materiałów szkoleniowych przekazywany jest drogą elektroniczną na adres e-mail podany przez Klienta w ciągu 24 godzin roboczych od zaksięgowania wpłaty na koncie Administratora.</li>
+                  <li>Materiały szkoleniowe dostarczane są w formie cyfrowej (linki do platformy e-learningowej, pliki PDF, wideo) na wskazany przez Klienta adres e-mail.</li>
+                  <li>Klient otrzymuje potwierdzenie dostarczenia materiałów na adres e-mail podany w zamówieniu.</li>
                   <li>Administrator zastrzega sobie prawo do zmiany terminu szkolenia w przypadku wystąpienia przyczyn od niego niezależnych (np. choroba prowadzącego). W takiej sytuacji Klient ma prawo:
                     <ul className="list-disc list-inside mt-2 ml-4 space-y-1">
                       <li>zaakceptować nowy termin,</li>
@@ -90,11 +93,19 @@ export default function TermsOfService() {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold mb-3">8. Reklamacje</h2>
+                <h2 className="text-xl font-semibold mb-3">8. Reklamacje i rozstrzyganie sporów</h2>
                 <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
                   <li>Klient ma prawo złożyć reklamację w przypadku niezgodności usługi z umową.</li>
                   <li>Reklamacje należy kierować na adres e-mail: slaviksemkiv12@gmail.com.</li>
-                  <li>Administrator rozpatrzy reklamację w terminie 14 dni od jej otrzymania.</li>
+                  <li>Administrator rozpatrzy reklamację w terminie 14 dni od jej otrzymania, zgodnie z art. 561-563 Kodeksu cywilnego.</li>
+                  <li>W przypadku niezadowalającej odpowiedzi na reklamację, Klient może skorzystać z pozasądowych sposobów rozstrzygania sporów, w tym:
+                    <ul className="list-disc list-inside mt-2 ml-4 space-y-1">
+                      <li>Stałego Polubownego Sądu Konsumenckiego przy Wojewódzkim Inspektoracie Inspekcji Handlowej</li>
+                      <li>Europejskiej Platformy Rozstrzygania Sporów Online (ODR) dostępnej pod adresem: https://ec.europa.eu/consumers/odr/</li>
+                      <li>Pomocy Rzecznika Finansowego (w sprawach dotyczących płatności)</li>
+                    </ul>
+                  </li>
+                  <li>Klient może również skorzystać z pomocy miejskich lub powiatowych rzeczników konsumentów.</li>
                 </ol>
               </section>
 
@@ -115,7 +126,24 @@ export default function TermsOfService() {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold mb-3">11. Dane osobowe i cookies</h2>
+                <h2 className="text-xl font-semibold mb-3">11. Prawa konsumenta</h2>
+                <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
+                  <li>Klient będący konsumentem ma prawo do:
+                    <ul className="list-disc list-inside mt-2 ml-4 space-y-1">
+                      <li>Otrzymania pełnych informacji o usłudze przed zawarciem umowy</li>
+                      <li>Odstąpienia od umowy w terminie 14 dni (zgodnie z art. 27 ustawy o prawach konsumenta)</li>
+                      <li>Gwarancji jakości usługi zgodnej z umową</li>
+                      <li>Dostępu do pozasądowych sposobów rozstrzygania sporów</li>
+                      <li>Ochrony danych osobowych zgodnie z RODO</li>
+                    </ul>
+                  </li>
+                  <li>Administrator informuje, że umowa może być zawarta w języku polskim.</li>
+                  <li>Klient może skorzystać z wzoru oświadczenia o odstąpieniu od umowy dostępnego na stronie internetowej.</li>
+                </ol>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold mb-3">12. Dane osobowe i cookies</h2>
                 <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
                   <li>Administrator przetwarza dane osobowe Klientów zgodnie z obowiązującymi przepisami prawa, w tym RODO.</li>
                   <li>Szczegółowe informacje dotyczące przetwarzania danych osobowych oraz plików cookies zawiera Polityka Prywatności dostępna na Stronie.</li>
@@ -123,7 +151,7 @@ export default function TermsOfService() {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold mb-3">12. Postanowienia końcowe</h2>
+                <h2 className="text-xl font-semibold mb-3">13. Postanowienia końcowe</h2>
                 <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
                   <li>Administrator zastrzega sobie prawo do zmiany Regulaminu.</li>
                   <li>Do umów zawieranych między Klientem a Administratorem stosuje się prawo polskie.</li>
@@ -132,7 +160,7 @@ export default function TermsOfService() {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold mb-3">13. Dodatkowe informacje</h2>
+                <h2 className="text-xl font-semibold mb-3">14. Dodatkowe informacje</h2>
                 <div className="text-gray-700 leading-relaxed ml-4">
                   <p>Imię: Yaroslav</p>
                   <p>Nazwisko: Semkiv</p>
@@ -194,10 +222,12 @@ export default function TermsOfService() {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold mb-3">6. Service Performance</h2>
+                <h2 className="text-xl font-semibold mb-3">6. Service Performance and Delivery</h2>
                 <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
                   <li>For stationary training – participation in training is possible after full payment.</li>
-                  <li>For online training – access to training materials is provided electronically after payment is recorded.</li>
+                  <li>For online courses – access to training materials is provided electronically to the Client&apos;s e-mail address within 24 business hours after payment is recorded in the Administrator&apos;s account.</li>
+                  <li>Training materials are delivered in digital form (links to e-learning platform, PDF files, videos) to the e-mail address indicated by the Client.</li>
+                  <li>The Client receives confirmation of material delivery to the e-mail address provided in the order.</li>
                   <li>The Administrator reserves the right to change the training date in case of reasons beyond their control (e.g., instructor illness). In such a situation, the Client has the right to:
                     <ul className="list-disc list-inside mt-2 ml-4 space-y-1">
                       <li>accept the new date,</li>
@@ -222,11 +252,19 @@ export default function TermsOfService() {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold mb-3">8. Complaints</h2>
+                <h2 className="text-xl font-semibold mb-3">8. Complaints and Dispute Resolution</h2>
                 <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
                   <li>The Client has the right to file a complaint in case of service non-compliance with the contract.</li>
                   <li>Complaints should be directed to email address: slaviksemkiv12@gmail.com.</li>
-                  <li>The Administrator will consider the complaint within 14 days of receiving it.</li>
+                  <li>The Administrator will consider the complaint within 14 days of receiving it, in accordance with Articles 561-563 of the Civil Code.</li>
+                  <li>In case of unsatisfactory response to the complaint, the Client may use out-of-court dispute resolution methods, including:
+                    <ul className="list-disc list-inside mt-2 ml-4 space-y-1">
+                      <li>Permanent Consumer Arbitration Court at the Regional Inspectorate of Trade Inspection</li>
+                      <li>European Online Dispute Resolution Platform (ODR) available at: https://ec.europa.eu/consumers/odr/</li>
+                      <li>Financial Ombudsman assistance (in payment-related matters)</li>
+                    </ul>
+                  </li>
+                  <li>The Client may also seek assistance from municipal or district consumer advocates.</li>
                 </ol>
               </section>
 
@@ -247,7 +285,24 @@ export default function TermsOfService() {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold mb-3">11. Personal Data and Cookies</h2>
+                <h2 className="text-xl font-semibold mb-3">11. Consumer Rights</h2>
+                <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
+                  <li>A Client who is a consumer has the right to:
+                    <ul className="list-disc list-inside mt-2 ml-4 space-y-1">
+                      <li>Receive full information about the service before concluding a contract</li>
+                      <li>Withdraw from the contract within 14 days (in accordance with Article 27 of the Consumer Rights Act)</li>
+                      <li>Quality guarantee of the service in accordance with the contract</li>
+                      <li>Access to out-of-court dispute resolution methods</li>
+                      <li>Personal data protection in accordance with GDPR</li>
+                    </ul>
+                  </li>
+                  <li>The Administrator informs that the contract may be concluded in Polish.</li>
+                  <li>The Client may use the withdrawal form template available on the website.</li>
+                </ol>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold mb-3">12. Personal Data and Cookies</h2>
                 <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
                   <li>The Administrator processes Clients&apos; personal data in accordance with applicable law, including GDPR.</li>
                   <li>Detailed information regarding personal data processing and cookies is contained in the Privacy Policy available on the Website.</li>
@@ -255,7 +310,7 @@ export default function TermsOfService() {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold mb-3">12. Final Provisions</h2>
+                <h2 className="text-xl font-semibold mb-3">13. Final Provisions</h2>
                 <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
                   <li>The Administrator reserves the right to change the Terms of Service.</li>
                   <li>Polish law applies to contracts concluded between the Client and Administrator.</li>
@@ -264,7 +319,7 @@ export default function TermsOfService() {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold mb-3">13. Additional Information</h2>
+                <h2 className="text-xl font-semibold mb-3">14. Additional Information</h2>
                 <div className="text-gray-700 leading-relaxed ml-4">
                   <p>First Name: Yaroslav</p>
                   <p>Last Name: Semkiv</p>

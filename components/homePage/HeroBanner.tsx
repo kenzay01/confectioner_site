@@ -134,7 +134,7 @@ export default function HeroBanner() {
                   ? `/${currentLocale}/masterClass/masterclass-${nearest.id}`
                   : "#"
               }
-              className={`bg-[var(--brown-color)] hover:bg-[var(--accent-color)] text-white font-bold text-xl px-12 py-4 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
+              className={`btn-unified text-xl px-12 py-4 ${
                 !nearest || loading ? "pointer-events-none opacity-50" : ""
               }`}
             >

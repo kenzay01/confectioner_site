@@ -446,7 +446,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
             </select>
             <button
               onClick={onLogout}
-              className="bg-brown hover:bg-brown-hover text-gray-100 font-bold py-2 px-4 rounded"
+              className="btn-unified"
             >
               Вийти
             </button>
@@ -456,17 +456,17 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
         <div className="flex gap-4 mb-6">
           <button
             onClick={() => setCurrentTab("masterclasses")}
-            className={`py-2 px-4 rounded ${
-              currentTab === "masterclasses" ? "bg-brown-hover" : "bg-brown"
-            } text-gray-100`}
+            className={`btn-unified ${
+              currentTab === "masterclasses" ? "bg-gray-200 border-gray-600" : ""
+            }`}
           >
             Майстер-класи
           </button>
           <button
             onClick={() => setCurrentTab("products")}
-            className={`py-2 px-4 rounded ${
-              currentTab === "products" ? "bg-brown-hover" : "bg-brown"
-            } text-gray-100`}
+            className={`btn-unified ${
+              currentTab === "products" ? "bg-gray-200 border-gray-600" : ""
+            }`}
           >
             Онлайн продукти
           </button>
@@ -745,7 +745,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     </div>
                     <button
                       onClick={() => addFaq(setNewMasterclass)}
-                      className="bg-brown hover:bg-brown-hover text-gray-100 py-2 px-4 rounded flex items-center gap-2"
+                      className="btn-unified flex items-center gap-2"
                     >
                       <Plus size={20} />
                       Додати FAQ
@@ -767,7 +767,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                           onClick={() =>
                             removeFaq(faq.id, setNewMasterclass, language)
                           }
-                          className="text-gray-100 hover:text-brown"
+                          className="btn-unified p-2"
                         >
                           <Trash2 size={20} />
                         </button>
@@ -778,7 +778,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
               </div>
               <button
                 onClick={handleAddMasterclass}
-                className="bg-brown hover:bg-brown-hover text-gray-100 font-bold py-2 px-4 rounded flex items-center gap-2"
+                className="btn-unified flex items-center gap-2"
               >
                 <Plus size={20} />
                 Додати майстер-клас
@@ -823,13 +823,13 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     <div className="flex gap-2">
                       <button
                         onClick={() => setEditingMasterclass(masterclass)}
-                        className="text-gray-100 hover:text-brown"
+                        className="btn-unified p-2"
                       >
                         <Edit size={20} />
                       </button>
                       <button
                         onClick={() => handleDeleteMasterclass(masterclass.id)}
-                        className="text-gray-100 hover:text-brown"
+                        className="btn-unified p-2"
                       >
                         <Trash2 size={20} />
                       </button>
@@ -1109,7 +1109,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         </div>
                         <button
                           onClick={() => addFaq(setEditingMasterclass)}
-                          className="bg-brown hover:bg-brown-hover text-gray-100 py-2 px-4 rounded flex items-center gap-2"
+                          className="btn-unified flex items-center gap-2"
                         >
                           <Plus size={20} />
                           Додати FAQ
@@ -1135,7 +1135,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                                   language
                                 )
                               }
-                              className="text-gray-100 hover:text-brown"
+                              className="btn-unified p-2"
                             >
                               <Trash2 size={20} />
                             </button>
@@ -1147,13 +1147,13 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                   <div className="flex justify-end gap-4 mt-6">
                     <button
                       onClick={() => setEditingMasterclass(null)}
-                      className="text-gray-100 hover:text-brown"
+                      className="btn-unified"
                     >
                       Скасувати
                     </button>
                     <button
                       onClick={handleEditMasterclass}
-                      className="bg-brown hover:bg-brown-hover text-gray-100 font-bold py-2 px-4 rounded"
+                      className="btn-unified"
                     >
                       Зберегти
                     </button>
@@ -1285,7 +1285,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
               </div>
               <button
                 onClick={handleAddProduct}
-                className="bg-brown hover:bg-brown-hover text-gray-100 font-bold py-2 px-4 rounded flex items-center gap-2"
+                className="btn-unified flex items-center gap-2"
               >
                 <Plus size={20} />
                 Додати продукт
@@ -1330,13 +1330,13 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     <div className="flex gap-2">
                       <button
                         onClick={() => setEditingProduct(product)}
-                        className="text-gray-100 hover:text-brown"
+                        className="btn-unified p-2"
                       >
                         <Edit size={20} />
                       </button>
                       <button
                         onClick={() => handleDeleteProduct(product.id)}
-                        className="text-gray-100 hover:text-brown"
+                        className="btn-unified p-2"
                       >
                         <Trash2 size={20} />
                       </button>
@@ -1460,13 +1460,13 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                   <div className="flex justify-end gap-4 mt-6">
                     <button
                       onClick={() => setEditingProduct(null)}
-                      className="text-gray-100 hover:text-brown"
+                      className="btn-unified"
                     >
                       Скасувати
                     </button>
                     <button
                       onClick={handleEditProduct}
-                      className="bg-brown hover:bg-brown-hover text-gray-100 font-bold py-2 px-4 rounded"
+                      className="btn-unified"
                     >
                       Зберегти
                     </button>
@@ -1564,7 +1564,7 @@ const AdminLogin = ({ onLogin }: { onLogin: () => void }) => {
               type="button"
               disabled={loading}
               onClick={handleLogin}
-              className="group relative w-full flex justify-center py-1.5 sm:py-2 px-3 sm:px-4 border border-transparent text-xs sm:text-sm md:text-sm font-medium rounded-md text-gray-100 bg-brown hover:bg-brown-hover focus:outline-none focus:ring-2 focus:ring-offset-2 ring-brown disabled:opacity-50"
+              className="btn-unified w-full disabled:opacity-50"
             >
               {loading ? "Вхід..." : "Увійти"}
             </button>

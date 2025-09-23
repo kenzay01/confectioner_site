@@ -5,7 +5,7 @@
     "aboutMe": "O mnie",
     "onlineProducts": "Produkty online",
     "contactWithChef": "Skontaktuj się z szefem kuchni",
-    "contacts": "Kontakty"
+    "contacts": "Kontakt"
   },
   "home": {
     "banner": {
@@ -42,6 +42,7 @@
   },
   "footer": {
     "privacyPolicy": "Polityka prywatności",
-    "termsOfService": "Regulamin"
+    "termsOfService": "Regulamin",
+    "salesRegulations": "Regulamin sprzedaży"
   }
 }
