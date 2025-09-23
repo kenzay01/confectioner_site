@@ -142,7 +142,7 @@ export default function PaymentModal({
         itemTitle: item.title[currentLocale],
         formData,
         price: item.price,
-        amount: item.price * 100, // конвертуємо в grosze
+        amount: item.price, // kwota w złotych
         timestamp: Date.now(),
       };
       
@@ -155,7 +155,7 @@ export default function PaymentModal({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          amount: item.price * 100, // kwota w groszach
+          amount: item.price, // kwota w złotych
           itemType: item.type,
           itemId: item.id,
           sessionId: sessionId,
