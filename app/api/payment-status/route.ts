@@ -13,11 +13,27 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const merchantId = process.env.PRZELEWY24_MERCHANT_ID;
-    const posId = process.env.PRZELEWY24_POS_ID;
-    const apiKey = process.env.PRZELEWY24_API_KEY;
+    // Конфігурація Przelewy24 - використовуємо ту ж логіку, що і в create-payment
+    const isSandbox = true; // завжди true для тестування
+    
+    let merchantId, posId, apiKey;
+    
+    if (isSandbox) {
+      // Використовуємо ті ж реальні дані з панелі Przelewy24, що і в create-payment
+      merchantId = "358564";
+      posId = "358564";
+      apiKey = "bf5bde3fadfc4f178f0866e0b8ec1eff"; // "Ключ до звітів"
+    } else {
+      merchantId = process.env.PRZELEWY24_MERCHANT_ID;
+      posId = process.env.PRZELEWY24_POS_ID;
+      apiKey = process.env.PRZELEWY24_API_KEY;
+    }
 
     if (!merchantId || !posId || !apiKey) {
+      console.error('Missing Przelewy24 configuration:');
+      console.error('MerchantId:', merchantId ? 'Set' : 'Missing');
+      console.error('PosId:', posId ? 'Set' : 'Missing');
+      console.error('API Key:', apiKey ? 'Set' : 'Missing');
       return NextResponse.json(
         { error: "Missing Przelewy24 configuration" },
         { status: 500 }
@@ -26,7 +42,7 @@ export async function GET(req: NextRequest) {
 
     const baseUrl = "https://sandbox.przelewy24.pl/api/v1"
 
-    // Основная авторизация
+    // Автентифікація для Przelewy24 - використовуємо ті ж дані
     const authString = `${posId}:${apiKey}`;
     const encodedAuth = Buffer.from(authString).toString('base64');
 
@@ -35,7 +51,8 @@ export async function GET(req: NextRequest) {
       method: 'GET',
       headers: {
         'Authorization': `Basic ${encodedAuth}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       }
     });
 
@@ -50,6 +67,8 @@ export async function GET(req: NextRequest) {
       
       const errorText = await response.text();
       console.error('Przelewy24 status check error:', errorText);
+      console.error('Response status:', response.status);
+      console.error('Auth string used:', authString);
       return NextResponse.json(
         { error: 'Failed to check payment status', details: errorText },
         { status: 500 }
