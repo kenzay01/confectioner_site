@@ -93,8 +93,8 @@ export async function POST(req: NextRequest) {
       phone: body.whatsapp || "",
       language: "pl",
       method: 0, // wszystkie dostępne metody płatności
-      urlReturn: `https://confectioner-site.vercel.app/payment-status?sessionId=${sessionId}`,
-      urlStatus: `https://confectioner-site.vercel.app/api/payment-webhook`,
+      urlReturn: `https://confectioner-site.vercel.app/payment-status?sessionId=${sessionId}&status=return`,
+      urlStatus: `https://confectioner-site.vercel.app/api/payment-webhook?sessionId=${sessionId}`,
       timeLimit: 15, // limit czasu w minutach
       waitForResult: false,
       regulationAccept: true,

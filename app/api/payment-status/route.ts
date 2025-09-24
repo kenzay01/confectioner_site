@@ -16,7 +16,6 @@ export async function GET(req: NextRequest) {
     const merchantId = process.env.PRZELEWY24_MERCHANT_ID;
     const posId = process.env.PRZELEWY24_POS_ID;
     const apiKey = process.env.PRZELEWY24_API_KEY;
-    const isSandbox = process.env.NODE_ENV !== "production";
 
     if (!merchantId || !posId || !apiKey) {
       return NextResponse.json(
@@ -25,15 +24,13 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const baseUrl = isSandbox 
-      ? "https://sandbox.przelewy24.pl/api/v1" 
-      : "https://secure.przelewy24.pl/api/v1";
+    const baseUrl = "https://sandbox.przelewy24.pl/api/v1"
 
-    // Podstawowa autoryzacja
+    // Основная авторизация
     const authString = `${posId}:${apiKey}`;
     const encodedAuth = Buffer.from(authString).toString('base64');
 
-    // Pobieramy informacje o transakcji
+    // Получаем информацию о транзакции
     const response = await fetch(`${baseUrl}/transaction/by/sessionId/${sessionId}`, {
       method: 'GET',
       headers: {
@@ -68,27 +65,27 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Mapujemy status z Przelewy24 na nasze statusy
+    // Мапим статус з Przelewy24 на наші статуси
     let status = "unknown";
     if (result.data && result.data.length > 0) {
       const transaction = result.data[0];
       switch (transaction.status) {
-        case 1: // rozpoczęta
+        case 1: // початок
           status = "created";
           break;
-        case 2: // w trakcie
+        case 2: // в процесі
           status = "processing";
           break;
-        case 3: // anulowana
+        case 3: // скасована
           status = "failure";
           break;
-        case 4: // odrzucona
+        case 4: // відхилена
           status = "failure";
           break;
-        case 5: // wykonana
+        case 5: // виконана
           status = "success";
           break;
-        case 6: // zwrócona
+        case 6: // повернута
           status = "reversed";
           break;
         default:

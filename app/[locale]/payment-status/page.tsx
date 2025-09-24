@@ -53,6 +53,8 @@ function PaymentStatusContent() {
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [processed, setProcessed] = useState(false);
+  const [checkAttempts, setCheckAttempts] = useState(0);
+  const [isFromReturn, setIsFromReturn] = useState(false);
 
   const texts = {
     pl: {
@@ -171,8 +173,14 @@ function PaymentStatusContent() {
 
   useEffect(() => {
     const sessionId = searchParams.get('sessionId');
+    const statusParam = searchParams.get('status');
     const storedData = localStorage.getItem("paymentData");
     
+    // Перевіряємо, чи користувач повернувся з Przelewy24
+    setIsFromReturn(statusParam === 'return');
+    
+    console.log('Payment status page loaded:', { sessionId, statusParam, hasStoredData: !!storedData });
+
     if (storedData) {
       const parsedData: PaymentData = JSON.parse(storedData);
       setPaymentData(parsedData);
@@ -193,8 +201,13 @@ function PaymentStatusContent() {
         
         if (sessionIdToCheck) {
           try {
+            console.log(`Checking payment status for session: ${sessionIdToCheck}, attempt: ${checkAttempts + 1}`);
+            
+            // Тільки перевіряємо статус
             const response = await fetch(`/api/payment-status?sessionId=${sessionIdToCheck}`);
             const result = await response.json();
+            
+            console.log('Payment status result:', result);
             
             if (result.success) {
               setPaymentStatus(result.status);
@@ -203,6 +216,16 @@ function PaymentStatusContent() {
               if (result.status === 'success' && !processed) {
                 await handleSuccessfulPayment(parsedData);
                 setProcessed(true);
+                localStorage.removeItem("paymentData");
+              }
+              
+              // Якщо статус ще processing або created і ми повернулися з Przelewy24,
+              // спробуємо перевірити ще раз через кілька секунд
+              if ((result.status === 'processing' || result.status === 'created') && 
+                  isFromReturn && checkAttempts < 5) {
+                setTimeout(() => {
+                  setCheckAttempts(prev => prev + 1);
+                }, 3000);
               }
             } else {
               setError(`${t.errors.processing}: ${result.error}`);
@@ -218,16 +241,42 @@ function PaymentStatusContent() {
       };
 
       checkPaymentStatus();
+    } else if (sessionId) {
+      // Якщо немає збережених даних, але є sessionId, все одно перевіряємо статус
+      const checkPaymentStatus = async () => {
+        try {
+          console.log(`Checking payment status for session without stored data: ${sessionId}`);
+          
+          const response = await fetch(`/api/payment-status?sessionId=${sessionId}`);
+          const result = await response.json();
+          
+          console.log('Payment status result (no stored data):', result);
+          
+          if (result.success) {
+            setPaymentStatus(result.status);
+          } else {
+            setError(`${t.errors.processing}: ${result.error}`);
+          }
+        } catch (error) {
+          console.error('Error checking payment status:', error);
+          setError(t.errors.processing);
+        }
+        setLoading(false);
+      };
+
+      checkPaymentStatus();
     } else {
       setError(t.errors.noData);
       setLoading(false);
     }
-  }, [searchParams, processed, t]);
+  }, [searchParams, processed, t, checkAttempts]);
 
   const handleSuccessfulPayment = async (data: PaymentData) => {
     try {
-      // Обробляємо успішний платіж
-      await fetch('/api/process-payment', {
+      console.log('Processing successful payment:', data.sessionId);
+      
+      // 1. Обробляємо успішний платіж (відправляємо в Telegram і записуємо в таблицю)
+      const processResponse = await fetch('/api/process-payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -242,8 +291,32 @@ function PaymentStatusContent() {
         }),
       });
 
-      // Видаляємо дані з localStorage після успішної обробки
-      localStorage.removeItem("paymentData");
+      const processResult = await processResponse.json();
+      console.log('Process payment result:', processResult);
+
+      // 2. Якщо це masterclass, зменшуємо кількість доступних місць
+      if (data.itemType === 'masterclass') {
+        try {
+          const reduceSlotResponse = await fetch(`/api/masterclasses/${data.itemId}/reduce-slot`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+
+          const reduceSlotResult = await reduceSlotResponse.json();
+          console.log('Reduce slot result:', reduceSlotResult);
+
+          if (!reduceSlotResult.success) {
+            console.error('Failed to reduce masterclass slot:', reduceSlotResult.error);
+            // Не блокуємо весь процес, але логуємо помилку
+          }
+        } catch (error) {
+          console.error('Error reducing masterclass slot:', error);
+          // Не блокуємо весь процес
+        }
+      }
+
     } catch (error) {
       console.error('Error processing successful payment:', error);
     }
@@ -329,7 +402,12 @@ function PaymentStatusContent() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">
+            {isFromReturn ? 'Перевіряємо статус платежу...' : 'Завантаження...'}
+          </p>
+        </div>
       </div>
     );
   }
@@ -345,6 +423,12 @@ function PaymentStatusContent() {
             {statusInfo.title}
           </h1>
           <p className="text-gray-600">{statusInfo.message}</p>
+          
+          {isFromReturn && (paymentStatus === 'processing' || paymentStatus === 'created') && (
+            <p className="text-sm text-blue-600 mt-2">
+              Повернення з платіжної системи... Перевіряємо статус платежу.
+            </p>
+          )}
         </div>
 
         {paymentData && (
@@ -449,6 +533,17 @@ function PaymentStatusContent() {
             </button>
           )}
         </div>
+
+        {/* Debug info - видаліть в продакшені */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-6 p-2 bg-gray-100 rounded text-xs">
+            <p>SessionId: {searchParams.get('sessionId')}</p>
+            <p>Status param: {searchParams.get('status')}</p>
+            <p>Current status: {paymentStatus}</p>
+            <p>Check attempts: {checkAttempts}</p>
+            <p>Is from return: {isFromReturn.toString()}</p>
+          </div>
+        )}
       </div>
     </div>
   );
