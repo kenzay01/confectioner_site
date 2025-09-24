@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   CheckCircle,
@@ -53,8 +53,11 @@ function PaymentStatusContent() {
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [processed, setProcessed] = useState(false);
-  const [checkAttempts, setCheckAttempts] = useState(0);
   const [isFromReturn, setIsFromReturn] = useState(false);
+  
+  // Використовуємо useRef для контролю запитів
+  const hasCheckedStatus = useRef(false);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const texts = {
     pl: {
@@ -171,7 +174,69 @@ function PaymentStatusContent() {
 
   const t = texts[currentLocale];
 
+  const checkPaymentStatus = async (sessionIdToCheck: string): Promise<void> => {
+    try {
+      console.log(`Checking payment status for session: ${sessionIdToCheck}`);
+      
+      const response = await fetch(`/api/payment-status?sessionId=${sessionIdToCheck}`);
+      const result = await response.json();
+      
+      console.log('Payment status result:', result);
+      
+      if (result.success) {
+        setPaymentStatus(result.status);
+        
+        // Якщо платіж успішний і ще не оброблено, обробляємо його
+        if (result.status === 'success' && !processed && paymentData) {
+          await handleSuccessfulPayment(paymentData);
+          setProcessed(true);
+          localStorage.removeItem("paymentData");
+        }
+        
+        // Якщо статус ще processing або created і користувач повернувся з Przelewy24,
+        // робимо ТІЛЬКИ ОДНУ додаткову перевірку через 5 секунд
+        if ((result.status === 'processing' || result.status === 'created') && 
+            isFromReturn && !retryTimeoutRef.current) {
+          
+          retryTimeoutRef.current = setTimeout(async () => {
+            console.log('Second status check after return from Przelewy24');
+            try {
+              const secondResponse = await fetch(`/api/payment-status?sessionId=${sessionIdToCheck}`);
+              const secondResult = await secondResponse.json();
+              
+              if (secondResult.success) {
+                setPaymentStatus(secondResult.status);
+                
+                if (secondResult.status === 'success' && !processed && paymentData) {
+                  await handleSuccessfulPayment(paymentData);
+                  setProcessed(true);
+                  localStorage.removeItem("paymentData");
+                }
+              }
+            } catch (error) {
+              console.error('Error in second status check:', error);
+            }
+            retryTimeoutRef.current = null;
+          }, 5000);
+        }
+      } else {
+        setError(`${t.errors.processing}: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error checking payment status:', error);
+      setError(t.errors.processing);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
+    // Запобігаємо повторним викликам
+    if (hasCheckedStatus.current) {
+      return;
+    }
+    hasCheckedStatus.current = true;
+
     const sessionId = searchParams.get('sessionId');
     const statusParam = searchParams.get('status');
     const storedData = localStorage.getItem("paymentData");
@@ -196,80 +261,29 @@ function PaymentStatusContent() {
         return;
       }
 
-      const checkPaymentStatus = async () => {
-        const sessionIdToCheck = sessionId || parsedData.sessionId;
-        
-        if (sessionIdToCheck) {
-          try {
-            console.log(`Checking payment status for session: ${sessionIdToCheck}, attempt: ${checkAttempts + 1}`);
-            
-            // Тільки перевіряємо статус
-            const response = await fetch(`/api/payment-status?sessionId=${sessionIdToCheck}`);
-            const result = await response.json();
-            
-            console.log('Payment status result:', result);
-            
-            if (result.success) {
-              setPaymentStatus(result.status);
-              
-              // Якщо платіж успішний і ще не оброблено, обробляємо його
-              if (result.status === 'success' && !processed) {
-                await handleSuccessfulPayment(parsedData);
-                setProcessed(true);
-                localStorage.removeItem("paymentData");
-              }
-              
-              // Якщо статус ще processing або created і ми повернулися з Przelewy24,
-              // спробуємо перевірити ще раз через кілька секунд
-              if ((result.status === 'processing' || result.status === 'created') && 
-                  isFromReturn && checkAttempts < 5) {
-                setTimeout(() => {
-                  setCheckAttempts(prev => prev + 1);
-                }, 3000);
-              }
-            } else {
-              setError(`${t.errors.processing}: ${result.error}`);
-            }
-          } catch (error) {
-            console.error('Error checking payment status:', error);
-            setError(t.errors.processing);
-          }
-        } else {
-          setError(t.errors.noData);
-        }
+      const sessionIdToCheck = sessionId || parsedData.sessionId;
+      if (sessionIdToCheck) {
+        checkPaymentStatus(sessionIdToCheck);
+      } else {
+        setError(t.errors.noData);
         setLoading(false);
-      };
-
-      checkPaymentStatus();
+      }
     } else if (sessionId) {
       // Якщо немає збережених даних, але є sessionId, все одно перевіряємо статус
-      const checkPaymentStatus = async () => {
-        try {
-          console.log(`Checking payment status for session without stored data: ${sessionId}`);
-          
-          const response = await fetch(`/api/payment-status?sessionId=${sessionId}`);
-          const result = await response.json();
-          
-          console.log('Payment status result (no stored data):', result);
-          
-          if (result.success) {
-            setPaymentStatus(result.status);
-          } else {
-            setError(`${t.errors.processing}: ${result.error}`);
-          }
-        } catch (error) {
-          console.error('Error checking payment status:', error);
-          setError(t.errors.processing);
-        }
-        setLoading(false);
-      };
-
-      checkPaymentStatus();
+      checkPaymentStatus(sessionId);
     } else {
       setError(t.errors.noData);
       setLoading(false);
     }
-  }, [searchParams, processed, t, checkAttempts]);
+
+    // Cleanup функція
+    return () => {
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = null;
+      }
+    };
+  }, [searchParams]); // Видалили processed, t, checkAttempts з dependencies
 
   const handleSuccessfulPayment = async (data: PaymentData) => {
     try {
@@ -364,6 +378,16 @@ function PaymentStatusContent() {
     }
   };
 
+  // Функція для ручного оновлення статусу
+  const handleRefreshStatus = async () => {
+    const sessionId = searchParams.get('sessionId') || paymentData?.sessionId;
+    if (!sessionId) return;
+
+    setLoading(true);
+    hasCheckedStatus.current = false; // Дозволяємо повторну перевірку
+    await checkPaymentStatus(sessionId);
+  };
+
   const getStatusIcon = () => {
     switch (paymentStatus) {
       case "success":
@@ -426,7 +450,7 @@ function PaymentStatusContent() {
           
           {isFromReturn && (paymentStatus === 'processing' || paymentStatus === 'created') && (
             <p className="text-sm text-blue-600 mt-2">
-              Повернення з платіжної системи... Перевіряємо статус платежу.
+              Повернення з платіжної системи... Очікуйте результат перевірки.
             </p>
           )}
         </div>
@@ -507,10 +531,11 @@ function PaymentStatusContent() {
           {(paymentStatus === "processing" || paymentStatus === "created") && (
             <div className="space-y-3">
               <button
-                onClick={() => window.location.reload()}
+                onClick={handleRefreshStatus}
                 className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+                disabled={loading}
               >
-                {t.buttons.refresh}
+                {loading ? "Перевіряємо..." : t.buttons.refresh}
               </button>
 
               <button
@@ -540,7 +565,6 @@ function PaymentStatusContent() {
             <p>SessionId: {searchParams.get('sessionId')}</p>
             <p>Status param: {searchParams.get('status')}</p>
             <p>Current status: {paymentStatus}</p>
-            <p>Check attempts: {checkAttempts}</p>
             <p>Is from return: {isFromReturn.toString()}</p>
           </div>
         )}
