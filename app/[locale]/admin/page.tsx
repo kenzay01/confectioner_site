@@ -1,17 +1,27 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import {
-  Upload,
   X,
-  Image as ImageIcon,
   Plus,
   Edit,
   Trash2,
+  BarChart3,
+  Calendar,
+  Package,
+  Settings,
+  MapPin,
+  Save,
+  CheckCircle,
+  AlertCircle,
+  Clock,
+  Users,
+  DollarSign,
 } from "lucide-react";
 import { Masterclass } from "@/types/masterclass";
 import { OnlineProduct } from "@/types/products";
+import { Partner } from "@/types/partner";
 import { useItems } from "@/context/itemsContext";
+import Image from "next/image";
 
 interface FAQ {
   id: string;
@@ -27,7 +37,6 @@ interface DateTimeSlot {
 
 const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
   const { refreshMasterclasses, refreshOnlineProducts } = useItems();
-  const currentLanguage = useCurrentLanguage();
   const [masterclasses, setMasterclasses] = useState<Masterclass[]>([]);
   const [onlineProducts, setOnlineProducts] = useState<OnlineProduct[]>([]);
   const [newMasterclass, setNewMasterclass] = useState<Partial<Masterclass>>({
@@ -36,6 +45,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     dateEnd: "",
     dateTimes: [],
     location: { pl: "", en: "" },
+    city: "", // Місто для відображення на мапі
     title: { pl: "", en: "" },
     photo: "",
     description: { pl: "", en: "" },
@@ -43,7 +53,6 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     availableSlots: 0,
     pickedSlots: 0,
     faqs: { pl: [], en: [] },
-    backgroundImage: "", // Додано для фону
   });
   const [newProduct, setNewProduct] = useState<Partial<OnlineProduct>>({
     type: "course",
@@ -52,15 +61,29 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     price: 0,
     photo: "",
   });
+  const [newPartner, setNewPartner] = useState<Partial<Partner>>({
+    name: { pl: "", en: "" },
+    description: { pl: "", en: "" },
+    logo: "",
+    website: "",
+    isActive: true,
+  });
+  const [polishCities, setPolishCities] = useState<Array<{name: string, lat: number, lng: number}>>([]);
   const [editingMasterclass, setEditingMasterclass] =
     useState<Masterclass | null>(null);
   const [editingProduct, setEditingProduct] = useState<OnlineProduct | null>(
     null
   );
   const [language, setLanguage] = useState<"pl" | "en">("pl");
-  const [currentTab, setCurrentTab] = useState<"masterclasses" | "products">(
-    "masterclasses"
+  const [usePolishForEnglish, setUsePolishForEnglish] = useState<boolean>(false);
+  const [currentTab, setCurrentTab] = useState<"dashboard" | "masterclasses" | "products" | "partners">(
+    "dashboard"
   );
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
+  const [showMasterclassForm, setShowMasterclassForm] = useState(false);
+  const [showProductForm, setShowProductForm] = useState(false);
+  const [showPartnerForm, setShowPartnerForm] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [newFaq, setNewFaq] = useState<{
@@ -76,24 +99,40 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [masterclassRes, productRes] = await Promise.all([
+        const [masterclassRes, productRes, partnersRes, citiesRes] = await Promise.all([
           fetch("/api/masterclasses"),
           fetch("/api/online-products"),
+          fetch("/api/partners"),
+          fetch("/api/cities"),
         ]);
         if (masterclassRes.ok) {
           const masterclassesData = await masterclassRes.json();
           setMasterclasses(masterclassesData);
         } else {
-          setErrorMessage("Не вдалося завантажити майстер-класи");
+          setErrorMessage("Nie udało się załadować warsztatów");
         }
         if (productRes.ok) {
           const productsData = await productRes.json();
           setOnlineProducts(productsData);
         } else {
-          setErrorMessage("Не вдалося завантажити продукти");
+          setErrorMessage("Nie udało się załadować produktów");
         }
-      } catch (error) {
-        setErrorMessage("Помилка при завантаженні даних");
+        if (partnersRes.ok) {
+          const partnersData = await partnersRes.json();
+          setPartners(partnersData);
+        } else {
+          setErrorMessage("Nie udało się załadować partnerów");
+        }
+        if (citiesRes.ok) {
+          const citiesData = await citiesRes.json();
+          setPolishCities(citiesData);
+        } else {
+          const errorText = await citiesRes.text();
+          console.error("Cities API error:", errorText);
+          setErrorMessage(`Nie udało się załadować listy miast: ${citiesRes.status} ${errorText}`);
+        }
+      } catch (_error) {
+        setErrorMessage("Błąd przy ładowaniu danych");
       } finally {
         setLoading(false);
       }
@@ -101,29 +140,60 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     fetchData();
   }, []);
 
+  const refreshPartners = async () => {
+    try {
+      const res = await fetch("/api/partners");
+      if (res.ok) {
+        const data = await res.json();
+        setPartners(data);
+      }
+    } catch (error) {
+      console.error("Error refreshing partners:", error);
+    }
+  };
+
   const handleAddMasterclass = async () => {
-    if (
-      (newMasterclass.dateType === "single"
-        ? newMasterclass.date
-        : newMasterclass.date &&
-          newMasterclass.dateEnd &&
-          newMasterclass.dateTimes?.length) &&
-      newMasterclass.title?.pl &&
-      newMasterclass.title?.en &&
-      newMasterclass.description?.pl &&
-      newMasterclass.description?.en &&
-      newMasterclass.location?.pl &&
-      newMasterclass.location?.en &&
-      newMasterclass.price &&
-      newMasterclass.availableSlots
-    ) {
+    // Перевіряємо обов'язкові поля
+    const missingFields = [];
+    
+    if (!newMasterclass.date) missingFields.push("Дата початку");
+    if (newMasterclass.dateType === "range" && !newMasterclass.dateEnd) missingFields.push("Дата закінчення");
+    if (!newMasterclass.title?.pl) missingFields.push("Заголовок (польська)");
+    if (!newMasterclass.title?.en && !usePolishForEnglish) missingFields.push("Заголовок (англійська)");
+    if (!newMasterclass.description?.pl) missingFields.push("Опис (польська)");
+    if (!newMasterclass.description?.en && !usePolishForEnglish) missingFields.push("Опис (англійська)");
+    if (!newMasterclass.location?.pl) missingFields.push("Місце проведення (польська)");
+    if (!newMasterclass.location?.en && !usePolishForEnglish) missingFields.push("Місце проведення (англійська)");
+    if (!newMasterclass.city) missingFields.push("Місто (для мапи)");
+    if (!newMasterclass.price) missingFields.push("Ціна");
+    if (!newMasterclass.availableSlots) missingFields.push("Доступні місця");
+
+    if (missingFields.length > 0) {
+      setErrorMessage(`Будь ласка, заповніть обов'язкові поля: ${missingFields.join(", ")}`);
+      return;
+    }
+
+    // Якщо використовуємо польську версію для англійської, копіюємо дані
       const masterclassToAdd: Masterclass = {
         ...newMasterclass,
         id: Date.now().toString(),
         pickedSlots: 0,
         faqs: newMasterclass.faqs || { pl: [], en: [] },
-        backgroundImage: newMasterclass.backgroundImage || "", // Додано фон
+      title: {
+        pl: newMasterclass.title?.pl || "",
+        en: usePolishForEnglish ? newMasterclass.title?.pl || "" : newMasterclass.title?.en || ""
+      },
+      description: {
+        pl: newMasterclass.description?.pl || "",
+        en: usePolishForEnglish ? newMasterclass.description?.pl || "" : newMasterclass.description?.en || ""
+      },
+      location: {
+        pl: newMasterclass.location?.pl || "",
+        en: usePolishForEnglish ? newMasterclass.location?.pl || "" : newMasterclass.location?.en || ""
+      },
+      city: newMasterclass.city || ""
       } as Masterclass;
+
       try {
         const res = await fetch("/api/masterclasses", {
           method: "POST",
@@ -139,6 +209,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
             dateEnd: "",
             dateTimes: [],
             location: { pl: "", en: "" },
+            city: "",
             title: { pl: "", en: "" },
             photo: "",
             description: { pl: "", en: "" },
@@ -146,7 +217,6 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
             availableSlots: 0,
             pickedSlots: 0,
             faqs: { pl: [], en: [] },
-            backgroundImage: "", // Скидаємо фон
           });
           setNewFaq({
             question: "",
@@ -157,11 +227,8 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
         } else {
           setErrorMessage("Не вдалося додати майстер-клас");
         }
-      } catch (error) {
+      } catch (_error) {
         setErrorMessage("Помилка при додаванні майстер-класу");
-      }
-    } else {
-      setErrorMessage("Будь ласка, заповніть усі поля для всіх мов.");
     }
   };
 
@@ -190,7 +257,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
         } else {
           setErrorMessage("Не вдалося оновити майстер-клас");
         }
-      } catch (error) {
+      } catch (_error) {
         setErrorMessage("Помилка при оновленні майстер-класу");
       }
     }
@@ -208,7 +275,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
       } else {
         setErrorMessage("Не вдалося видалити майстер-клас");
       }
-    } catch (error) {
+    } catch (_error) {
       setErrorMessage("Помилка при видаленні майстер-класу");
     }
   };
@@ -242,12 +309,13 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
             price: 0,
             photo: "",
           });
+          setShowProductForm(false);
           setErrorMessage("");
           refreshOnlineProducts();
         } else {
           setErrorMessage("Не вдалося додати продукт");
         }
-      } catch (error) {
+      } catch (_error) {
         setErrorMessage("Помилка при додаванні продукту");
       }
     } else {
@@ -276,7 +344,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
         } else {
           setErrorMessage("Не вдалося оновити продукт");
         }
-      } catch (error) {
+      } catch (_error) {
         setErrorMessage("Помилка при оновленні продукту");
       }
     }
@@ -294,45 +362,93 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
       } else {
         setErrorMessage("Не вдалося видалити продукт");
       }
-    } catch (error) {
+    } catch (_error) {
       setErrorMessage("Помилка при видаленні продукту");
     }
   };
 
-  function handleImageUpload<T>(
-    e: React.ChangeEvent<HTMLInputElement>,
-    setState: React.Dispatch<React.SetStateAction<T>>,
-    field: string
-  ) {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setState((prev) => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            [field]: reader.result as string,
-          };
-        });
-      };
-      reader.readAsDataURL(file);
+  const handleAddPartner = async () => {
+    if (!newPartner.name?.pl || !newPartner.description?.pl) {
+      setErrorMessage("Proszę wypełnić wymagane pola");
+      return;
     }
-  }
 
-  function handleBackgroundUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewMasterclass((prev) => ({
-          ...prev,
-          backgroundImage: reader.result as string,
-        }));
-      };
-      reader.readAsDataURL(file);
+    const partnerToAdd: Partner = {
+      ...newPartner,
+      id: Date.now().toString(),
+      name: {
+        pl: newPartner.name?.pl || "",
+        en: usePolishForEnglish ? newPartner.name?.pl || "" : newPartner.name?.en || ""
+      },
+      description: {
+        pl: newPartner.description?.pl || "",
+        en: usePolishForEnglish ? newPartner.description?.pl || "" : newPartner.description?.en || ""
+      }
+    } as Partner;
+
+    try {
+      const res = await fetch("/api/partners", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(partnerToAdd),
+      });
+      if (res.ok) {
+        const addedPartner = await res.json();
+        setPartners([...partners, addedPartner]);
+        setNewPartner({
+          name: { pl: "", en: "" },
+          description: { pl: "", en: "" },
+          logo: "",
+          website: "",
+          isActive: true,
+        });
+        setShowPartnerForm(false);
+        setErrorMessage("");
+        refreshPartners();
+      } else {
+        setErrorMessage("Nie udało się dodać partnera");
+      }
+    } catch (_error) {
+      setErrorMessage("Błąd przy dodawaniu partnera");
     }
-  }
+  };
+
+  const handleEditPartner = async () => {
+    if (editingPartner) {
+      try {
+        const res = await fetch(`/api/partners/${editingPartner.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(editingPartner),
+        });
+        if (res.ok) {
+          setPartners(partners.map((p) => (p.id === editingPartner.id ? editingPartner : p)));
+          setEditingPartner(null);
+          refreshPartners();
+        } else {
+          setErrorMessage("Nie udało się zaktualizować partnera");
+        }
+      } catch (_error) {
+        setErrorMessage("Błąd przy aktualizacji partnera");
+      }
+    }
+  };
+
+  const handleDeletePartner = async (id: string) => {
+    try {
+      const res = await fetch(`/api/partners/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setPartners(partners.filter((p) => p.id !== id));
+        refreshPartners();
+      } else {
+        setErrorMessage("Nie udało się usunąć partnera");
+      }
+    } catch (_error) {
+      setErrorMessage("Błąd przy usuwaniu partnera");
+    }
+  };
 
   const addFaq = (
     setState:
@@ -424,69 +540,363 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
   }, [editingMasterclass, editingProduct]);
 
   return (
-    <div
-      className="min-h-screen py-8 px-4 sm:px-6 lg:px-8"
-      style={{
-        backgroundImage: `url(${newMasterclass.backgroundImage || ""})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
-      <div className="max-w-6xl mx-auto bg-brown p-6 rounded-lg shadow-lg">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-100">Адмін панель</h1>
-          <div className="flex gap-4">
+    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 bg-white">
+      <div className="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-lg border-2 border-black">
+        <div className="flex justify-between items-center mb-8">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-black rounded-lg">
+              <Settings className="w-6 h-6 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-black">Panel administracyjny</h1>
+          </div>
+          <div className="flex gap-4 items-center">
             <select
               value={language}
               onChange={(e) => setLanguage(e.target.value as "pl" | "en")}
-              className="bg-brown text-gray-100 border border-gray-300 rounded px-2 py-1"
+              className="bg-white text-black border-2 border-black rounded px-2 py-1"
             >
               <option value="pl">Польська</option>
               <option value="en">Англійська</option>
             </select>
             <button
               onClick={onLogout}
-              className="btn-unified"
+              className="px-4 py-2 rounded border-2 border-black text-black hover:bg-black hover:text-white transition-colors"
             >
               Вийти
             </button>
           </div>
         </div>
 
-        <div className="flex gap-4 mb-6">
+        <div className="flex gap-3 mb-8">
           <button
-            onClick={() => setCurrentTab("masterclasses")}
-            className={`btn-unified ${
-              currentTab === "masterclasses" ? "bg-gray-200 border-gray-600" : ""
+            onClick={() => setCurrentTab("dashboard")}
+            className={`flex items-center gap-2 px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
+              currentTab === "dashboard" 
+                ? "bg-black text-white border-black shadow-lg" 
+                : "bg-transparent text-black border-gray-300 hover:bg-gray-50 hover:border-black"
             }`}
           >
-            Майстер-класи
+            <BarChart3 className="w-4 h-4" />
+            Pulpit
+          </button>
+          <button
+            onClick={() => setCurrentTab("masterclasses")}
+            className={`flex items-center gap-2 px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
+              currentTab === "masterclasses" 
+                ? "bg-black text-white border-black shadow-lg" 
+                : "bg-transparent text-black border-gray-300 hover:bg-gray-50 hover:border-black"
+            }`}
+          >
+            <Calendar className="w-4 h-4" />
+            Warsztaty
           </button>
           <button
             onClick={() => setCurrentTab("products")}
-            className={`btn-unified ${
-              currentTab === "products" ? "bg-gray-200 border-gray-600" : ""
+            className={`flex items-center gap-2 px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
+              currentTab === "products" 
+                ? "bg-black text-white border-black shadow-lg" 
+                : "bg-transparent text-black border-gray-300 hover:bg-gray-50 hover:border-black"
             }`}
           >
-            Онлайн продукти
+            <Package className="w-4 h-4" />
+            Produkty online
+          </button>
+          <button
+            onClick={() => setCurrentTab("partners")}
+            className={`flex items-center gap-2 px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
+              currentTab === "partners" 
+                ? "bg-black text-white border-black shadow-lg" 
+                : "bg-transparent text-black border-gray-300 hover:bg-gray-50 hover:border-black"
+            }`}
+          >
+            <Users className="w-4 h-4" />
+            Partnerzy
           </button>
         </div>
 
         {errorMessage && (
-          <div className="bg-brown-light border border-brown text-brown px-3 py-2 rounded mb-4">
-            {errorMessage}
+          <div className="bg-red-50 border-2 border-red-500 text-red-800 px-4 py-3 rounded-lg mb-6 flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+            <span className="font-medium">{errorMessage}</span>
+          </div>
+        )}
+
+        {currentTab === "dashboard" && (
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-6">
+              <BarChart3 className="w-6 h-6 text-gray-600" />
+              <h2 className="text-2xl font-semibold text-black">
+                Pulpit
+              </h2>
+            </div>
+            
+            {/* Quick Actions */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl border-2 border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-lg">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <Calendar className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-black">Warsztaty</h3>
+                </div>
+                <div className="space-y-2 mb-6">
+                  <p className="text-gray-600">
+                    Wszystkich warsztatów: <span className="font-bold text-black text-lg">{masterclasses.length}</span>
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Aktywnych: {masterclasses.filter(mc => {
+                      const endDate = new Date(mc.dateEnd || mc.date);
+                      endDate.setHours(23, 59, 59, 999);
+                      return endDate >= new Date();
+                    }).length}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setCurrentTab("masterclasses")}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium"
+                >
+                  <Settings className="w-4 h-4" />
+                  Zarządzaj warsztatami
+                </button>
+              </div>
+              
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl border-2 border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-lg">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <Package className="w-5 h-5 text-green-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-black">Produkty online</h3>
+                </div>
+                <div className="space-y-2 mb-6">
+                  <p className="text-gray-600">
+                    Wszystkich produktów: <span className="font-bold text-black text-lg">{onlineProducts.length}</span>
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Kursów: {onlineProducts.filter(p => p.type === 'course').length} | 
+                    Konsultacji: {onlineProducts.filter(p => p.type === 'consultation').length}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setCurrentTab("products")}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium"
+                >
+                  <Settings className="w-4 h-4" />
+                  Zarządzaj produktami
+                </button>
+              </div>
+              
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl border-2 border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-lg">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <Users className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-black">Partnerzy</h3>
+                </div>
+                <div className="space-y-2 mb-6">
+                  <p className="text-gray-600">
+                    Wszystkich partnerów: <span className="font-bold text-black text-lg">{partners.length}</span>
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Aktywnych: {partners.filter(p => p.isActive).length}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setCurrentTab("partners")}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium"
+                >
+                  <Settings className="w-4 h-4" />
+                  Zarządzaj partnerami
+                </button>
+              </div>
+            </div>
+
+            {/* Recent Masterclasses */}
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-4">
+                <Calendar className="w-5 h-5 text-gray-600" />
+                <h3 className="text-lg font-semibold text-black">Ostatnie warsztaty</h3>
+              </div>
+              <div className="space-y-3">
+                {masterclasses.slice(0, 3).map((masterclass) => (
+                  <div key={masterclass.id} className="bg-white p-4 rounded-xl border-2 border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-md">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-black text-lg mb-2">{masterclass.title[language]}</h4>
+                        <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            {masterclass.date}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <DollarSign className="w-4 h-4" />
+                            {masterclass.price} zł
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Users className="w-4 h-4" />
+                            {masterclass.availableSlots - masterclass.pickedSlots} miejsc
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setEditingMasterclass(masterclass)}
+                        className="flex items-center gap-1 px-3 py-2 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 text-sm font-medium"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Edytuj
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {masterclasses.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <Calendar className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                    <p>Brak warsztatów</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Recent Products */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Package className="w-5 h-5 text-gray-600" />
+                <h3 className="text-lg font-semibold text-black">Ostatnie produkty</h3>
+              </div>
+              <div className="space-y-3">
+                {onlineProducts.slice(0, 3).map((product) => (
+                  <div key={product.id} className="bg-white p-4 rounded-xl border-2 border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-md">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-black text-lg mb-2">{product.title[language]}</h4>
+                        <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                          <div className="flex items-center gap-1">
+                            <Package className="w-4 h-4" />
+                            {product.type}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <DollarSign className="w-4 h-4" />
+                            {product.price} zł
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setEditingProduct(product)}
+                        className="flex items-center gap-1 px-3 py-2 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 text-sm font-medium"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Edytuj
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {onlineProducts.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <Package className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                    <p>Brak produktów</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Recent Partners */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Users className="w-5 h-5 text-gray-600" />
+                <h3 className="text-lg font-semibold text-black">Ostatni partnerzy</h3>
+              </div>
+              <div className="space-y-3">
+                {partners.slice(0, 3).map((partner) => (
+                  <div key={partner.id} className="bg-white p-4 rounded-xl border-2 border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-md">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-black text-lg mb-2">{partner.name[language]}</h4>
+                        <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                          <div className="flex items-center gap-1">
+                            <Package className="w-4 h-4" />
+                            {partner.website ? 'Strona internetowa' : 'Brak strony'}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <CheckCircle className={`w-4 h-4 ${partner.isActive ? 'text-green-500' : 'text-red-500'}`} />
+                            {partner.isActive ? 'Aktywny' : 'Nieaktywny'}
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setEditingPartner(partner)}
+                        className="flex items-center gap-1 px-3 py-2 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 text-sm font-medium"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Edytuj
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {partners.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <Users className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                    <p>Brak partnerów</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
         {currentTab === "masterclasses" && (
           <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-100 mb-4">
-              Майстер-класи
+            <div className="flex items-center gap-3 mb-6">
+              <Calendar className="w-5 h-5 text-gray-600" />
+              <h2 className="text-xl font-semibold text-black">
+                Warsztaty
             </h2>
-            <div className="space-y-4">
+            </div>
+            {showMasterclassForm && (
+              <div className="space-y-4">
+                {/* Language Options */}
+                <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Settings className="w-5 h-5 text-blue-600" />
+                    <h3 className="text-lg font-semibold text-blue-800">Ustawienia języków</h3>
+                  </div>
+                  <p className="text-sm text-blue-700 mb-3">
+                    Wybierz język edycji poniżej. Możesz skopiować polską wersję na angielską.
+                  </p>
+                  <div className="flex gap-4">
+                    <button
+                      onClick={() => setLanguage("pl")}
+                      className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                        language === "pl" 
+                          ? "bg-blue-600 text-white border-blue-600" 
+                          : "bg-white text-blue-600 border-blue-300 hover:bg-blue-50"
+                      }`}
+                    >
+                      Polski
+                    </button>
+                    <button
+                      onClick={() => setLanguage("en")}
+                      className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                        language === "en" 
+                          ? "bg-blue-600 text-white border-blue-600" 
+                          : "bg-white text-blue-600 border-blue-300 hover:bg-blue-50"
+                      }`}
+                    >
+                      English
+                    </button>
+                  </div>
+                  <label className="flex items-center gap-2 text-blue-700 text-sm mt-3">
+                    <input
+                      type="checkbox"
+                      checked={usePolishForEnglish}
+                      onChange={(e) => setUsePolishForEnglish(e.target.checked)}
+                      className="rounded"
+                    />
+                    Skopiuj polską wersję na angielską
+                  </label>
+                </div>
+              
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-gray-100 mb-1">Тип дати</label>
+                  <label className="block text-black mb-1">Тип дати</label>
                   <select
                     value={newMasterclass.dateType || "single"}
                     onChange={(e) => {
@@ -503,7 +913,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                             : [],
                       });
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
+                    className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                   >
                     <option value="single">Один день</option>
                     <option value="range">Період</option>
@@ -517,7 +927,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                   }`}
                 >
                   <div>
-                    <label className="block text-gray-100 mb-1">
+                    <label className="block text-black mb-1">
                       Дата початку
                     </label>
                     <input
@@ -537,12 +947,12 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                               : [],
                         });
                       }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
+                      className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                     />
                   </div>
                   {newMasterclass.dateType === "range" && (
                     <div>
-                      <label className="block text-gray-100 mb-1">
+                      <label className="block text-black mb-1">
                         Дата закінчення
                       </label>
                       <input
@@ -559,16 +969,28 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                             ),
                           });
                         }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                       />
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-gray-100 mb-1">
-                    Місце проведення (
-                    {language === "pl" ? "Польська" : "Англійська"})
+                  <label className="block text-black mb-1">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-gray-600" />
+                      Miejsce przeprowadzenia
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        language === "pl" 
+                          ? "bg-red-100 text-red-700" 
+                          : "bg-blue-100 text-blue-700"
+                      }`}>
+                        {language === "pl" ? "Polski" : "English"}
+                      </span>
+                      {language === "en" && usePolishForEnglish && (
+                        <span className="text-orange-600 text-xs">(będzie skopiowane z polskiego)</span>
+                      )}
+                    </div>
                   </label>
                   <input
                     type="text"
@@ -588,13 +1010,58 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         },
                       })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
+                    className={`w-full px-3 py-2 border-2 border-black rounded bg-white text-black ${
+                      language === "en" && usePolishForEnglish ? "opacity-50" : ""
+                    }`}
                     placeholder="Місце проведення"
+                    disabled={language === "en" && usePolishForEnglish}
                   />
                 </div>
+                
+                {/* City Field */}
                 <div>
-                  <label className="block text-gray-100 mb-1">
-                    Заголовок ({language === "pl" ? "Польська" : "Англійська"})
+                  <label className="block text-black mb-1">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-gray-600" />
+                      Miasto (dla mapy)
+                      <span className="text-xs text-gray-500">(wybierz miasto z listy)</span>
+                    </div>
+                  </label>
+                  <select
+                    value={newMasterclass.city || ""}
+                    onChange={(e) =>
+                      setNewMasterclass({
+                        ...newMasterclass,
+                        city: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                  >
+                    <option value="">Wybierz miasto</option>
+                    {polishCities.map((city) => (
+                      <option key={city.name} value={city.name}>
+                        {city.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-black mb-1">
+                    <div className="flex items-center gap-2">
+                      <Edit className="w-4 h-4 text-gray-600" />
+                      Tytuł warsztatu
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        language === "pl" 
+                          ? "bg-red-100 text-red-700" 
+                          : "bg-blue-100 text-blue-700"
+                      }`}>
+                        {language === "pl" ? "Polski" : "English"}
+                      </span>
+                      {language === "en" && usePolishForEnglish && (
+                        <span className="text-orange-600 text-xs">(będzie skopiowane z polskiego)</span>
+                      )}
+                    </div>
                   </label>
                   <input
                     type="text"
@@ -614,13 +1081,29 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         },
                       })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
+                    className={`w-full px-3 py-2 border-2 border-black rounded bg-white text-black ${
+                      language === "en" && usePolishForEnglish ? "opacity-50" : ""
+                    }`}
                     placeholder="Заголовок"
+                    disabled={language === "en" && usePolishForEnglish}
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-100 mb-1">
-                    Опис ({language === "pl" ? "Польська" : "Англійська"})
+                  <label className="block text-black mb-1">
+                    <div className="flex items-center gap-2">
+                      <Edit className="w-4 h-4 text-gray-600" />
+                      Opis warsztatu
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        language === "pl" 
+                          ? "bg-red-100 text-red-700" 
+                          : "bg-blue-100 text-blue-700"
+                      }`}>
+                        {language === "pl" ? "Polski" : "English"}
+                      </span>
+                      {language === "en" && usePolishForEnglish && (
+                        <span className="text-orange-600 text-xs">(będzie skopiowane z polskiego)</span>
+                      )}
+                    </div>
                   </label>
                   <textarea
                     value={newMasterclass.description?.[language] || ""}
@@ -639,13 +1122,16 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         },
                       })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
+                    className={`w-full px-3 py-2 border-2 border-black rounded bg-white text-black ${
+                      language === "en" && usePolishForEnglish ? "opacity-50" : ""
+                    }`}
                     placeholder="Опис"
-                    rows={1}
+                    rows={4}
+                    disabled={language === "en" && usePolishForEnglish}
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-100 mb-1">Ціна (zł)</label>
+                  <label className="block text-black mb-1">Cena (zł)</label>
                   <input
                     type="number"
                     value={newMasterclass.price || 0}
@@ -655,12 +1141,12 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         price: parseFloat(e.target.value),
                       })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
-                    placeholder="Ціна (zł)"
+                    className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                    placeholder="Cena (zł)"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-100 mb-1">
+                  <label className="block text-black mb-1">
                     Доступні місця
                   </label>
                   <input
@@ -672,55 +1158,23 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         availableSlots: parseInt(e.target.value),
                       })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
+                    className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                     placeholder="Доступні місця"
                   />
                 </div>
-                <div className="flex items-start flex-col">
-                  <label className="block text-gray-100 mb-1">Фото</label>
-                  <label className="cursor-pointer bg-brown text-gray-100 py-2 rounded flex items-center gap-2">
-                    <ImageIcon size={20} />
-                    Додати фото
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) =>
-                        handleImageUpload(e, setNewMasterclass, "photo")
-                      }
-                    />
-                  </label>
-                  {newMasterclass.photo && (
-                    <img
-                      src={newMasterclass.photo}
-                      alt="Preview"
-                      className="w-16 h-16 object-cover rounded"
-                    />
-                  )}
-                </div>
-                <div className="flex items-start flex-col">
-                  <label className="block text-gray-100 mb-1">Фон</label>
-                  <label className="cursor-pointer bg-brown text-gray-100 py-2 rounded flex items-center gap-2">
-                    <ImageIcon size={20} />
-                    Додати фон
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleBackgroundUpload}
-                    />
-                  </label>
-                  {newMasterclass.backgroundImage && (
-                    <img
-                      src={newMasterclass.backgroundImage}
-                      alt="Background Preview"
-                      className="w-16 h-16 object-cover rounded"
-                    />
-                  )}
-                </div>
                 <div className="col-span-2">
-                  <label className="block text-gray-100 mb-1">
-                    FAQ ({language === "pl" ? "Польська" : "Англійська"})
+                  <label className="block text-black mb-1">
+                    <div className="flex items-center gap-2">
+                      <Edit className="w-4 h-4 text-gray-600" />
+                      Najczęściej zadawane pytania (FAQ)
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        language === "pl" 
+                          ? "bg-red-100 text-red-700" 
+                          : "bg-blue-100 text-blue-700"
+                      }`}>
+                        {language === "pl" ? "Polski" : "English"}
+                      </span>
+                    </div>
                   </label>
                   <div className="space-y-2">
                     <div className="grid grid-cols-2 gap-2">
@@ -730,7 +1184,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         onChange={(e) =>
                           setNewFaq({ ...newFaq, question: e.target.value })
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                         placeholder="Питання"
                       />
                       <input
@@ -739,13 +1193,13 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         onChange={(e) =>
                           setNewFaq({ ...newFaq, answer: e.target.value })
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                         placeholder="Відповідь"
                       />
                     </div>
                     <button
                       onClick={() => addFaq(setNewMasterclass)}
-                      className="btn-unified flex items-center gap-2"
+                      className="px-4 py-2 rounded border-2 border-black text-black hover:bg-black hover:text-white transition-colors flex items-center gap-2"
                     >
                       <Plus size={20} />
                       Додати FAQ
@@ -753,13 +1207,13 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     {newMasterclass.faqs?.[language]?.map((faq) => (
                       <div
                         key={faq.id}
-                        className="flex justify-between items-center p-2 bg-[var(--accent-color)] rounded"
+                        className="flex justify-between items-center p-2 bg-gray-100 border border-gray-300 rounded"
                       >
                         <div>
                           <p className="text-gray-100">
                             <strong>Питання:</strong> {faq.question}
                           </p>
-                          <p className="text-gray-300">
+                          <p className="text-gray-600">
                             <strong>Відповідь:</strong> {faq.answer}
                           </p>
                         </div>
@@ -767,7 +1221,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                           onClick={() =>
                             removeFaq(faq.id, setNewMasterclass, language)
                           }
-                          className="btn-unified p-2"
+                          className="px-3 py-1 rounded border-2 border-black text-black hover:bg-black hover:text-white transition-colors"
                         >
                           <Trash2 size={20} />
                         </button>
@@ -776,16 +1230,30 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                   </div>
                 </div>
               </div>
+              
               <button
                 onClick={handleAddMasterclass}
-                className="btn-unified flex items-center gap-2"
+                className="flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium shadow-sm hover:shadow-md"
               >
-                <Plus size={20} />
-                Додати майстер-клас
+                <Plus className="w-4 h-4" />
+                Dodaj warsztat
+              </button>
+            </div>
+            )}
+
+            <hr className="border-gray-300 mt-4" />
+            
+            {/* Add Masterclass Button */}
+            <div className="mt-6 mb-4">
+              <button
+                onClick={() => setShowMasterclassForm(!showMasterclassForm)}
+                className="flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+              >
+                <Plus className="w-4 h-4" />
+                {showMasterclassForm ? 'Ukryj formularz' : 'Dodaj warsztat'}
               </button>
             </div>
 
-            <hr className="border-gray-300 mt-4" />
             {/* Masterclass List */}
             <div className="mt-6 space-y-4">
               {loading ? (
@@ -796,21 +1264,23 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                 masterclasses.map((masterclass) => (
                   <div
                     key={masterclass.id}
-                    className="flex justify-between items-center p-4 bg-[var(--accent-color)] rounded"
+                    className="flex justify-between items-center p-4 bg-gray-50 border-2 border-gray-300 rounded"
                   >
                     <div className="flex items-center gap-4">
                       <div className="flex-shrink-0">
-                        <img
+                        <Image
                           src={masterclass.photo}
                           alt="Masterclass"
+                          width={64}
+                          height={64}
                           className="w-16 h-16 object-cover rounded"
                         />
                       </div>
                       <div>
-                        <h3 className="text-gray-100 font-semibold">
+                        <h3 className="text-black font-semibold">
                           {masterclass.title[language]}
                         </h3>
-                        <p className="text-gray-300">
+                        <p className="text-gray-600">
                           {masterclass.dateType === "single"
                             ? `${masterclass.date}`
                             : `${masterclass.date} - ${masterclass.dateEnd}`}{" "}
@@ -823,15 +1293,17 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     <div className="flex gap-2">
                       <button
                         onClick={() => setEditingMasterclass(masterclass)}
-                        className="btn-unified p-2"
+                        className="flex items-center gap-1 px-3 py-2 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium"
+                        title="Редагувати"
                       >
-                        <Edit size={20} />
+                        <Edit className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteMasterclass(masterclass.id)}
-                        className="btn-unified p-2"
+                        className="flex items-center gap-1 px-3 py-2 rounded-lg border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200 font-medium"
+                        title="Видалити"
                       >
-                        <Trash2 size={20} />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -842,13 +1314,13 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
             {/* Edit Masterclass Modal */}
             {editingMasterclass && (
               <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-                <div className="bg-brown p-6 rounded-lg w-[800px]">
-                  <h2 className="text-xl font-semibold text-gray-100 mb-4">
+                <div className="bg-white p-6 rounded-lg w-[800px] border-2 border-black">
+                  <h2 className="text-xl font-semibold text-black mb-4">
                     Редагувати майстер-клас
                   </h2>
                   <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto">
                     <div>
-                      <label className="block text-gray-100 mb-1">
+                      <label className="block text-black mb-1">
                         Тип дати
                       </label>
                       <select
@@ -867,14 +1339,14 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                                 : [],
                           });
                         }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                       >
                         <option value="single">Один день</option>
                         <option value="range">Період</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-gray-100 mb-1">
+                      <label className="block text-black mb-1">
                         Дата початку
                       </label>
                       <input
@@ -894,12 +1366,12 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                                 : [],
                           });
                         }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                       />
                     </div>
                     {editingMasterclass.dateType === "range" && (
                       <div>
-                        <label className="block text-gray-100 mb-1">
+                        <label className="block text-black mb-1">
                           Дата закінчення
                         </label>
                         <input
@@ -916,13 +1388,13 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                               ),
                             });
                           }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
+                          className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                         />
                       </div>
                     )}
 
                     <div>
-                      <label className="block text-gray-100 mb-1">
+                      <label className="block text-black mb-1">
                         Місце проведення (
                         {language === "pl" ? "Польська" : "Англійська"})
                       </label>
@@ -938,12 +1410,40 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                             },
                           })
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                         placeholder="Місце проведення"
                       />
                     </div>
+                    
+                    {/* City Field */}
                     <div>
-                      <label className="block text-gray-100 mb-1">
+                      <label className="block text-black mb-1">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-gray-600" />
+                          Miasto (dla mapy)
+                        </div>
+                      </label>
+                      <select
+                        value={editingMasterclass.city || ""}
+                        onChange={(e) =>
+                          setEditingMasterclass({
+                            ...editingMasterclass,
+                            city: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                      >
+                        <option value="">Wybierz miasto</option>
+                        {polishCities.map((city) => (
+                          <option key={city.name} value={city.name}>
+                            {city.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-black mb-1">
                         Заголовок (
                         {language === "pl" ? "Польська" : "Англійська"})
                       </label>
@@ -959,12 +1459,12 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                             },
                           })
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                         placeholder="Заголовок"
                       />
                     </div>
                     <div>
-                      <label className="block text-gray-100 mb-1">
+                      <label className="block text-black mb-1">
                         Опис ({language === "pl" ? "Польська" : "Англійська"})
                       </label>
                       <textarea
@@ -978,14 +1478,14 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                             },
                           })
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                         placeholder="Опис"
-                        rows={1}
+                        rows={4}
                       />
                     </div>
                     <div>
-                      <label className="block text-gray-100 mb-1">
-                        Ціна (zł)
+                      <label className="block text-black mb-1">
+                        Cena (zł)
                       </label>
                       <input
                         type="number"
@@ -996,12 +1496,12 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                             price: parseFloat(e.target.value),
                           })
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
-                        placeholder="Ціна (zł)"
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                        placeholder="Cena (zł)"
                       />
                     </div>
                     <div>
-                      <label className="block text-gray-100 mb-1">
+                      <label className="block text-black mb-1">
                         Доступні місця
                       </label>
                       <input
@@ -1013,12 +1513,12 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                             availableSlots: parseInt(e.target.value),
                           })
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                         placeholder="Доступні місця"
                       />
                     </div>
                     <div>
-                      <label className="block text-gray-100 mb-1">
+                      <label className="block text-black mb-1">
                         Заброньовані місця
                       </label>
                       <input
@@ -1030,60 +1530,12 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                             pickedSlots: parseInt(e.target.value),
                           })
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                         placeholder="Заброньовані місця"
                       />
                     </div>
-                    <div className="flex items-start flex-col">
-                      <label className="block text-gray-100 mb-1">Фото</label>
-                      <label className="cursor-pointer bg-brown text-gray-100 py-2 rounded flex items-center gap-2">
-                        <ImageIcon size={20} />
-                        Змінити фото
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) =>
-                            handleImageUpload(e, setEditingMasterclass, "photo")
-                          }
-                        />
-                      </label>
-                      {editingMasterclass.photo && (
-                        <img
-                          src={editingMasterclass.photo}
-                          alt="Preview"
-                          className="w-16 h-16 object-cover rounded"
-                        />
-                      )}
-                    </div>
-                    <div className="flex items-start flex-col">
-                      <label className="block text-gray-100 mb-1">Фон</label>
-                      <label className="cursor-pointer bg-brown text-gray-100 py-2 rounded flex items-center gap-2">
-                        <ImageIcon size={20} />
-                        Змінити фон
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) =>
-                            handleImageUpload(
-                              e,
-                              setEditingMasterclass,
-                              "backgroundImage"
-                            )
-                          }
-                        />
-                      </label>
-                      {editingMasterclass.backgroundImage && (
-                        <img
-                          src={editingMasterclass.backgroundImage}
-                          alt="Background Preview"
-                          className="w-16 h-16 object-cover rounded"
-                        />
-                      )}
-                    </div>
                     <div className="col-span-2">
-                      <label className="block text-gray-100 mb-1">
+                      <label className="block text-black mb-1">
                         FAQ ({language === "pl" ? "Польська" : "Англійська"})
                       </label>
                       <div className="space-y-2">
@@ -1094,7 +1546,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                             onChange={(e) =>
                               setNewFaq({ ...newFaq, question: e.target.value })
                             }
-                            className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
+                            className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                             placeholder="Питання"
                           />
                           <input
@@ -1103,13 +1555,13 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                             onChange={(e) =>
                               setNewFaq({ ...newFaq, answer: e.target.value })
                             }
-                            className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
+                            className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                             placeholder="Відповідь"
                           />
                         </div>
                         <button
                           onClick={() => addFaq(setEditingMasterclass)}
-                          className="btn-unified flex items-center gap-2"
+                          className="px-4 py-2 rounded border-2 border-black text-black hover:bg-black hover:text-white transition-colors flex items-center gap-2"
                         >
                           <Plus size={20} />
                           Додати FAQ
@@ -1117,13 +1569,13 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         {editingMasterclass.faqs?.[language]?.map((faq) => (
                           <div
                             key={faq.id}
-                            className="flex justify-between items-center p-2 bg-[var(--accent-color)] rounded"
+                            className="flex justify-between items-center p-2 bg-gray-100 border border-gray-300 rounded"
                           >
                             <div>
                               <p className="text-gray-100">
                                 <strong>Питання:</strong> {faq.question}
                               </p>
-                              <p className="text-gray-300">
+                              <p className="text-gray-600">
                                 <strong>Відповідь:</strong> {faq.answer}
                               </p>
                             </div>
@@ -1135,7 +1587,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                                   language
                                 )
                               }
-                              className="btn-unified p-2"
+                              className="px-3 py-1 rounded border-2 border-black text-black hover:bg-black hover:text-white transition-colors"
                             >
                               <Trash2 size={20} />
                             </button>
@@ -1147,14 +1599,16 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                   <div className="flex justify-end gap-4 mt-6">
                     <button
                       onClick={() => setEditingMasterclass(null)}
-                      className="btn-unified"
+                      className="flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-gray-400 text-gray-400 hover:bg-gray-400 hover:text-white transition-all duration-200 font-medium"
                     >
+                      <X className="w-4 h-4" />
                       Скасувати
                     </button>
                     <button
                       onClick={handleEditMasterclass}
-                      className="btn-unified"
+                      className="flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium shadow-sm hover:shadow-md"
                     >
+                      <Save className="w-4 h-4" />
                       Зберегти
                     </button>
                   </div>
@@ -1166,14 +1620,60 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
 
         {currentTab === "products" && (
           <div>
-            <h2 className="text-xl font-semibold text-gray-100 mb-4">
-              Онлайн продукти
+            <div className="flex items-center gap-3 mb-6">
+              <Package className="w-5 h-5 text-gray-600" />
+              <h2 className="text-xl font-semibold text-black">
+              Produkty online
             </h2>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            </div>
+            {showProductForm && (
+              <div className="space-y-4">
+                {/* Language Options for Products */}
+                <div className="bg-green-50 p-4 rounded-lg border-2 border-green-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Settings className="w-5 h-5 text-green-600" />
+                    <h3 className="text-lg font-semibold text-green-800">Ustawienia języków</h3>
+                  </div>
+                  <p className="text-sm text-green-700 mb-3">
+                    Wybierz język edycji poniżej. Możesz skopiować polską wersję na angielską.
+                  </p>
+                  <div className="flex gap-4">
+                    <button
+                      onClick={() => setLanguage("pl")}
+                      className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                        language === "pl" 
+                          ? "bg-green-600 text-white border-green-600" 
+                          : "bg-white text-green-600 border-green-300 hover:bg-green-50"
+                      }`}
+                    >
+                      Polski
+                    </button>
+                    <button
+                      onClick={() => setLanguage("en")}
+                      className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                        language === "en" 
+                          ? "bg-green-600 text-white border-green-600" 
+                          : "bg-white text-green-600 border-green-300 hover:bg-green-50"
+                      }`}
+                    >
+                      English
+                    </button>
+                  </div>
+                  <label className="flex items-center gap-2 text-green-700 text-sm mt-3">
+                    <input
+                      type="checkbox"
+                      checked={usePolishForEnglish}
+                      onChange={(e) => setUsePolishForEnglish(e.target.checked)}
+                      className="rounded"
+                    />
+                    Skopiuj polską wersję na angielską
+                  </label>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-gray-100 mb-1">
-                    Тип продукту
+                  <label className="block text-black mb-1">
+                    Typ produktu
                   </label>
                   <select
                     value={newProduct.type || "course"}
@@ -1186,16 +1686,26 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                           | "recipe",
                       })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
+                    className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                   >
-                    <option value="course">Курс</option>
-                    <option value="consultation">Консультація</option>
-                    <option value="recipe">Книга рецептів</option>
+                    <option value="course">Kurs</option>
+                    <option value="consultation">Konsultacja</option>
+                    <option value="recipe">Książka przepisów</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-gray-100 mb-1">
-                    Заголовок ({language === "pl" ? "Польська" : "Англійська"})
+                  <label className="block text-black mb-1">
+                    <div className="flex items-center gap-2">
+                      <Edit className="w-4 h-4 text-gray-600" />
+                      Tytuł produktu
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        language === "pl" 
+                          ? "bg-red-100 text-red-700" 
+                          : "bg-blue-100 text-blue-700"
+                      }`}>
+                        {language === "pl" ? "Polski" : "English"}
+                      </span>
+                    </div>
                   </label>
                   <input
                     type="text"
@@ -1215,13 +1725,23 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         },
                       })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
-                    placeholder="Заголовок"
+                    className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                    placeholder="Tytuł produktu"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-100 mb-1">
-                    Опис ({language === "pl" ? "Польська" : "Англійська"})
+                  <label className="block text-black mb-1">
+                    <div className="flex items-center gap-2">
+                      <Edit className="w-4 h-4 text-gray-600" />
+                      Opis produktu
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        language === "pl" 
+                          ? "bg-red-100 text-red-700" 
+                          : "bg-blue-100 text-blue-700"
+                      }`}>
+                        {language === "pl" ? "Polski" : "English"}
+                      </span>
+                    </div>
                   </label>
                   <textarea
                     value={newProduct.description?.[language] || ""}
@@ -1240,13 +1760,13 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         },
                       })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
-                    placeholder="Опис"
+                    className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                    placeholder="Opis produktu"
                     rows={1}
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-100 mb-1">Ціна (zł)</label>
+                  <label className="block text-black mb-1">Cena (zł)</label>
                   <input
                     type="number"
                     value={newProduct.price || 0}
@@ -1256,42 +1776,32 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         price: parseFloat(e.target.value),
                       })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
-                    placeholder="Ціна (zł)"
+                    className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                    placeholder="Cena (zł)"
                   />
-                </div>
-                <div className="flex items-start flex-col">
-                  <label className="block text-gray-100 mb-1">Фото</label>
-                  <label className="cursor-pointer bg-brown text-gray-100 py-2 rounded flex items-center gap-2">
-                    <ImageIcon size={20} />
-                    Додати фото
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) =>
-                        handleImageUpload(e, setNewProduct, "photo")
-                      }
-                    />
-                  </label>
-                  {newProduct.photo && (
-                    <img
-                      src={newProduct.photo}
-                      alt="Preview"
-                      className="w-16 h-16 object-cover rounded"
-                    />
-                  )}
                 </div>
               </div>
               <button
                 onClick={handleAddProduct}
-                className="btn-unified flex items-center gap-2"
+                className="flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium shadow-sm hover:shadow-md"
               >
-                <Plus size={20} />
+                <Plus className="w-4 h-4" />
                 Додати продукт
               </button>
             </div>
+            )}
             <hr className="border-gray-300 mt-4" />
+            
+            {/* Add Product Button */}
+            <div className="mt-6 mb-4">
+              <button
+                onClick={() => setShowProductForm(!showProductForm)}
+                className="flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+              >
+                <Plus className="w-4 h-4" />
+                {showProductForm ? 'Ukryj formularz' : 'Dodaj produkt'}
+              </button>
+            </div>
 
             {/* Online Products List */}
             <div className="mt-6 space-y-4">
@@ -1303,21 +1813,23 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                 onlineProducts.map((product) => (
                   <div
                     key={product.id}
-                    className="flex justify-between items-center p-4 bg-[var(--accent-color)] rounded"
+                    className="flex justify-between items-center p-4 bg-gray-50 border-2 border-gray-300 rounded"
                   >
                     <div className="flex items-center gap-4">
                       <div className="flex-shrink-0">
-                        <img
+                        <Image
                           src={product.photo}
                           alt="Product"
+                          width={64}
+                          height={64}
                           className="w-16 h-16 object-cover rounded"
                         />
                       </div>
                       <div>
-                        <h3 className="text-gray-100 font-semibold">
+                        <h3 className="text-black font-semibold">
                           {product.title[language]}
                         </h3>
-                        <p className="text-gray-300">
+                        <p className="text-gray-600">
                           {product.type === "course"
                             ? "Курс"
                             : product.type === "consultation"
@@ -1330,15 +1842,17 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     <div className="flex gap-2">
                       <button
                         onClick={() => setEditingProduct(product)}
-                        className="btn-unified p-2"
+                        className="flex items-center gap-1 px-3 py-2 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium"
+                        title="Редагувати"
                       >
-                        <Edit size={20} />
+                        <Edit className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteProduct(product.id)}
-                        className="btn-unified p-2"
+                        className="flex items-center gap-1 px-3 py-2 rounded-lg border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200 font-medium"
+                        title="Видалити"
                       >
-                        <Trash2 size={20} />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -1350,12 +1864,12 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
             {editingProduct && (
               <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
                 <div className="bg-brown p-6 rounded-lg max-w-lg w-full">
-                  <h2 className="text-xl font-semibold text-gray-100 mb-4">
+                  <h2 className="text-xl font-semibold text-black mb-4">
                     Редагувати продукт
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto">
                     <div>
-                      <label className="block text-gray-100 mb-1">
+                      <label className="block text-black mb-1">
                         Тип продукту
                       </label>
                       <select
@@ -1369,7 +1883,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                               | "recipe",
                           })
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                       >
                         <option value="course">Курс</option>
                         <option value="consultation">Консультація</option>
@@ -1377,7 +1891,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-gray-100 mb-1">
+                      <label className="block text-black mb-1">
                         Заголовок (
                         {language === "pl" ? "Польська" : "Англійська"})
                       </label>
@@ -1393,12 +1907,12 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                             },
                           })
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                         placeholder="Заголовок"
                       />
                     </div>
                     <div>
-                      <label className="block text-gray-100 mb-1">
+                      <label className="block text-black mb-1">
                         Опис ({language === "pl" ? "Польська" : "Англійська"})
                       </label>
                       <textarea
@@ -1412,14 +1926,14 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                             },
                           })
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                         placeholder="Опис"
-                        rows={1}
+                        rows={4}
                       />
                     </div>
                     <div>
-                      <label className="block text-gray-100 mb-1">
-                        Ціна (zł)
+                      <label className="block text-black mb-1">
+                        Cena (zł)
                       </label>
                       <input
                         type="number"
@@ -1430,45 +1944,354 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                             price: parseFloat(e.target.value),
                           })
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded bg-[var(--accent-color)] text-gray-100"
-                        placeholder="Ціна (zł)"
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                        placeholder="Cena (zł)"
                       />
-                    </div>
-                    <div className="flex items-start flex-col">
-                      <label className="block text-gray-100 mb-1">Фото</label>
-                      <label className="cursor-pointer bg-brown text-gray-100 py-2 rounded flex items-center gap-2">
-                        <ImageIcon size={20} />
-                        Змінити фото
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) =>
-                            handleImageUpload(e, setEditingProduct, "photo")
-                          }
-                        />
-                      </label>
-                      {editingProduct.photo && (
-                        <img
-                          src={editingProduct.photo}
-                          alt="Preview"
-                          className="w-16 h-16 object-cover rounded"
-                        />
-                      )}
                     </div>
                   </div>
                   <div className="flex justify-end gap-4 mt-6">
                     <button
                       onClick={() => setEditingProduct(null)}
-                      className="btn-unified"
+                      className="flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-gray-400 text-gray-400 hover:bg-gray-400 hover:text-white transition-all duration-200 font-medium"
                     >
+                      <X className="w-4 h-4" />
                       Скасувати
                     </button>
                     <button
                       onClick={handleEditProduct}
-                      className="btn-unified"
+                      className="flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium shadow-sm hover:shadow-md"
                     >
+                      <Save className="w-4 h-4" />
                       Зберегти
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {currentTab === "partners" && (
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-6">
+              <Users className="w-5 h-5 text-gray-600" />
+              <h2 className="text-xl font-semibold text-black">
+                Partnerzy
+              </h2>
+            </div>
+            
+            {showPartnerForm && (
+              <div className="space-y-4">
+                {/* Language Options for Partners */}
+                <div className="bg-purple-50 p-4 rounded-lg border-2 border-purple-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Settings className="w-5 h-5 text-purple-600" />
+                    <h3 className="text-lg font-semibold text-purple-800">Ustawienia języków</h3>
+                  </div>
+                  <p className="text-sm text-purple-700 mb-3">
+                    Wybierz język edycji poniżej. Możesz skopiować polską wersję na angielską.
+                  </p>
+                  <div className="flex gap-4">
+                    <button
+                      onClick={() => setLanguage("pl")}
+                      className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                        language === "pl" 
+                          ? "bg-purple-600 text-white border-purple-600" 
+                          : "bg-white text-purple-600 border-purple-300 hover:bg-purple-50"
+                      }`}
+                    >
+                      Polski
+                    </button>
+                    <button
+                      onClick={() => setLanguage("en")}
+                      className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                        language === "en" 
+                          ? "bg-purple-600 text-white border-purple-600" 
+                          : "bg-white text-purple-600 border-purple-300 hover:bg-purple-50"
+                      }`}
+                    >
+                      English
+                    </button>
+                  </div>
+                  <label className="flex items-center gap-2 text-purple-700 text-sm mt-3">
+                    <input
+                      type="checkbox"
+                      checked={usePolishForEnglish}
+                      onChange={(e) => setUsePolishForEnglish(e.target.checked)}
+                      className="rounded"
+                    />
+                    Skopiuj polską wersję na angielską
+                  </label>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-black mb-1">
+                      <div className="flex items-center gap-2">
+                        <Edit className="w-4 h-4 text-gray-600" />
+                        Nazwa partnera
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          language === "pl" 
+                            ? "bg-red-100 text-red-700" 
+                            : "bg-blue-100 text-blue-700"
+                        }`}>
+                          {language === "pl" ? "Polski" : "English"}
+                        </span>
+                      </div>
+                    </label>
+                        <input
+                      type="text"
+                      value={newPartner.name?.[language] || ""}
+                          onChange={(e) =>
+                        setNewPartner({
+                          ...newPartner,
+                          name: {
+                            pl: language === "pl" ? e.target.value : newPartner.name?.pl || "",
+                            en: language === "en" ? e.target.value : newPartner.name?.en || "",
+                          },
+                        })
+                      }
+                      className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                      placeholder="Nazwa partnera"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-black mb-1">
+                      <div className="flex items-center gap-2">
+                        <Edit className="w-4 h-4 text-gray-600" />
+                        Opis partnera
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          language === "pl" 
+                            ? "bg-red-100 text-red-700" 
+                            : "bg-blue-100 text-blue-700"
+                        }`}>
+                          {language === "pl" ? "Polski" : "English"}
+                        </span>
+                      </div>
+                    </label>
+                    <textarea
+                      value={newPartner.description?.[language] || ""}
+                      onChange={(e) =>
+                        setNewPartner({
+                          ...newPartner,
+                          description: {
+                            pl: language === "pl" ? e.target.value : newPartner.description?.pl || "",
+                            en: language === "en" ? e.target.value : newPartner.description?.en || "",
+                          },
+                        })
+                      }
+                      className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                      placeholder="Opis partnera"
+                      rows={4}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-black mb-1">URL logo</label>
+                    <input
+                      type="text"
+                      value={newPartner.logo || ""}
+                      onChange={(e) =>
+                        setNewPartner({
+                          ...newPartner,
+                          logo: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                      placeholder="URL logo"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-black mb-1">Strona internetowa</label>
+                    <input
+                      type="text"
+                      value={newPartner.website || ""}
+                      onChange={(e) =>
+                        setNewPartner({
+                          ...newPartner,
+                          website: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                      placeholder="https://example.com"
+                    />
+                  </div>
+                </div>
+                
+                <button
+                  onClick={handleAddPartner}
+                  className="flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+                >
+                  <Plus className="w-4 h-4" />
+                  Dodaj partnera
+                </button>
+              </div>
+            )}
+
+            <hr className="border-gray-300 mt-4" />
+            
+            {/* Add Partner Button */}
+            <div className="mt-6 mb-4">
+              <button
+                onClick={() => setShowPartnerForm(!showPartnerForm)}
+                className="flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+              >
+                <Plus className="w-4 h-4" />
+                {showPartnerForm ? 'Ukryj formularz' : 'Dodaj partnera'}
+              </button>
+            </div>
+
+            {/* Partners List */}
+            <div className="mt-6 space-y-4">
+              {loading ? (
+                <p className="text-gray-300">Ładowanie...</p>
+              ) : !partners.length ? (
+                <p className="text-gray-300">Brak partnerów</p>
+              ) : (
+                partners.map((partner) => (
+                  <div
+                    key={partner.id}
+                    className="flex justify-between items-center p-4 bg-gray-50 border-2 border-gray-300 rounded"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="flex-shrink-0">
+                        {partner.logo ? (
+                          <Image
+                            src={partner.logo}
+                            alt="Partner logo"
+                            width={64}
+                            height={64}
+                            className="w-16 h-16 object-cover rounded"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
+                            <Users className="w-8 h-8 text-gray-400" />
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <h3 className="text-black font-semibold">
+                          {partner.name[language]}
+                        </h3>
+                        <p className="text-gray-600">
+                          {partner.website ? 'Strona internetowa' : 'Brak strony'} | 
+                          {partner.isActive ? ' Aktywny' : ' Nieaktywny'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setEditingPartner(partner)}
+                        className="flex items-center gap-1 px-3 py-2 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium"
+                        title="Edytuj"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeletePartner(partner.id)}
+                        className="flex items-center gap-1 px-3 py-2 rounded-lg border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200 font-medium"
+                        title="Usuń"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Edit Partner Modal */}
+            {editingPartner && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+                <div className="bg-white p-6 rounded-lg max-w-lg w-full">
+                  <h2 className="text-xl font-semibold text-black mb-4">
+                    Edytuj partnera
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto">
+                    <div>
+                      <label className="block text-black mb-1">
+                        Nazwa partnera ({language === "pl" ? "Polski" : "Angielski"})
+                      </label>
+                      <input
+                        type="text"
+                        value={editingPartner.name[language]}
+                        onChange={(e) =>
+                          setEditingPartner({
+                            ...editingPartner,
+                            name: {
+                              ...editingPartner.name,
+                              [language]: e.target.value,
+                            },
+                          })
+                        }
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                        placeholder="Nazwa partnera"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-black mb-1">
+                        Opis ({language === "pl" ? "Polski" : "Angielski"})
+                      </label>
+                      <textarea
+                        value={editingPartner.description[language]}
+                        onChange={(e) =>
+                          setEditingPartner({
+                            ...editingPartner,
+                            description: {
+                              ...editingPartner.description,
+                              [language]: e.target.value,
+                            },
+                          })
+                        }
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                        placeholder="Opis"
+                        rows={4}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-black mb-1">URL logo</label>
+                      <input
+                        type="text"
+                        value={editingPartner.logo}
+                        onChange={(e) =>
+                          setEditingPartner({
+                            ...editingPartner,
+                            logo: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                        placeholder="URL logo"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-black mb-1">Strona internetowa</label>
+                      <input
+                        type="text"
+                        value={editingPartner.website || ""}
+                        onChange={(e) =>
+                          setEditingPartner({
+                            ...editingPartner,
+                            website: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                        placeholder="https://example.com"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-4 mt-6">
+                    <button
+                      onClick={() => setEditingPartner(null)}
+                      className="flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-gray-400 text-gray-400 hover:bg-gray-400 hover:text-white transition-all duration-200 font-medium"
+                    >
+                      <X className="w-4 h-4" />
+                      Anuluj
+                    </button>
+                    <button
+                      onClick={handleEditPartner}
+                      className="flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+                    >
+                      <Save className="w-4 h-4" />
+                      Zapisz
                     </button>
                   </div>
                 </div>

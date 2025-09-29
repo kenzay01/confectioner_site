@@ -1,0 +1,812 @@
+[
+  {
+    "name": "Warszawa",
+    "lat": 52.2297,
+    "lng": 21.0122
+  },
+  {
+    "name": "Kraków",
+    "lat": 50.0647,
+    "lng": 19.9450
+  },
+  {
+    "name": "Łódź",
+    "lat": 51.7592,
+    "lng": 19.4560
+  },
+  {
+    "name": "Wrocław",
+    "lat": 51.1079,
+    "lng": 17.0385
+  },
+  {
+    "name": "Poznań",
+    "lat": 52.4064,
+    "lng": 16.9252
+  },
+  {
+    "name": "Gdańsk",
+    "lat": 54.3520,
+    "lng": 18.6466
+  },
+  {
+    "name": "Szczecin",
+    "lat": 53.4285,
+    "lng": 14.5528
+  },
+  {
+    "name": "Bydgoszcz",
+    "lat": 53.1235,
+    "lng": 18.0084
+  },
+  {
+    "name": "Lublin",
+    "lat": 51.2465,
+    "lng": 22.5684
+  },
+  {
+    "name": "Białystok",
+    "lat": 53.1325,
+    "lng": 23.1688
+  },
+  {
+    "name": "Katowice",
+    "lat": 50.2649,
+    "lng": 19.0238
+  },
+  {
+    "name": "Gdynia",
+    "lat": 54.5189,
+    "lng": 18.5305
+  },
+  {
+    "name": "Częstochowa",
+    "lat": 50.7969,
+    "lng": 19.1241
+  },
+  {
+    "name": "Radom",
+    "lat": 51.4025,
+    "lng": 21.1471
+  },
+  {
+    "name": "Sosnowiec",
+    "lat": 50.2863,
+    "lng": 19.1040
+  },
+  {
+    "name": "Toruń",
+    "lat": 53.0138,
+    "lng": 18.5984
+  },
+  {
+    "name": "Kielce",
+    "lat": 50.8661,
+    "lng": 20.6286
+  },
+  {
+    "name": "Gliwice",
+    "lat": 50.2945,
+    "lng": 18.6716
+  },
+  {
+    "name": "Zabrze",
+    "lat": 50.3249,
+    "lng": 18.7857
+  },
+  {
+    "name": "Bytom",
+    "lat": 50.3480,
+    "lng": 18.9328
+  },
+  {
+    "name": "Olsztyn",
+    "lat": 53.7784,
+    "lng": 20.4801
+  },
+  {
+    "name": "Bielsko-Biała",
+    "lat": 49.8224,
+    "lng": 19.0444
+  },
+  {
+    "name": "Rzeszów",
+    "lat": 50.0412,
+    "lng": 21.9991
+  },
+  {
+    "name": "Ruda Śląska",
+    "lat": 50.2584,
+    "lng": 18.8563
+  },
+  {
+    "name": "Rybnik",
+    "lat": 50.1022,
+    "lng": 18.5466
+  },
+  {
+    "name": "Tychy",
+    "lat": 50.1348,
+    "lng": 18.9895
+  },
+  {
+    "name": "Dąbrowa Górnicza",
+    "lat": 50.3219,
+    "lng": 19.1873
+  },
+  {
+    "name": "Płock",
+    "lat": 52.5464,
+    "lng": 19.7064
+  },
+  {
+    "name": "Elbląg",
+    "lat": 54.1561,
+    "lng": 19.4045
+  },
+  {
+    "name": "Opole",
+    "lat": 50.6751,
+    "lng": 17.9213
+  },
+  {
+    "name": "Gorzów Wielkopolski",
+    "lat": 52.7368,
+    "lng": 15.2287
+  },
+  {
+    "name": "Włocławek",
+    "lat": 52.6482,
+    "lng": 19.0678
+  },
+  {
+    "name": "Zielona Góra",
+    "lat": 51.9356,
+    "lng": 15.5064
+  },
+  {
+    "name": "Tarnów",
+    "lat": 50.0121,
+    "lng": 20.9858
+  },
+  {
+    "name": "Chorzów",
+    "lat": 50.3058,
+    "lng": 18.9742
+  },
+  {
+    "name": "Kalisz",
+    "lat": 51.7657,
+    "lng": 18.0910
+  },
+  {
+    "name": "Koszalin",
+    "lat": 54.1943,
+    "lng": 16.1719
+  },
+  {
+    "name": "Legnica",
+    "lat": 51.2104,
+    "lng": 16.1619
+  },
+  {
+    "name": "Grudziądz",
+    "lat": 53.4844,
+    "lng": 18.7537
+  },
+  {
+    "name": "Słupsk",
+    "lat": 54.4641,
+    "lng": 17.0287
+  },
+  {
+    "name": "Jaworzno",
+    "lat": 50.2044,
+    "lng": 19.2739
+  },
+  {
+    "name": "Jastrzębie-Zdrój",
+    "lat": 49.9554,
+    "lng": 18.5745
+  },
+  {
+    "name": "Jelenia Góra",
+    "lat": 50.8996,
+    "lng": 15.7290
+  },
+  {
+    "name": "Nowy Sącz",
+    "lat": 49.6175,
+    "lng": 20.7153
+  },
+  {
+    "name": "Jawor",
+    "lat": 51.0514,
+    "lng": 16.1936
+  },
+  {
+    "name": "Konin",
+    "lat": 52.2233,
+    "lng": 18.2512
+  },
+  {
+    "name": "Piotrków Trybunalski",
+    "lat": 51.4054,
+    "lng": 19.7032
+  },
+  {
+    "name": "Lubin",
+    "lat": 51.4024,
+    "lng": 16.2019
+  },
+  {
+    "name": "Inowrocław",
+    "lat": 52.7949,
+    "lng": 18.2615
+  },
+  {
+    "name": "Ostrowiec Świętokrzyski",
+    "lat": 50.9306,
+    "lng": 21.3853
+  },
+  {
+    "name": "Stargard",
+    "lat": 53.3367,
+    "lng": 15.0499
+  },
+  {
+    "name": "Siedlce",
+    "lat": 52.1678,
+    "lng": 22.2901
+  },
+  {
+    "name": "Mysłowice",
+    "lat": 50.2076,
+    "lng": 19.1399
+  },
+  {
+    "name": "Pabianice",
+    "lat": 51.6645,
+    "lng": 19.3547
+  },
+  {
+    "name": "Gniezno",
+    "lat": 52.5352,
+    "lng": 17.5826
+  },
+  {
+    "name": "Ostrowiec Świętokrzyski",
+    "lat": 50.9306,
+    "lng": 21.3853
+  },
+  {
+    "name": "Głogów",
+    "lat": 51.6634,
+    "lng": 16.0845
+  },
+  {
+    "name": "Chełm",
+    "lat": 51.1431,
+    "lng": 23.4716
+  },
+  {
+    "name": "Zamość",
+    "lat": 50.7231,
+    "lng": 23.2520
+  },
+  {
+    "name": "Tomaszów Mazowiecki",
+    "lat": 51.5313,
+    "lng": 20.0086
+  },
+  {
+    "name": "Przemyśl",
+    "lat": 49.7826,
+    "lng": 22.7673
+  },
+  {
+    "name": "Mielec",
+    "lat": 50.2871,
+    "lng": 21.4239
+  },
+  {
+    "name": "Łomża",
+    "lat": 53.1780,
+    "lng": 22.0593
+  },
+  {
+    "name": "Żory",
+    "lat": 50.0452,
+    "lng": 18.7006
+  },
+  {
+    "name": "Tarnowskie Góry",
+    "lat": 50.4452,
+    "lng": 18.8546
+  },
+  {
+    "name": "Mikołów",
+    "lat": 50.1719,
+    "lng": 18.9045
+  },
+  {
+    "name": "Kraśnik",
+    "lat": 50.9236,
+    "lng": 22.2271
+  },
+  {
+    "name": "Racibórz",
+    "lat": 50.0919,
+    "lng": 18.2192
+  },
+  {
+    "name": "Świętochłowice",
+    "lat": 50.2964,
+    "lng": 18.9172
+  },
+  {
+    "name": "Kędzierzyn-Koźle",
+    "lat": 50.3498,
+    "lng": 18.2261
+  },
+  {
+    "name": "Starachowice",
+    "lat": 51.0375,
+    "lng": 21.0712
+  },
+  {
+    "name": "Zawiercie",
+    "lat": 50.4877,
+    "lng": 19.4167
+  },
+  {
+    "name": "Puławy",
+    "lat": 51.4164,
+    "lng": 21.9694
+  },
+  {
+    "name": "Wodzisław Śląski",
+    "lat": 50.0035,
+    "lng": 18.4650
+  },
+  {
+    "name": "Skierniewice",
+    "lat": 51.9581,
+    "lng": 20.1583
+  },
+  {
+    "name": "Radomsko",
+    "lat": 51.0671,
+    "lng": 19.4447
+  },
+  {
+    "name": "Skawina",
+    "lat": 49.9753,
+    "lng": 19.8287
+  },
+  {
+    "name": "Ostrołęka",
+    "lat": 53.0718,
+    "lng": 21.5753
+  },
+  {
+    "name": "Skarżysko-Kamienna",
+    "lat": 51.1131,
+    "lng": 20.8711
+  },
+  {
+    "name": "Grodzisk Mazowiecki",
+    "lat": 52.1089,
+    "lng": 20.6336
+  },
+  {
+    "name": "Ciechanów",
+    "lat": 52.8814,
+    "lng": 20.6197
+  },
+  {
+    "name": "Kutno",
+    "lat": 52.2308,
+    "lng": 19.3642
+  },
+  {
+    "name": "Zgierz",
+    "lat": 51.8556,
+    "lng": 19.4061
+  },
+  {
+    "name": "Sieradz",
+    "lat": 51.5953,
+    "lng": 18.7303
+  },
+  {
+    "name": "Żywiec",
+    "lat": 49.6114,
+    "lng": 19.2131
+  },
+  {
+    "name": "Oława",
+    "lat": 50.9464,
+    "lng": 17.2925
+  },
+  {
+    "name": "Bieruń",
+    "lat": 50.0903,
+    "lng": 19.0928
+  },
+  {
+    "name": "Kraśnik",
+    "lat": 50.9236,
+    "lng": 22.2271
+  },
+  {
+    "name": "Kędzierzyn-Koźle",
+    "lat": 50.3498,
+    "lng": 18.2261
+  },
+  {
+    "name": "Ruda Śląska",
+    "lat": 50.2584,
+    "lng": 18.8563
+  },
+  {
+    "name": "Rybnik",
+    "lat": 50.1022,
+    "lng": 18.5466
+  },
+  {
+    "name": "Tychy",
+    "lat": 50.1348,
+    "lng": 18.9895
+  },
+  {
+    "name": "Dąbrowa Górnicza",
+    "lat": 50.3219,
+    "lng": 19.1873
+  },
+  {
+    "name": "Płock",
+    "lat": 52.5464,
+    "lng": 19.7064
+  },
+  {
+    "name": "Elbląg",
+    "lat": 54.1561,
+    "lng": 19.4045
+  },
+  {
+    "name": "Opole",
+    "lat": 50.6751,
+    "lng": 17.9213
+  },
+  {
+    "name": "Gorzów Wielkopolski",
+    "lat": 52.7368,
+    "lng": 15.2287
+  },
+  {
+    "name": "Włocławek",
+    "lat": 52.6482,
+    "lng": 19.0678
+  },
+  {
+    "name": "Zielona Góra",
+    "lat": 51.9356,
+    "lng": 15.5064
+  },
+  {
+    "name": "Tarnów",
+    "lat": 50.0121,
+    "lng": 20.9858
+  },
+  {
+    "name": "Chorzów",
+    "lat": 50.3058,
+    "lng": 18.9742
+  },
+  {
+    "name": "Kalisz",
+    "lat": 51.7657,
+    "lng": 18.0910
+  },
+  {
+    "name": "Koszalin",
+    "lat": 54.1943,
+    "lng": 16.1719
+  },
+  {
+    "name": "Legnica",
+    "lat": 51.2104,
+    "lng": 16.1619
+  },
+  {
+    "name": "Grudziądz",
+    "lat": 53.4844,
+    "lng": 18.7537
+  },
+  {
+    "name": "Słupsk",
+    "lat": 54.4641,
+    "lng": 17.0287
+  },
+  {
+    "name": "Jaworzno",
+    "lat": 50.2044,
+    "lng": 19.2739
+  },
+  {
+    "name": "Jastrzębie-Zdrój",
+    "lat": 49.9554,
+    "lng": 18.5745
+  },
+  {
+    "name": "Jelenia Góra",
+    "lat": 50.8996,
+    "lng": 15.7290
+  },
+  {
+    "name": "Nowy Sącz",
+    "lat": 49.6175,
+    "lng": 20.7153
+  },
+  {
+    "name": "Jawor",
+    "lat": 51.0514,
+    "lng": 16.1936
+  },
+  {
+    "name": "Konin",
+    "lat": 52.2233,
+    "lng": 18.2512
+  },
+  {
+    "name": "Piotrków Trybunalski",
+    "lat": 51.4054,
+    "lng": 19.7032
+  },
+  {
+    "name": "Lubin",
+    "lat": 51.4024,
+    "lng": 16.2019
+  },
+  {
+    "name": "Inowrocław",
+    "lat": 52.7949,
+    "lng": 18.2615
+  },
+  {
+    "name": "Ostrowiec Świętokrzyski",
+    "lat": 50.9306,
+    "lng": 21.3853
+  },
+  {
+    "name": "Stargard",
+    "lat": 53.3367,
+    "lng": 15.0499
+  },
+  {
+    "name": "Siedlce",
+    "lat": 52.1678,
+    "lng": 22.2901
+  },
+  {
+    "name": "Mysłowice",
+    "lat": 50.2076,
+    "lng": 19.1399
+  },
+  {
+    "name": "Pabianice",
+    "lat": 51.6645,
+    "lng": 19.3547
+  },
+  {
+    "name": "Gniezno",
+    "lat": 52.5352,
+    "lng": 17.5826
+  },
+  {
+    "name": "Głogów",
+    "lat": 51.6634,
+    "lng": 16.0845
+  },
+  {
+    "name": "Chełm",
+    "lat": 51.1431,
+    "lng": 23.4716
+  },
+  {
+    "name": "Zamość",
+    "lat": 50.7231,
+    "lng": 23.2520
+  },
+  {
+    "name": "Tomaszów Mazowiecki",
+    "lat": 51.5313,
+    "lng": 20.0086
+  },
+  {
+    "name": "Przemyśl",
+    "lat": 49.7826,
+    "lng": 22.7673
+  },
+  {
+    "name": "Mielec",
+    "lat": 50.2871,
+    "lng": 21.4239
+  },
+  {
+    "name": "Łomża",
+    "lat": 53.1780,
+    "lng": 22.0593
+  },
+  {
+    "name": "Żory",
+    "lat": 50.0452,
+    "lng": 18.7006
+  },
+  {
+    "name": "Tarnowskie Góry",
+    "lat": 50.4452,
+    "lng": 18.8546
+  },
+  {
+    "name": "Mikołów",
+    "lat": 50.1719,
+    "lng": 18.9045
+  },
+  {
+    "name": "Kraśnik",
+    "lat": 50.9236,
+    "lng": 22.2271
+  },
+  {
+    "name": "Racibórz",
+    "lat": 50.0919,
+    "lng": 18.2192
+  },
+  {
+    "name": "Świętochłowice",
+    "lat": 50.2964,
+    "lng": 18.9172
+  },
+  {
+    "name": "Kędzierzyn-Koźle",
+    "lat": 50.3498,
+    "lng": 18.2261
+  },
+  {
+    "name": "Starachowice",
+    "lat": 51.0375,
+    "lng": 21.0712
+  },
+  {
+    "name": "Zawiercie",
+    "lat": 50.4877,
+    "lng": 19.4167
+  },
+  {
+    "name": "Puławy",
+    "lat": 51.4164,
+    "lng": 21.9694
+  },
+  {
+    "name": "Wodzisław Śląski",
+    "lat": 50.0035,
+    "lng": 18.4650
+  },
+  {
+    "name": "Skierniewice",
+    "lat": 51.9581,
+    "lng": 20.1583
+  },
+  {
+    "name": "Radomsko",
+    "lat": 51.0671,
+    "lng": 19.4447
+  },
+  {
+    "name": "Skawina",
+    "lat": 49.9753,
+    "lng": 19.8287
+  },
+  {
+    "name": "Ostrołęka",
+    "lat": 53.0718,
+    "lng": 21.5753
+  },
+  {
+    "name": "Skarżysko-Kamienna",
+    "lat": 51.1131,
+    "lng": 20.8711
+  },
+  {
+    "name": "Grodzisk Mazowiecki",
+    "lat": 52.1089,
+    "lng": 20.6336
+  },
+  {
+    "name": "Ciechanów",
+    "lat": 51.6645,
+    "lng": 20.6197
+  },
+  {
+    "name": "Kutno",
+    "lat": 52.2308,
+    "lng": 19.3642
+  },
+  {
+    "name": "Zgierz",
+    "lat": 51.8556,
+    "lng": 19.4061
+  },
+  {
+    "name": "Sieradz",
+    "lat": 51.5953,
+    "lng": 18.7303
+  },
+  {
+    "name": "Żywiec",
+    "lat": 49.6114,
+    "lng": 19.2131
+  },
+  {
+    "name": "Oława",
+    "lat": 50.9464,
+    "lng": 17.2925
+  },
+  {
+    "name": "Bieruń",
+    "lat": 50.0903,
+    "lng": 19.0928
+  },
+  {
+    "name": "Ostrołęka",
+    "lat": 53.0718,
+    "lng": 21.5753
+  },
+  {
+    "name": "Skarżysko-Kamienna",
+    "lat": 51.1131,
+    "lng": 20.8711
+  },
+  {
+    "name": "Grodzisk Mazowiecki",
+    "lat": 52.1089,
+    "lng": 20.6336
+  },
+  {
+    "name": "Ciechanów",
+    "lat": 51.6645,
+    "lng": 20.6197
+  },
+  {
+    "name": "Kutno",
+    "lat": 52.2308,
+    "lng": 19.3642
+  },
+  {
+    "name": "Zgierz",
+    "lat": 51.8556,
+    "lng": 19.4061
+  },
+  {
+    "name": "Sieradz",
+    "lat": 51.5953,
+    "lng": 18.7303
+  },
+  {
+    "name": "Żywiec",
+    "lat": 49.6114,
+    "lng": 19.2131
+  },
+  {
+    "name": "Oława",
+    "lat": 50.9464,
+    "lng": 17.2925
+  },
+  {
+    "name": "Bieruń",
+    "lat": 50.0903,
+    "lng": 19.0928
+  }
+]

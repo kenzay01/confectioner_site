@@ -3,8 +3,6 @@ import Image from "next/image";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import { useDictionary } from "@/hooks/getDictionary";
 import { Locale } from "@/i18n/config";
-import sweet5 from "@/public/materials/sweet5.png";
-import sweet6 from "@/public/materials/sweet6.png";
 import AnimatedSection from "../AnimatedSection"; // Імпортуйте утилітний компонент
 
 const bookCover = "/book-cover.jpg";

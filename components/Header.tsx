@@ -28,10 +28,8 @@ const Header = () => {
     { link: "/", label: dict?.header.home || "Główna" },
     { link: "/masterClass", label: dict?.header.masterClass || "Szkolenia" },
     { link: "/aboutMe", label: dict?.header.aboutMe || "O mnie" },
-    {
-      link: "/onlineProducts",
-      label: dict?.header.onlineProducts || "Produkty online",
-    },
+    // { link: "/onlineProducts", label: dict?.header.onlineProducts || "Produkty online" },
+    { link: "/partners", label: "Partnerzy" },
     // {
     //   link: "/contactWithChef",
     //   label: dict?.header.contactWithChef || "Skontaktuj się z szefem kuchni",

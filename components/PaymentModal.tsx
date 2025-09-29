@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import { X } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -22,18 +21,18 @@ export default function PaymentModal({
   item,
 }: PaymentModalProps) {
   const currentLocale = useCurrentLanguage() as "pl" | "en";
-  const router = useRouter();
   const [page, setPage] = useState<"info" | "form">("info");
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
-    whatsapp: "",
-    workplace: "",
-    profession: "",
+    phone: "",
+    city: "",
     invoiceNeeded: false,
     companyName: "",
     nip: "",
     companyAddress: "",
+    regulationAccepted: false,
+    imageConsent: "" as "agree" | "disagree" | "",
   });
   const [status, setStatus] = useState<
     "idle" | "loading" | "success" | "error"
@@ -57,16 +56,37 @@ export default function PaymentModal({
           ? "Nieprawidłowy format email"
           : "Invalid email format";
     }
-    if (!formData.whatsapp) {
-      newErrors.whatsapp =
+    if (!formData.phone) {
+      newErrors.phone =
         currentLocale === "pl"
-          ? "Podaj numer WhatsApp"
-          : "Please enter your WhatsApp number";
-    } else if (!/^\+?\d{9,15}$/.test(formData.whatsapp)) {
-      newErrors.whatsapp =
+          ? "Podaj numer telefonu"
+          : "Please enter your phone number";
+    } else if (!/^\+?\d{7,15}$/.test(formData.phone)) {
+      newErrors.phone =
         currentLocale === "pl"
           ? "Nieprawidłowy format numeru"
           : "Invalid phone number format";
+    }
+    if (!formData.city) {
+      newErrors.city =
+        currentLocale === "pl" ? "Podaj miasto" : "Please enter city";
+    }
+    if (!formData.regulationAccepted) {
+      newErrors.regulationAccepted =
+        currentLocale === "pl"
+          ? "Musisz zaakceptować regulamin"
+          : "You must accept the regulation";
+    }
+    if (!formData.imageConsent) {
+      newErrors.imageConsent =
+        currentLocale === "pl"
+          ? "Wybierz zgodę na udostępnienie wizerunku"
+          : "Select image consent option";
+    } else if (formData.imageConsent === "disagree") {
+      newErrors.imageConsent =
+        currentLocale === "pl"
+          ? "Aby kontynuować, musisz wyrazić zgodę na udostępnienie wizerunku"
+          : "To continue, you must agree to image sharing";
     }
     if (formData.invoiceNeeded) {
       if (!formData.companyName) {
@@ -119,7 +139,9 @@ export default function PaymentModal({
   };
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, invoiceNeeded: e.target.checked });
+    const { name, checked } = e.target;
+    setFormData({ ...formData, [name]: checked });
+    setErrors({ ...errors, [name]: "" });
   };
 
   const handleSubmit = async () => {
@@ -161,7 +183,8 @@ export default function PaymentModal({
           sessionId: sessionId,
           email: formData.email,
           fullName: formData.fullName,
-          whatsapp: formData.whatsapp,
+          phone: formData.phone,
+          city: formData.city,
         }),
       });
 
@@ -207,13 +230,14 @@ export default function PaymentModal({
     setFormData({
       fullName: "",
       email: "",
-      whatsapp: "",
-      workplace: "",
-      profession: "",
+      phone: "",
+      city: "",
       invoiceNeeded: false,
       companyName: "",
       nip: "",
       companyAddress: "",
+      regulationAccepted: false,
+      imageConsent: "",
     });
   };
 
@@ -312,7 +336,7 @@ export default function PaymentModal({
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleInputChange}
-                  className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
+                  className={`w-full p-2 input-unified border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
                     errors.fullName ? "border-red-500" : ""
                   }`}
                 />
@@ -329,7 +353,7 @@ export default function PaymentModal({
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
+                  className={`w-full p-2 input-unified border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
                     errors.email ? "border-red-500" : ""
                   }`}
                 />
@@ -339,46 +363,37 @@ export default function PaymentModal({
               </div>
               <div>
                 <label className="block font-medium mb-1">
-                  {currentLocale === "pl"
-                    ? "Numer WhatsApp"
-                    : "WhatsApp Number"}
+                  {currentLocale === "pl" ? "Wprowadź numer Telefonu" : "Phone number"}
                 </label>
                 <input
                   type="text"
-                  name="whatsapp"
-                  value={formData.whatsapp}
+                  name="phone"
+                  value={formData.phone}
                   onChange={handleInputChange}
-                  className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
-                    errors.whatsapp ? "border-red-500" : ""
+                  className={`w-full p-2 input-unified border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
+                    errors.phone ? "border-red-500" : ""
                   }`}
                 />
-                {errors.whatsapp && (
-                  <p className="text-red-500 text-sm mt-1">{errors.whatsapp}</p>
+                {errors.phone && (
+                  <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
                 )}
               </div>
               <div>
                 <label className="block font-medium mb-1">
-                  {currentLocale === "pl" ? "Miejsce pracy" : "Workplace"}
+                  {currentLocale === "pl" ? "Miasto (lub kod pocztowy)" : "City"}
                 </label>
                 <input
                   type="text"
-                  name="workplace"
-                  value={formData.workplace}
+                  name="city"
+                  value={formData.city}
                   onChange={handleInputChange}
-                  className="w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600"
+                  className={`w-full p-2 input-unified border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
+                    errors.city ? "border-red-500" : ""
+                  }`}
                 />
-              </div>
-              <div>
-                <label className="block font-medium mb-1">
-                  {currentLocale === "pl" ? "Zawód" : "Profession"}
-                </label>
-                <input
-                  type="text"
-                  name="profession"
-                  value={formData.profession}
-                  onChange={handleInputChange}
-                  className="w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600"
-                />
+                {errors.city && (
+                  <p className="text-red-500 text-sm mt-1">{errors.city}</p>
+                )}
               </div>
               <div>
                 <label className="flex items-center gap-2 font-medium mb-1">
@@ -390,8 +405,8 @@ export default function PaymentModal({
                     className="h-4 w-4"
                   />
                   {currentLocale === "pl"
-                    ? "Czy potrzebna faktura?"
-                    : "Invoice Needed?"}
+                    ? "Chcę otrzymać fakturę VAT"
+                    : "I want VAT invoice"}
                 </label>
               </div>
               {formData.invoiceNeeded && (
@@ -405,7 +420,7 @@ export default function PaymentModal({
                       name="companyName"
                       value={formData.companyName}
                       onChange={handleInputChange}
-                      className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
+                      className={`w-full p-2 input-unified border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
                         errors.companyName ? "border-red-500" : ""
                       }`}
                     />
@@ -426,7 +441,7 @@ export default function PaymentModal({
                       name="nip"
                       value={formData.nip}
                       onChange={handleInputChange}
-                      className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
+                      className={`w-full p-2 input-unified border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
                         errors.nip ? "border-red-500" : ""
                       }`}
                     />
@@ -445,7 +460,7 @@ export default function PaymentModal({
                       name="companyAddress"
                       value={formData.companyAddress}
                       onChange={handleInputChange}
-                      className={`w-full p-2 rounded-lg border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
+                      className={`w-full p-2 input-unified border border-[var(--brown-color)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-gray-600 ${
                         errors.companyAddress ? "border-red-500" : ""
                       }`}
                     />
@@ -457,6 +472,66 @@ export default function PaymentModal({
                   </div>
                 </div>
               )}
+
+              <div>
+                <label className="block font-medium mb-2">
+                  {currentLocale === "pl" ? "Regulamin" : "Regulation"}*
+                </label>
+                <label className="flex items-center gap-2 mb-1">
+                  <input
+                    type="checkbox"
+                    name="regulationAccepted"
+                    checked={formData.regulationAccepted}
+                    onChange={handleCheckboxChange}
+                    className="h-4 w-4"
+                  />
+                  <span>
+                    {currentLocale === "pl"
+                      ? "Zapoznałem się oraz akceptuję Regulamin, Oświadczenie na temat przetwarzania danych osobowych oraz Politykę prywatności"
+                      : "I have read and accept the Terms and Privacy Policy"}
+                  </span>
+                </label>
+                {errors.regulationAccepted && (
+                  <p className="text-red-500 text-sm mt-1">{errors.regulationAccepted}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block font-medium mb-2">
+                  {currentLocale === "pl" ? "Udostępnienie wizerunku" : "Image consent"}*
+                </label>
+                <div className="grid gap-2">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="imageConsent"
+                      value="agree"
+                      checked={formData.imageConsent === "agree"}
+                      onChange={(e) => {
+                        setFormData({ ...formData, imageConsent: e.target.value as "agree" | "disagree" });
+                        setErrors({ ...errors, imageConsent: "" });
+                      }}
+                    />
+                    <span>{currentLocale === "pl" ? "Wyrażam zgodę na ud. wizerunku" : "I agree"}</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="imageConsent"
+                      value="disagree"
+                      checked={formData.imageConsent === "disagree"}
+                      onChange={(e) => {
+                        setFormData({ ...formData, imageConsent: e.target.value as "agree" | "disagree" });
+                        setErrors({ ...errors, imageConsent: "" });
+                      }}
+                    />
+                    <span>{currentLocale === "pl" ? "Nie wyrażam zgody na ud. wizerunku" : "I do not agree"}</span>
+                  </label>
+                </div>
+                {errors.imageConsent && (
+                  <p className="text-red-500 text-sm mt-1">{errors.imageConsent}</p>
+                )}
+              </div>
               <div className="flex justify-between gap-4">
                 <button
                   onClick={() => setPage("info")}

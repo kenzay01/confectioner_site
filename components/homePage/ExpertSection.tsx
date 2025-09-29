@@ -3,7 +3,6 @@ import Image from "next/image";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import { useDictionary } from "@/hooks/getDictionary";
 import { Locale } from "@/i18n/config";
-import sweet3 from "@/public/materials/sweet3.png";
 import AnimatedSection from "../AnimatedSection"; // Імпортуйте утилітний компонент
 
 const chefImage = "/chef-photo.jpg";

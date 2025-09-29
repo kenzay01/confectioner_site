@@ -88,9 +88,10 @@ export async function POST(req: NextRequest) {
       client: body.fullName || "Customer",
       address: "",
       zip: "",
-      city: "",
+      // city provided from form if available
       country: "PL",
-      phone: body.whatsapp || "",
+      phone: body.phone || "",
+      city: body.city || "",
       language: "pl",
       method: 0, // wszystkie dostępne metody płatności
       urlReturn: `https://confectioner-site.vercel.app/payment-status?sessionId=${sessionId}&status=return`,

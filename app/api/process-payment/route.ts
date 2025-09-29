@@ -44,9 +44,9 @@ export async function POST(req: NextRequest) {
     telegramMessage += `🆔 **ID**: ${itemId}\n`;
     telegramMessage += `👤 **Ім\\'я**: ${formData.fullName || 'Не вказано'}\n`;
     telegramMessage += `📧 **Email**: ${formData.email || 'Не вказано'}\n`;
-    telegramMessage += `📱 **WhatsApp**: ${formData.whatsapp || 'Не вказано'}\n`;
-    telegramMessage += `🏢 **Місце роботи**: ${formData.workplace || 'Не вказано'}\n`;
-    telegramMessage += `👔 **Професія**: ${formData.profession || 'Не вказано'}\n`;
+    telegramMessage += `📱 **Telefon**: ${formData.phone || 'Не вказано'}\n`;
+    telegramMessage += `🏙️ **Miasto**: ${formData.city || 'Не вказано'}\n`;
+    telegramMessage += `📝 **Zgoda na wizerunek**: ${formData.imageConsent || 'Не вказано'}\n`;
     telegramMessage += `💰 **Сума**: ${amount / 100} PLN\n`;
     telegramMessage += `🆔 **Session ID**: ${sessionId}\n`;
     

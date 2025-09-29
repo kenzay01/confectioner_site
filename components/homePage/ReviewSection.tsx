@@ -3,8 +3,6 @@ import { Star, Quote } from "lucide-react";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import { useDictionary } from "@/hooks/getDictionary";
 import { Locale } from "@/i18n/config";
-import sweet4 from "@/public/materials/sweet4.png";
-import Image from "next/image";
 import AnimatedSection from "../AnimatedSection"; // Імпортуйте утилітний компонент
 
 export default function ReviewSection() {

@@ -9,6 +9,7 @@ export interface Masterclass {
     pl: string;
     en: string;
   };
+  city: string; // Місто для відображення на мапі
   title: {
     pl: string;
     en: string;
@@ -25,5 +26,4 @@ export interface Masterclass {
     pl: { id: string; question: string; answer: string }[];
     en: { id: string; question: string; answer: string }[];
   };
-  backgroundImage: string;
 }

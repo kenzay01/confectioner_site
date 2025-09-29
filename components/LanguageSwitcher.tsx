@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { locales, localeNames } from "@/i18n/config";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 export default function LanguageSwitcher({
   currentLocale,

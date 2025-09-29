@@ -41,7 +41,7 @@ export async function PUT(
       JSON.stringify(masterclasses, null, 2)
     );
     return NextResponse.json(updatedMasterclass, { status: 200 });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: "Failed to update masterclass" },
       { status: 500 }
@@ -82,7 +82,7 @@ export async function DELETE(
       { message: "Masterclass deleted" },
       { status: 200 }
     );
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: "Failed to delete masterclass" },
       { status: 500 }

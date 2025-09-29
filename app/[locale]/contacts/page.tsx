@@ -3,9 +3,6 @@ import { useState } from "react";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import { Instagram, Send, MessageCircle } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
-import sweet1 from "@/public/materials/bread2.png";
-import sweet2 from "@/public/materials/sweet4.png";
 import AnimatedSection from "@/components/AnimatedSection";
 
 export default function Contact() {

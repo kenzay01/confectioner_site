@@ -3,7 +3,6 @@ import { locales } from "@/i18n/config";
 import { Metadata } from "next";
 import "../globals.css";
 import { Montserrat } from "next/font/google";
-import localFont from "next/font/local";
 import { ItemsProvider } from "@/context/itemsContext";
 import Footer from "@/components/homePage/Footer";
 
@@ -13,10 +12,6 @@ const montserrat = Montserrat({
   variable: "--font-montserrat",
 });
 
-const helvetica = localFont({
-  src: "../../public/fonts/HelveticaNeueBlack.otf",
-  variable: "--font-helvetica-neue",
-});
 
 export async function generateStaticParams() {
   return locales.map((locale) => ({ locale }));

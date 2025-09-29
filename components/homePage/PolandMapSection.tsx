@@ -54,26 +54,69 @@ declare global {
   }
 }
 
-// Координати міст Польщі
-const cities = [
-  { name: "Tychy", lat: 50.1348, lng: 18.9895, masterclassId: "masterclass001" },
-  { name: "Warszawa", lat: 52.2297, lng: 21.0122, masterclassId: "masterclass002" },
-  { name: "Kraków", lat: 50.0647, lng: 19.9450, masterclassId: "masterclass003" },
-  { name: "Gdańsk", lat: 54.3520, lng: 18.6466, masterclassId: "masterclass004" },
-  { name: "Wrocław", lat: 51.1079, lng: 17.0385, masterclassId: "masterclass005" },
-];
+// Завантажуємо координати міст Польщі
+const loadPolishCities = async () => {
+  try {
+    console.log('Loading cities from API...');
+    const response = await fetch('/api/cities');
+    console.log('Cities API response status:', response.status);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const cities = await response.json();
+    console.log('Loaded cities:', cities.length);
+    return cities;
+  } catch (error) {
+    console.error('Error loading cities:', error);
+    return [];
+  }
+};
 
 export default function PolandMapSection() {
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [map, setMap] = useState<LeafletMap | null>(null);
   const [leafletLoaded, setLeafletLoaded] = useState(false);
+  const [polishCities, setPolishCities] = useState<Array<{name: string, lat: number, lng: number}>>([]);
   const mapRef = useRef<HTMLDivElement>(null);
   const currentLocale = useCurrentLanguage();
   const { masterclasses, loading } = useItems();
 
-  // Завантаження Leaflet
+  // Список доступних фото з папки materials (PNG з прозорим фоном)
+  const materialImages = [
+    "/materials/Donut png без фона.png",
+    "/materials/Donut PNG.png",
+    "/materials/sweet1.png",
+    "/materials/sweet2.png",
+    "/materials/sweet3.png",
+    "/materials/sweet4.png",
+    "/materials/sweet5.png",
+    "/materials/sweet6.png"
+  ];
+
+  // Функція для отримання випадкового фото
+  const getRandomImage = (masterclassId: string, city?: string) => {
+    // Використовуємо ID майстер-класу та місто як seed для стабільності
+    const combinedSeed = masterclassId + (city || '');
+    const seed = combinedSeed.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    const index = Math.abs(seed) % materialImages.length;
+    const selectedImage = materialImages[index];
+    console.log(`Selected image for ${masterclassId} (${city}): ${selectedImage}`);
+    return selectedImage;
+  };
+
+  // Завантаження Leaflet та міст
   useEffect(() => {
-    const loadLeaflet = async () => {
+    const loadData = async () => {
+      // Завантажуємо міста
+      const cities = await loadPolishCities();
+      setPolishCities(cities);
+
+      // Завантажуємо Leaflet
       if (typeof window !== 'undefined' && !window.L) {
         // Завантажуємо CSS
         const link = document.createElement('link');
@@ -91,7 +134,7 @@ export default function PolandMapSection() {
       }
     };
 
-    loadLeaflet();
+    loadData();
   }, []);
 
   // Ініціалізація карти
@@ -133,10 +176,13 @@ export default function PolandMapSection() {
         accessToken: null
       }).addTo(mapInstance);
 
-      // Додаємо маркери міст
-      cities.forEach((city) => {
-        const masterclass = masterclasses.find(mc => mc.id === city.masterclassId);
-        if (!masterclass) return;
+      // Додаємо маркери міст на основі майстер-класів
+      masterclasses.forEach((masterclass) => {
+        if (!masterclass.city) return;
+        
+        // Знаходимо координати міста
+        const cityData = polishCities.find(city => city.name === masterclass.city);
+        if (!cityData) return;
 
         // Створюємо custom HTML маркер у вигляді піна локації
         const markerHtml = `
@@ -163,7 +209,7 @@ export default function PolandMapSection() {
               cursor: pointer;
               transition: all 0.3s ease;
               filter: drop-shadow(0 6px 20px rgba(0,0,0,0.25));
-            " onclick="window.selectCity('${city.name}')">
+            " onclick="window.selectCity('${masterclass.city}')">
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" style="pointer-events: none;">
                 <path d="M12 2C8.13401 2 5 5.13401 5 9C5 13.25 9.5 18.5 11.29 20.46C11.68 20.89 12.32 20.89 12.71 20.46C14.5 18.5 19 13.25 19 9C19 5.13401 15.866 2 12 2Z" fill="var(--brown-color)"/>
                 <circle cx="12" cy="9" r="3" fill="white"/>
@@ -179,14 +225,14 @@ export default function PolandMapSection() {
           iconAnchor: [20, 40],
         });
 
-        const marker = L.marker([city.lat, city.lng], { icon: customIcon })
+        const marker = L.marker([cityData.lat, cityData.lng], { icon: customIcon })
           .addTo(mapInstance)
           .on('click', (e?: { originalEvent: Event }) => {
             if (e && e.originalEvent) {
               e.originalEvent.stopPropagation();
             }
-            console.log('Leaflet click on city:', city.name);
-            setSelectedCity(prevSelected => prevSelected === city.name ? null : city.name);
+            console.log('Leaflet click on city:', masterclass.city);
+            setSelectedCity(prevSelected => prevSelected === masterclass.city ? null : masterclass.city);
           })
           .on('mousedown', (e?: { originalEvent: Event }) => {
             if (e && e.originalEvent) {
@@ -195,7 +241,7 @@ export default function PolandMapSection() {
           });
 
         // Додаємо tooltip в стилі сайту
-        marker.bindTooltip(city.name, {
+        marker.bindTooltip(masterclass.city, {
           permanent: false,
           direction: 'top',
           className: 'custom-tooltip',
@@ -263,13 +309,11 @@ export default function PolandMapSection() {
         delete window.selectCity;
       }
     };
-  }, [leafletLoaded, map, selectedCity, masterclasses]);
+  }, [leafletLoaded, map, selectedCity, masterclasses, polishCities]);
 
   const getSelectedMasterclass = () => {
     if (!selectedCity) return null;
-    const city = cities.find(c => c.name === selectedCity);
-    if (!city) return null;
-    return masterclasses.find(mc => mc.id === city.masterclassId);
+    return masterclasses.find(mc => mc.city === selectedCity);
   };
 
   const selectedMasterclass = getSelectedMasterclass();
@@ -342,15 +386,18 @@ export default function PolandMapSection() {
               <div className="flex flex-col lg:flex-row gap-8">
                 {/* Image Section */}
                 <div className="lg:w-2/5">
-                  <div className="relative group">
+                  <div className="relative group flex items-center justify-center">
                     <Image
-                      src={selectedMasterclass.photo}
+                      src={getRandomImage(selectedMasterclass.id, selectedMasterclass.city)}
                       alt={selectedMasterclass.title[currentLocale as keyof typeof selectedMasterclass.title]}
-                      width={400}
-                      height={320}
-                      className="w-full h-80 object-cover rounded-2xl shadow-lg group-hover:shadow-xl transition-all duration-300"
+                      width={300}
+                      height={300}
+                      className="object-contain max-h-80 w-auto"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "/materials/Donut png без фона.png"; // fallback image
+                      }}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl"></div>
                   </div>
                 </div>
                 

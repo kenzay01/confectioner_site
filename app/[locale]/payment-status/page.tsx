@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense, useRef } from "react";
+import { useEffect, useState, Suspense, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   CheckCircle,
@@ -174,7 +174,7 @@ function PaymentStatusContent() {
 
   const t = texts[currentLocale];
 
-  const checkPaymentStatus = async (sessionIdToCheck: string): Promise<void> => {
+  const checkPaymentStatus = useCallback(async (sessionIdToCheck: string): Promise<void> => {
     try {
       console.log(`Checking payment status for session: ${sessionIdToCheck}`);
       
@@ -228,7 +228,7 @@ function PaymentStatusContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentLocale, t.errors.processing]);
 
   useEffect(() => {
     // Запобігаємо повторним викликам
@@ -283,7 +283,7 @@ function PaymentStatusContent() {
         retryTimeoutRef.current = null;
       }
     };
-  }, [searchParams]); // Видалили processed, t, checkAttempts з dependencies
+  }, [searchParams, checkPaymentStatus]);
 
   const handleSuccessfulPayment = async (data: PaymentData) => {
     try {

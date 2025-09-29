@@ -34,7 +34,7 @@ export async function PUT(
     products[index] = updatedProduct;
     await fs.writeFile(productsFile, JSON.stringify(products, null, 2));
     return NextResponse.json(updatedProduct, { status: 200 });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: "Failed to update online product" },
       { status: 500 }
@@ -72,7 +72,7 @@ export async function DELETE(
       { message: "Online product deleted" },
       { status: 200 }
     );
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: "Failed to delete online product" },
       { status: 500 }

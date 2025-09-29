@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import { Calendar, MapPin, Users } from "lucide-react";
-import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useItems } from "@/context/itemsContext";
 import { format, isBefore } from "date-fns";
@@ -114,102 +113,93 @@ export default function MasterClassPage() {
           <ArrowLeft className="inline-block mr-2" />
           {currentLocale === "pl" ? "Powrót" : "Back"}
         </button>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-          <div className="space-y-6">
-            <Image
-              src={masterclass.photo || "/placeholder.jpg"}
-              alt={masterclass.title[currentLocale]}
-              width={600}
-              height={400}
-              className="rounded-lg object-cover w-full h-[400px]"
-              placeholder="blur"
-              blurDataURL="/placeholder.jpg"
-              priority
-              quality={75}
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            />
-          </div>
-          <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-6  ">
-            <div className="space-y-4">
-              <h1 className="text-3xl sm:text-4xl font-bold  mb-4">
-                {masterclass.title[currentLocale]}
-              </h1>
-              <div className="flex items-center gap-2 text-[var(--accent-color)]">
-                <Calendar className="w-5 h-5" />
-                <span>{formatDate(masterclass)}</span>
-              </div>
-              <div className="flex items-center gap-2 text-[var(--accent-color)]">
-                <MapPin className="w-5 h-5" />
-                <span>{masterclass.location[currentLocale]}</span>
-              </div>
-              <div className="flex items-center gap-2 text-[var(--accent-color)]">
-                <Users className="w-5 h-5" />
-                <span>
-                  {masterclass.availableSlots - masterclass.pickedSlots}{" "}
-                  {currentLocale === "pl"
-                    ? "wolnych miejsc"
-                    : "slots available"}
-                </span>
-              </div>
-              <div className="text-2xl font-bold ">{masterclass.price} zł</div>
-              <button
-                onClick={() => setIsModalOpen(true)}
-                disabled={
-                  masterclass.availableSlots - masterclass.pickedSlots <= 0
-                }
-                className={`btn-unified px-6 py-3 ${
-                  masterclass.availableSlots - masterclass.pickedSlots > 0
-                    ? ""
-                    : "opacity-50 cursor-not-allowed"
-                }`}
-              >
-                {masterclass.availableSlots - masterclass.pickedSlots > 0
-                  ? currentLocale === "pl"
-                    ? "Oplatiti"
-                    : "Pay Now"
-                  : currentLocale === "pl"
-                  ? "Dołącz do listy oczekujących"
-                  : "Join Waitlist"}
-              </button>
+        {/* Header Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl sm:text-5xl font-bold text-[var(--accent-color)] mb-6">
+            {masterclass.title[currentLocale]}
+          </h1>
+          
+          <div className="flex flex-wrap justify-center gap-6 mb-8">
+            <div className="flex items-center gap-2 text-[var(--accent-color)] bg-white/90 px-4 py-2 rounded-full shadow-md">
+              <Calendar className="w-5 h-5" />
+              <span className="font-medium">{formatDate(masterclass)}</span>
+            </div>
+            <div className="flex items-center gap-2 text-[var(--accent-color)] bg-white/90 px-4 py-2 rounded-full shadow-md">
+              <MapPin className="w-5 h-5" />
+              <span className="font-medium">{masterclass.location[currentLocale]}</span>
+            </div>
+            <div className="flex items-center gap-2 text-[var(--accent-color)] bg-white/90 px-4 py-2 rounded-full shadow-md">
+              <Users className="w-5 h-5" />
+              <span className="font-medium">
+                {masterclass.availableSlots - masterclass.pickedSlots}{" "}
+                {currentLocale === "pl" ? "wolnych miejsc" : "slots available"}
+              </span>
             </div>
           </div>
+
+          <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-8 max-w-2xl mx-auto shadow-lg">
+            <div className="text-4xl font-bold text-[var(--accent-color)] mb-6">
+              {masterclass.price} zł
+            </div>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              disabled={
+                masterclass.availableSlots - masterclass.pickedSlots <= 0
+              }
+              className={`btn-unified px-8 py-4 text-lg ${
+                masterclass.availableSlots - masterclass.pickedSlots > 0
+                  ? ""
+                  : "opacity-50 cursor-not-allowed"
+              }`}
+            >
+              {masterclass.availableSlots - masterclass.pickedSlots > 0
+                ? currentLocale === "pl"
+                  ? "Oplatiti"
+                  : "Pay Now"
+                : currentLocale === "pl"
+                ? "Dołącz do listy oczekujących"
+                : "Join Waitlist"}
+            </button>
+          </div>
         </div>
-        <div>
-          <h2 className="text-2xl sm:text-3xl font-bold  mb-6 text-center">
+        {/* Description Section */}
+        <div className="mb-12">
+          <h2 className="text-3xl sm:text-4xl font-bold text-[var(--accent-color)] mb-8 text-center">
             {currentLocale === "pl" ? "Opis" : "Description"}
           </h2>
-          <p className="whitespace-pre-line text-[var(--accent-color)]">
-            {masterclass.description[currentLocale]}
-          </p>
+          <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-8 shadow-lg">
+            <p className="whitespace-pre-line text-[var(--accent-color)] text-lg leading-relaxed">
+              {masterclass.description[currentLocale]}
+            </p>
+          </div>
         </div>
-        <div className="mt-12">
-          <h2 className="text-2xl sm:text-3xl font-bold  mb-6 text-center">
-            {currentLocale === "pl"
-              ? "Najczęściej zadawane pytania"
-              : "Frequently Asked Questions"}
-          </h2>
-          <div className="space-y-4">
-            {masterclass.faqs && masterclass.faqs[currentLocale]?.length > 0 ? (
-              masterclass.faqs[currentLocale].map(
+        {/* FAQ Section - only show if there are FAQ items */}
+        {masterclass.faqs && masterclass.faqs[currentLocale]?.length > 0 && (
+          <div>
+            <h2 className="text-3xl sm:text-4xl font-bold text-[var(--accent-color)] mb-8 text-center">
+              {currentLocale === "pl"
+                ? "Najczęściej zadawane pytania"
+                : "Frequently Asked Questions"}
+            </h2>
+            <div className="space-y-6">
+              {masterclass.faqs[currentLocale].map(
                 (item: { question: string; answer: string }, index: number) => (
                   <div
                     key={index}
-                    className="bg-white/95 backdrop-blur-sm rounded-3xl p-6  "
+                    className="bg-white/95 backdrop-blur-sm rounded-3xl p-8 shadow-lg"
                   >
-                    <h3 className="text-lg font-semibold  mb-2">
+                    <h3 className="text-xl font-semibold text-[var(--accent-color)] mb-4">
                       {item.question}
                     </h3>
-                    <p className="">{item.answer}</p>
+                    <p className="text-[var(--accent-color)] text-lg leading-relaxed">
+                      {item.answer}
+                    </p>
                   </div>
                 )
-              )
-            ) : (
-              <p className="text-center text-[var(--accent-color)]">
-                {currentLocale === "pl" ? "Brak FAQ" : "No FAQ available"}
-              </p>
-            )}
+              )}
+            </div>
           </div>
-        </div>
+        )}
         <PaymentModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}

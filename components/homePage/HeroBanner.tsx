@@ -1,11 +1,8 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import { Calendar, MapPin, Users } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
-import sweet1 from "@/public/materials/sweet1.png";
-import sweet2 from "@/public/materials/sweet2.png";
 import { Masterclass } from "@/types/masterclass";
 import { useItems } from "@/context/itemsContext";
 import AnimatedSection from "../AnimatedSection"; // Імпортуйте утилітний компонент

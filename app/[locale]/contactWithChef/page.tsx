@@ -1,9 +1,6 @@
 "use client";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import Link from "next/link";
-import Image from "next/image";
-import sweet1 from "@/public/materials/bread1.png";
-import sweet2 from "@/public/materials/cruasan.png";
 import AnimatedSection from "@/components/AnimatedSection";
 
 export default function ContactChef() {
