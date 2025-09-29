@@ -32,7 +32,15 @@ export default function Footer() {
             autoPlay
             muted
             playsInline
+            preload="auto"
+            webkit-playsinline="true"
+            x5-playsinline="true"
+            x5-video-player-type="h5"
+            x5-video-player-fullscreen="true"
             className="w-full h-full object-contain"
+            onLoadedData={(e) => {
+              e.currentTarget.play().catch(console.error);
+            }}
             onEnded={(e) => {
               e.currentTarget.pause();
               e.currentTarget.currentTime = e.currentTarget.duration;

@@ -44,8 +44,18 @@ export default function MainLogoSection() {
             muted
             playsInline
             loop
+            preload="auto"
+            webkit-playsinline="true"
+            x5-playsinline="true"
+            x5-video-player-type="h5"
+            x5-video-player-fullscreen="true"
             className="w-full h-full object-contain"
             style={{ animationDelay: '0.5s' }}
+            onLoadedData={() => {
+              if (videoRef.current) {
+                videoRef.current.play().catch(console.error);
+              }
+            }}
           >
             <source src="/white_BG.mp4" type="video/mp4" />
           </video>
