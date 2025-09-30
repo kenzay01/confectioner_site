@@ -1,21 +1,24 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import AnimatedSection from "../AnimatedSection";
 
 export default function MainLogoSection() {
-  const [hasScrolled, setHasScrolled] = useState(false);
-  const [isVideoPlaying, setIsVideoPlaying] = useState(true);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const [showStaticLogo, setShowStaticLogo] = useState(false);
+
+  useEffect(() => {
+    // Автоматично перемикаємось на статичний логотип через 3 секунди (час анімації GIF)
+    const timer = setTimeout(() => {
+      setShowStaticLogo(true);
+    }, 3000); // Змініть час відповідно до тривалості вашого GIF
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 50) {
-        setHasScrolled(true);
-        if (videoRef.current) {
-          videoRef.current.pause();
-          setIsVideoPlaying(false);
-        }
+        setShowStaticLogo(true);
       }
     };
 
@@ -23,42 +26,19 @@ export default function MainLogoSection() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  useEffect(() => {
-    // Reset video state on page refresh
-    const handleBeforeUnload = () => {
-      setHasScrolled(false);
-      setIsVideoPlaying(true);
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, []);
-
   return (
     <AnimatedSection className="flex flex-col min-h-140 items-center pt-8">
       <div className="relative w-102 h-102 mb-8">
-        {isVideoPlaying && !hasScrolled ? (
-          <video
-            ref={videoRef}
-            autoPlay
-            muted
-            playsInline
-            loop
-            preload="auto"
-            webkit-playsinline="true"
-            x5-playsinline="true"
-            x5-video-player-type="h5"
-            x5-video-player-fullscreen="true"
+        {!showStaticLogo ? (
+          <Image
+            src="/white_BG.gif"
+            alt="Confectioner Masterclasses Animated Logo"
+            width={400}
+            height={400}
             className="w-full h-full object-contain"
-            style={{ animationDelay: '0.5s' }}
-            onLoadedData={() => {
-              if (videoRef.current) {
-                videoRef.current.play().catch(console.error);
-              }
-            }}
-          >
-            <source src="/white_BG.mp4" type="video/mp4" />
-          </video>
+            priority
+            unoptimized
+          />
         ) : (
           <Image
             src="/logo.png"
