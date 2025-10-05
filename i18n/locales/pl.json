@@ -43,6 +43,8 @@
   "footer": {
     "privacyPolicy": "Polityka prywatności",
     "termsOfService": "Regulamin",
-    "salesRegulations": "Regulamin sprzedaży"
+    "salesRegulations": "Regulamin sprzedaży",
+    "createdBy": "Strona stworzona przez",
+    "websiteDevelopment": "Rozwój stron internetowych"
   }
 }

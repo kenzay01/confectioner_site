@@ -80,7 +80,7 @@ export default function Footer() {
       </nav>
       
       {/* Legal Links */}
-      <div className="flex justify-center space-x-6 text-xs text-gray-600">
+      <div className="flex justify-center space-x-6 text-xs text-gray-600 mb-4">
         {legalLinks.map((link) => {
           const linkPath = `/${currentLocale}${link.link}`;
           return (
@@ -93,6 +93,28 @@ export default function Footer() {
             </Link>
           );
         })}
+      </div>
+      
+      {/* TeleBots Credit */}
+      <div className="text-xs text-gray-500">
+        <span>{dict?.footer?.createdBy || "Website created by"} </span>
+        <Link 
+          href="https://telebots.site/pl" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="text-gray-600 hover:text-black transition-colors underline"
+        >
+          TeleBots
+        </Link>
+        <span> - </span>
+        <Link 
+          href="https://telebots.site/pl" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="text-gray-600 hover:text-black transition-colors underline"
+        >
+          {dict?.footer?.websiteDevelopment || "Website Development"}
+        </Link>
       </div>
     </AnimatedSection>
   );
