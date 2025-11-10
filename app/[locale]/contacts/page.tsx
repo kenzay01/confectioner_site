@@ -1,8 +1,6 @@
 "use client";
 import { useState } from "react";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
-import { Instagram, Send, MessageCircle } from "lucide-react";
-import Link from "next/link";
 import AnimatedSection from "@/components/AnimatedSection";
 
 export default function Contact() {
@@ -190,39 +188,6 @@ _${escapeMarkdown(formData.question)}_
                 </p>
               )}
             </div>
-          </div>
-        </div>
-        <div className="text-center">
-          <p className="mb-4">
-            {currentLocale === "pl"
-              ? "Śledź mnie, aby być na bieżąco z warsztatami i nowościami ze świata piekarnictwa:"
-              : "Follow me to stay updated on workshops and baking news:"}
-          </p>
-          <div className="flex justify-center items-center flex-col md:flex-row gap-4">
-            <Link
-              href="https://instagram.com/slaviksemkiv"
-              target="_blank"
-              className="flex items-center gap-2 hover:text-[var(--accent-color)] transition-colors"
-            >
-              <Instagram className="w-6 h-6" />
-              slaviksemkiv
-            </Link>
-            <Link
-              href="https://t.me/slaviksemkiv"
-              target="_blank"
-              className="flex items-center gap-2 hover:text-[var(--accent-color)] transition-colors"
-            >
-              <Send className="w-6 h-6" />
-              Telegram
-            </Link>
-            <Link
-              href="https://wa.me/1234567890"
-              target="_blank"
-              className="flex items-center gap-2 hover:text-[var(--accent-color)] transition-colors"
-            >
-              <MessageCircle className="w-6 h-6" />
-              WhatsApp
-            </Link>
           </div>
         </div>
       </div>
