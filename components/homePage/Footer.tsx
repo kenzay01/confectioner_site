@@ -96,13 +96,15 @@ export default function Footer() {
       </div>
       
       {/* TeleBots Credit */}
-      <div className="text-xs text-gray-500">
-        <span>{dict?.footer?.createdBy || "Website created by"} </span>
+      <div className="mt-6 pt-4 border-t border-gray-200 text-sm sm:text-base text-gray-700">
+        <span className="font-medium">
+          {dict?.footer?.createdBy || "Website created by"}{" "}
+        </span>
         <Link 
           href="https://telebots.site/pl" 
           target="_blank" 
           rel="noopener noreferrer"
-          className="text-gray-600 hover:text-black transition-colors underline"
+          className="text-gray-700 hover:text-black transition-colors underline font-medium"
         >
           TeleBots
         </Link>
@@ -111,7 +113,7 @@ export default function Footer() {
           href="https://telebots.site/pl" 
           target="_blank" 
           rel="noopener noreferrer"
-          className="text-gray-600 hover:text-black transition-colors underline"
+          className="text-gray-700 hover:text-black transition-colors underline font-medium"
         >
           {dict?.footer?.websiteDevelopment || "Website Development"}
         </Link>

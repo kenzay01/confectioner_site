@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { useItems } from "@/context/itemsContext";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
@@ -82,6 +82,11 @@ export default function PolandMapSection() {
   const mapRef = useRef<HTMLDivElement>(null);
   const currentLocale = useCurrentLanguage();
   const { masterclasses, loading } = useItems();
+  const handleScrollToMap = useCallback(() => {
+    if (mapRef.current) {
+      mapRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, []);
 
   // Список доступних фото з папки materials (PNG з прозорим фоном)
   const materialImages = [
@@ -334,23 +339,67 @@ export default function PolandMapSection() {
   return (
     <AnimatedSection className="py-16 px-4 sm:px-6 lg:px-8 bg-white mt-20">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">
-            {currentLocale === "pl" 
-              ? "Miasta z naszymi mistrzowskimi kursami" 
-              : "Cities with our masterclasses"
-            }
-          </h2>
-          <p className="text-base text-gray-600 max-w-2xl mx-auto">
-            {currentLocale === "pl" 
-              ? "Kliknij na znacznik, aby zobaczyć szczegóły masterklasy" 
-              : "Click on a marker to see masterclass details"
-            }
-          </p>
+        <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr] items-center mb-16">
+          <div className="text-left">
+            <p className="text-sm uppercase tracking-[0.2em] text-[var(--brown-color)] mb-4">
+              {currentLocale === "pl" ? "Poznaj prowadzącego" : "Meet the trainer"}
+            </p>
+            <h2 className="text-3xl sm:text-4xl font-semibold text-gray-900 leading-tight mb-6">
+              {currentLocale === "pl"
+                ? "Rzemiosło piekarnicze, które buduje charakter"
+                : "Artisan baking that builds character"}
+            </h2>
+            <div className="space-y-4 text-base sm:text-lg text-gray-700 leading-relaxed">
+              <p>
+                {currentLocale === "pl"
+                  ? "Mam na imię Jarek i pomagam piekarzom oraz pasjonatom odkrywać prawdziwe rzemiosło piekarnicze."
+                  : "My name is Jarek and I help bakers and enthusiasts discover true artisan baking."}
+              </p>
+              <p>
+                {currentLocale === "pl"
+                  ? "Podczas moich szkoleń uczę, jak pracować z naturalnym zakwasem, jak prowadzić fermentację w czasie i jak tworzyć ciasta francuskie i półfrancuskie, które zachwycają strukturą i aromatem."
+                  : "During my trainings I teach how to work with natural sourdough, manage fermentation over time and craft laminated doughs that impress with structure and aroma."}
+              </p>
+              <p>
+                {currentLocale === "pl"
+                  ? "Moje warsztaty to nie tylko wiedza technologiczna – to praktyka, doświadczenie i pasja do prostych, naturalnych składników."
+                  : "My workshops are more than technical knowledge – they are practice, experience and passion for simple, natural ingredients."}
+              </p>
+              <p>
+                {currentLocale === "pl"
+                  ? "Dołącz do grona piekarzy, którzy wprowadzili do swoich pracowni naturalne, długo fermentowane pieczywo."
+                  : "Join the bakers who have introduced naturally long-fermented breads into their bakeries."}
+              </p>
+            </div>
+          </div>
+          <div className="relative w-full aspect-[4/5] overflow-hidden rounded-3xl shadow-xl border border-gray-200">
+            <Image
+              src="/materials/yarek.jpg"
+              alt="Jarek prowadzący szkolenia piekarnicze"
+              fill
+              className="object-cover"
+              sizes="(max-width: 1024px) 100vw, 480px"
+              priority
+            />
+          </div>
+          <div className="lg:col-span-2 flex justify-center">
+            <button
+              type="button"
+              onClick={handleScrollToMap}
+              className="inline-flex items-center gap-2 text-base sm:text-lg font-semibold text-[var(--brown-color)] hover:text-[var(--accent-color)] transition-colors"
+            >
+              <span role="img" aria-hidden="true">👉</span>
+              <span>
+                {currentLocale === "pl"
+                  ? "Sprawdź, w jakich miastach odbyły się już moje szkolenia."
+                  : "See which cities have already hosted my trainings."}
+              </span>
+            </button>
+          </div>
         </div>
 
         {/* Real Map Container */}
-        <div className="relative mb-12 z-0">
+        <div className="relative mb-12 z-0" id="poland-map">
           <div 
             ref={mapRef}
             className="w-full h-96 sm:h-[500px] rounded-2xl shadow-xl border border-gray-200 overflow-hidden relative z-0"

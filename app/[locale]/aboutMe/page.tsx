@@ -2,63 +2,24 @@
 import { useCurrentLanguage } from "@//hooks/getCurrentLanguage";
 import Image from "next/image";
 import Link from "next/link";
-import AnimatedSection from "@/components/AnimatedSection"; // Імпортуйте утилітний компонент
+import AnimatedSection from "@/components/AnimatedSection";
 import PolandMapSection from "@/components/homePage/PolandMapSection";
 
 export default function AboutMe() {
   const currentLocale = useCurrentLanguage() as "pl" | "en";
 
-  const biography = {
-    pl: (
-      <div className="prose whitespace-break-spaces ">
-        {`
-      Witajcie wszyscy!
-
-      Mam na imię Jarosław Semkiw i moja kulinarna historia zaczęła się, gdy miałem 15 lat. To właśnie wtedy po raz pierwszy zainteresowałem się gastronomią i zrozumiałem, że chcę poświęcić temu swoje życie. Już podczas nauki w szkole kulinarnej wiedziałem, że moja przyszłość będzie związana z kuchnią i wypiekami.
-
-      Później przeprowadziłem się do Polski, aby rozwijać swoją pasję. Pracowałem w najlepszych restauracjach Warszawy, zdobywałem nowe umiejętności, odbyłem staże i uczestniczyłem w warsztatach, które pomogły mi ukształtować własny styl.
-
-      Miałem zaszczyt prowadzić zespół w KAISER Patisserie jako szef cukiernictwa. Obecnie jestem ambasadorem firm Pastabella oraz Pastry Creation.
-
-      Pomysł prowadzenia warsztatów nie powstał przypadkowo: przez lata pracy zebrałem ogromną wiedzę i zrozumiałem, że chcę dzielić się nią z innymi. Od 2021 roku uczę pieczenia wszystkich chętnych, a także doradzam piekarzom i zajmuję się konsultingiem.
-
-      Cieszę się na myśl o współpracy z Wami i spotkaniu na jednym z moich warsztatów.
-
-      Najbliższe wydarzenia znajdziesz tutaj:
-    `}
-      </div>
-    ),
-    en: (
-      <div className="prose whitespace-break-spaces ">{`
-      Hello everyone!
-
-      My name is Yaroslav Semkiv, and my culinary journey began at the age of 15. That’s when I first became fascinated with gastronomy and realized I wanted to dedicate my life to it. While studying at culinary school, I knew for certain that my future would be tied to cooking and baking.
-
-      Later, I moved to Poland to pursue my passion. I worked in Warsaw’s top restaurants, honed new skills, completed internships, and attended masterclasses that helped me develop my unique style.
-
-      I had the privilege of leading the team at KAISER Patisserie as head pastry chef. Currently, I am an ambassador for Pastabella and Pastry Creation.
-
-      The idea of conducting masterclasses came naturally: over the years, I accumulated a wealth of knowledge and realized I wanted to share it with others. Since 2021, I’ve been teaching baking to enthusiasts, consulting with bakers, and providing culinary guidance.
-
-      I look forward to collaborating with you and meeting at one of my masterclasses.
-
-      Find upcoming events here:
-    `}</div>
-    ),
-  };
-
-  
-
   return (
     <div className="md:pt-0 pt-14 min-h-screen bg-[var(--main-color)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Biography Section */}
-        <h1 className="text-3xl sm:text-4xl font-bold  mb-8 text-center">
-          {currentLocale === "pl" ? "Wszystko o Szefie" : "All About the Chef"}
+        <h1 className="text-3xl sm:text-4xl font-bold mb-8 text-center">
+          {currentLocale === "pl" ? "Poznajmy się bliżej" : "Get to Know Me"}
         </h1>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-          {/* Left: Image */}
-          <AnimatedSection className="relative group mt-8 sm:mt-10 lg:mt-12" direction="left">
+          <AnimatedSection
+            className="relative group mt-8 sm:mt-10 lg:mt-12"
+            direction="left"
+          >
             <Image
               src="/slavik.jpg"
               alt={
@@ -73,20 +34,104 @@ export default function AboutMe() {
               blurDataURL="/placeholder.jpg"
             />
           </AnimatedSection>
-          {/* Right: Biography */}
+
           <AnimatedSection
-            className="bg-white/95 backdrop-blur-sm rounded-3xl p-6  "
+            className="bg-white/95 backdrop-blur-sm rounded-3xl p-6"
             direction="right"
           >
-            <div className="prose ">{biography[currentLocale]}</div>
-            <Link
-              href={`/${currentLocale}/masterClass`}
-              className="inline-block btn-unified px-6 py-3 mt-4"
-            >
-              {currentLocale === "pl"
-                ? "Kalendarz wydarzeń"
-                : "Calendar of Events"}
-            </Link>
+            {currentLocale === "pl" ? (
+              <div className="space-y-5 text-base sm:text-lg leading-relaxed text-gray-700">
+                <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900">
+                  Cześć!
+                </h2>
+                <p>
+                  Mam na imię Jarek – i bardzo się cieszę, że zainteresowałeś się
+                  moimi szkoleniami. Jeśli szukasz miejsca, w którym możesz
+                  realnie rozwinąć swoje umiejętności i wynieść poziom swojej
+                  pracowni na wyższy poziom – jesteś we właściwym miejscu.
+                </p>
+                <p>
+                  Swój warsztat doskonaliłem, pracując w najlepszych restauracjach
+                  Warszawy, ale przede wszystkim dzięki determinacji, ciekawości i
+                  ogromnej pasji do rzemieślniczego pieczywa. Przez kilka lat
+                  prowadziłem zespół w OMNI KAISER Patisserie jako szef piekarni,
+                  odbyłem liczne staże i szkolenia, które pozwoliły mi
+                  ukształtować własny styl i podejście do rzemiosła.
+                </p>
+                <p>
+                  Pomysł prowadzenia szkoleń narodził się naturalnie — po latach
+                  pracy zrozumiałem, jak dużą wartość ma dzielenie się wiedzą. Od
+                  2021 roku uczę pieczenia zarówno pasjonatów, jak i
+                  profesjonalistów, pomagając im tworzyć nowoczesne, powtarzalne i
+                  pachnące wyroby rzemieślnicze.
+                </p>
+                <p>
+                  Zajmuję się również konsultingiem dla piekarni i cukierni,
+                  wspierając je we wdrażaniu nowych produktów, usprawnianiu
+                  procesów i budowaniu silnej, autentycznej marki opartej na
+                  jakości.
+                </p>
+                <p>
+                  Cieszę się na myśl o współpracy z Tobą i spotkaniu podczas
+                  jednego z moich szkoleń.
+                </p>
+                <p className="font-semibold text-[var(--brown-color)]">
+                  W sprawie indywidualnej wyceny szkolenia zajrzyj do zakładki{" "}
+                  <Link
+                    href={`/${currentLocale}/contacts`}
+                    className="underline hover:text-[var(--accent-color)] transition-colors"
+                  >
+                    KONTAKT
+                  </Link>{" "}
+                  – i nie wahaj się do mnie napisać!
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-5 text-base sm:text-lg leading-relaxed text-gray-700">
+                <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900">
+                  Hi there!
+                </h2>
+                <p>
+                  My name is Jarek, and I’m thrilled you’re interested in my
+                  trainings. If you’re looking for a place to truly grow your
+                  skills and elevate your bakery to the next level, you’re in the
+                  right spot.
+                </p>
+                <p>
+                  I refined my craft while working in Warsaw’s top restaurants,
+                  but most of all through determination, curiosity, and a deep
+                  passion for artisan bread. For several years I led the team at
+                  OMNI KAISER Patisserie as head baker, taking part in numerous
+                  internships and trainings that helped me shape my own style and
+                  approach.
+                </p>
+                <p>
+                  The idea to run trainings came naturally—after years of work I
+                  realized how valuable sharing knowledge can be. Since 2021 I
+                  have been teaching both enthusiasts and professionals, helping
+                  them craft modern, consistent, and aromatic artisan products.
+                </p>
+                <p>
+                  I also consult for bakeries and pastry shops, supporting them in
+                  launching new products, streamlining processes, and building
+                  strong, authentic brands rooted in quality.
+                </p>
+                <p>
+                  I’m excited at the thought of working with you and meeting
+                  during one of my trainings.
+                </p>
+                <p className="font-semibold text-[var(--brown-color)]">
+                  For a tailored training quote visit{" "}
+                  <Link
+                    href={`/${currentLocale}/contacts`}
+                    className="underline hover:text-[var(--accent-color)] transition-colors"
+                  >
+                    CONTACT
+                  </Link>{" "}
+                  and feel free to reach out!
+                </p>
+              </div>
+            )}
           </AnimatedSection>
         </div>
 

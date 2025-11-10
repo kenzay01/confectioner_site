@@ -4,21 +4,12 @@ import Image from "next/image";
 import AnimatedSection from "../AnimatedSection";
 
 export default function MainLogoSection() {
-  const [showStaticLogo, setShowStaticLogo] = useState(false);
-
-  useEffect(() => {
-    // Автоматично перемикаємось на статичний логотип через 3 секунди (час анімації GIF)
-    const timer = setTimeout(() => {
-      setShowStaticLogo(true);
-    }, 3000); // Змініть час відповідно до тривалості вашого GIF
-
-    return () => clearTimeout(timer);
-  }, []);
+  const [hasScrolled, setHasScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 50) {
-        setShowStaticLogo(true);
+        setHasScrolled(true);
       }
     };
 
@@ -29,7 +20,7 @@ export default function MainLogoSection() {
   return (
     <AnimatedSection className="flex flex-col min-h-140 items-center pt-8">
       <div className="relative w-102 h-102 mb-8">
-        {!showStaticLogo ? (
+        {!hasScrolled ? (
           <Image
             src="/white_BG.gif"
             alt="Confectioner Masterclasses Animated Logo"
