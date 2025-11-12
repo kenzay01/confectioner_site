@@ -59,7 +59,7 @@ export default function PartnersPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <h1 className="text-3xl sm:text-4xl font-bold text-center mb-8">
+      <h1 className="text-3xl sm:text-4xl font-bold text-center mb-8 mt-12 sm:mt-0">
         {currentLocale === "pl" ? "Partnerzy" : "Partners"}
       </h1>
       {partners.length === 0 ? (

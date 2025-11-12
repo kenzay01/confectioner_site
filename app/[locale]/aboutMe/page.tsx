@@ -3,7 +3,6 @@ import { useCurrentLanguage } from "@//hooks/getCurrentLanguage";
 import Image from "next/image";
 import Link from "next/link";
 import AnimatedSection from "@/components/AnimatedSection";
-import PolandMapSection from "@/components/homePage/PolandMapSection";
 
 export default function AboutMe() {
   const currentLocale = useCurrentLanguage() as "pl" | "en";
@@ -15,7 +14,7 @@ export default function AboutMe() {
           {currentLocale === "pl" ? "Poznajmy się bliżej" : "Get to Know Me"}
         </h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <AnimatedSection
             className="relative group mt-8 sm:mt-10 lg:mt-12"
             direction="left"
@@ -75,7 +74,7 @@ export default function AboutMe() {
                   Cieszę się na myśl o współpracy z Tobą i spotkaniu podczas
                   jednego z moich szkoleń.
                 </p>
-                <p className="font-semibold text-[var(--brown-color)]">
+                <p className="mt-6 font-semibold text-gray-900">
                   W sprawie indywidualnej wyceny szkolenia zajrzyj do zakładki{" "}
                   <Link
                     href={`/${currentLocale}/contacts`}
@@ -120,7 +119,7 @@ export default function AboutMe() {
                   I’m excited at the thought of working with you and meeting
                   during one of my trainings.
                 </p>
-                <p className="font-semibold text-[var(--brown-color)]">
+                <p className="mt-6 font-semibold text-gray-900">
                   For a tailored training quote visit{" "}
                   <Link
                     href={`/${currentLocale}/contacts`}
@@ -134,8 +133,6 @@ export default function AboutMe() {
             )}
           </AnimatedSection>
         </div>
-
-        <PolandMapSection />
       </div>
     </div>
   );

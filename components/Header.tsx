@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from "react";
-import { Menu, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -29,7 +28,7 @@ const Header = () => {
     { link: "/masterClass", label: dict?.header.masterClass || "Szkolenia" },
     { link: "/aboutMe", label: dict?.header.aboutMe || "O mnie" },
     // { link: "/onlineProducts", label: dict?.header.onlineProducts || "Produkty online" },
-    { link: "/partners", label: "Partnerzy" },
+    { link: "/partners", label: dict?.header.partners || "Partnerzy" },
     // {
     //   link: "/contactWithChef",
     //   label: dict?.header.contactWithChef || "Skontaktuj się z szefem kuchni",
@@ -98,14 +97,26 @@ const Header = () => {
 
           {/* Mobile Menu Button */}
           <button
-            className="lg:hidden btn-unified p-2 sm:p-3"
+            type="button"
+            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+            className="lg:hidden flex flex-col items-center justify-center gap-1.5 p-2 sm:p-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] rounded-md"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
-            {isMenuOpen ? (
-              <X className="w-12 text-gray-600" />
-            ) : (
-              <Menu className="w-12 scale-x-150 text-gray-600" />
-            )}
+            <span
+              className={`h-0.5 w-8 bg-gray-700 transition-transform duration-200 ${
+                isMenuOpen ? "translate-y-2 rotate-45" : ""
+              }`}
+            />
+            <span
+              className={`h-0.5 w-8 bg-gray-700 transition-opacity duration-200 ${
+                isMenuOpen ? "opacity-0" : "opacity-100"
+              }`}
+            />
+            <span
+              className={`h-0.5 w-8 bg-gray-700 transition-transform duration-200 ${
+                isMenuOpen ? "-translate-y-2 -rotate-45" : ""
+              }`}
+            />
           </button>
         </div>
 

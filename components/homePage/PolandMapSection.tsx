@@ -340,15 +340,10 @@ export default function PolandMapSection() {
     <AnimatedSection className="py-16 px-4 sm:px-6 lg:px-8 bg-white mt-20">
       <div className="max-w-6xl mx-auto">
         <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr] items-center mb-16">
-          <div className="text-left">
+          <div className="order-2 lg:order-1 text-center lg:text-left flex flex-col items-center lg:items-start">
             <p className="text-sm uppercase tracking-[0.2em] text-[var(--brown-color)] mb-4">
               {currentLocale === "pl" ? "Poznaj prowadzącego" : "Meet the trainer"}
             </p>
-            <h2 className="text-3xl sm:text-4xl font-semibold text-gray-900 leading-tight mb-6">
-              {currentLocale === "pl"
-                ? "Rzemiosło piekarnicze, które buduje charakter"
-                : "Artisan baking that builds character"}
-            </h2>
             <div className="space-y-4 text-base sm:text-lg text-gray-700 leading-relaxed">
               <p>
                 {currentLocale === "pl"
@@ -371,8 +366,25 @@ export default function PolandMapSection() {
                   : "Join the bakers who have introduced naturally long-fermented breads into their bakeries."}
               </p>
             </div>
+            <p className="mt-6 text-2xl font-semibold text-gray-900">
+              Rzemiosło piekarnicze,
+              <br />
+              które buduje charakter
+            </p>
+            <button
+              type="button"
+              onClick={handleScrollToMap}
+              className="inline-flex items-center gap-2 text-base sm:text-lg font-semibold text-[var(--brown-color)] hover:text-[var(--accent-color)] transition-colors mt-6"
+            >
+              <span role="img" aria-hidden="true">👉</span>
+              <span className="text-center lg:text-left">
+                {currentLocale === "pl"
+                  ? "Sprawdź, w jakich miastach odbyły się już moje szkolenia."
+                  : "See which cities have already hosted my trainings."}
+              </span>
+            </button>
           </div>
-          <div className="relative w-full aspect-[4/5] overflow-hidden rounded-3xl shadow-xl border border-gray-200">
+          <div className="order-1 lg:order-2 relative w-full aspect-[4/5] overflow-hidden rounded-3xl shadow-xl border border-gray-200">
             <Image
               src="/materials/yarek.jpg"
               alt="Jarek prowadzący szkolenia piekarnicze"
@@ -381,20 +393,6 @@ export default function PolandMapSection() {
               sizes="(max-width: 1024px) 100vw, 480px"
               priority
             />
-          </div>
-          <div className="lg:col-span-2 flex justify-center">
-            <button
-              type="button"
-              onClick={handleScrollToMap}
-              className="inline-flex items-center gap-2 text-base sm:text-lg font-semibold text-[var(--brown-color)] hover:text-[var(--accent-color)] transition-colors"
-            >
-              <span role="img" aria-hidden="true">👉</span>
-              <span>
-                {currentLocale === "pl"
-                  ? "Sprawdź, w jakich miastach odbyły się już moje szkolenia."
-                  : "See which cities have already hosted my trainings."}
-              </span>
-            </button>
           </div>
         </div>
 
