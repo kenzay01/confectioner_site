@@ -341,9 +341,9 @@ export default function PolandMapSection() {
       <div className="max-w-6xl mx-auto">
         <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr] items-center mb-16">
           <div className="order-2 lg:order-1 text-center lg:text-left flex flex-col items-center lg:items-start">
-            <p className="text-sm uppercase tracking-[0.2em] text-[var(--brown-color)] mb-4">
+            {/* <p className="text-sm uppercase tracking-[0.2em] text-[var(--brown-color)] mb-4">
               {currentLocale === "pl" ? "Poznaj prowadzącego" : "Meet the trainer"}
-            </p>
+            </p> */}
             <div className="space-y-4 text-base sm:text-lg text-gray-700 leading-relaxed">
               <p>
                 {currentLocale === "pl"
@@ -366,11 +366,11 @@ export default function PolandMapSection() {
                   : "Join the bakers who have introduced naturally long-fermented breads into their bakeries."}
               </p>
             </div>
-            <p className="mt-6 text-2xl font-semibold text-gray-900">
+            {/* <p className="mt-6 text-2xl font-semibold text-gray-900">
               Rzemiosło piekarnicze,
               <br />
               które buduje charakter
-            </p>
+            </p> */}
             <button
               type="button"
               onClick={handleScrollToMap}
