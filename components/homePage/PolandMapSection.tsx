@@ -5,6 +5,7 @@ import { useItems } from "@/context/itemsContext";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import AnimatedSection from "@/components/AnimatedSection";
 import { X, MapPin, Calendar } from "lucide-react";
+import { MapLocation } from "@/types/mapLocation";
 
 // Leaflet types
 interface LeafletMap {
@@ -79,6 +80,7 @@ export default function PolandMapSection() {
   const [map, setMap] = useState<LeafletMap | null>(null);
   const [leafletLoaded, setLeafletLoaded] = useState(false);
   const [polishCities, setPolishCities] = useState<Array<{name: string, lat: number, lng: number}>>([]);
+  const [mapLocations, setMapLocations] = useState<MapLocation[]>([]);
   const mapRef = useRef<HTMLDivElement>(null);
   const currentLocale = useCurrentLanguage();
   const { masterclasses, loading } = useItems();
@@ -114,12 +116,23 @@ export default function PolandMapSection() {
     return selectedImage;
   };
 
-  // Завантаження Leaflet та міст
+  // Завантаження Leaflet, міст та точок на карті
   useEffect(() => {
     const loadData = async () => {
       // Завантажуємо міста
       const cities = await loadPolishCities();
       setPolishCities(cities);
+
+      // Завантажуємо точки на карті
+      try {
+        const locationsRes = await fetch('/api/map-locations');
+        if (locationsRes.ok) {
+          const locationsData = await locationsRes.json();
+          setMapLocations(locationsData);
+        }
+      } catch (error) {
+        console.error('Error loading map locations:', error);
+      }
 
       // Завантажуємо Leaflet
       if (typeof window !== 'undefined' && !window.L) {
@@ -181,13 +194,20 @@ export default function PolandMapSection() {
         accessToken: null
       }).addTo(mapInstance);
 
-      // Додаємо маркери міст на основі майстер-класів
-      masterclasses.forEach((masterclass) => {
-        if (!masterclass.city) return;
-        
-        // Знаходимо координати міста
-        const cityData = polishCities.find(city => city.name === masterclass.city);
+      // Збираємо всі унікальні міста з майстер-класів та точок на карті
+      const citiesWithMasterclasses = new Set(masterclasses.filter(mc => mc.city).map(mc => mc.city));
+      const citiesWithLocations = new Set(mapLocations.filter(loc => loc.city).map(loc => loc.city));
+      const allCities = new Set([...citiesWithMasterclasses, ...citiesWithLocations]);
+
+      // Додаємо маркери для кожного міста
+      allCities.forEach((cityName) => {
+        const cityData = polishCities.find(city => city.name === cityName);
         if (!cityData) return;
+
+        // Перевіряємо, чи є майстер-класи або точки в цьому місті
+        const hasMasterclasses = citiesWithMasterclasses.has(cityName);
+        const hasLocations = citiesWithLocations.has(cityName);
+        const locationCount = mapLocations.filter(loc => loc.city === cityName).length;
 
         // Створюємо custom HTML маркер у вигляді піна локації
         const markerHtml = `
@@ -214,7 +234,7 @@ export default function PolandMapSection() {
               cursor: pointer;
               transition: all 0.3s ease;
               filter: drop-shadow(0 6px 20px rgba(0,0,0,0.25));
-            " onclick="window.selectCity('${masterclass.city}')">
+            " onclick="window.selectCity('${cityName}')">
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" style="pointer-events: none;">
                 <path d="M12 2C8.13401 2 5 5.13401 5 9C5 13.25 9.5 18.5 11.29 20.46C11.68 20.89 12.32 20.89 12.71 20.46C14.5 18.5 19 13.25 19 9C19 5.13401 15.866 2 12 2Z" fill="var(--brown-color)"/>
                 <circle cx="12" cy="9" r="3" fill="white"/>
@@ -236,8 +256,8 @@ export default function PolandMapSection() {
             if (e && e.originalEvent) {
               e.originalEvent.stopPropagation();
             }
-            console.log('Leaflet click on city:', masterclass.city);
-            setSelectedCity(prevSelected => prevSelected === masterclass.city ? null : masterclass.city);
+            console.log('Leaflet click on city:', cityName);
+            setSelectedCity(prevSelected => prevSelected === cityName ? null : cityName);
           })
           .on('mousedown', (e?: { originalEvent: Event }) => {
             if (e && e.originalEvent) {
@@ -245,8 +265,15 @@ export default function PolandMapSection() {
             }
           });
 
-        // Додаємо tooltip в стилі сайту
-        marker.bindTooltip(masterclass.city, {
+        // Додаємо tooltip з інформацією про кількість точок
+        let tooltipText = cityName;
+        if (hasMasterclasses && hasLocations) {
+          tooltipText = `${cityName} (${locationCount} miejsc)`;
+        } else if (hasLocations) {
+          tooltipText = `${cityName} (${locationCount} miejsc)`;
+        }
+
+        marker.bindTooltip(tooltipText, {
           permanent: false,
           direction: 'top',
           className: 'custom-tooltip',
@@ -314,14 +341,20 @@ export default function PolandMapSection() {
         delete window.selectCity;
       }
     };
-  }, [leafletLoaded, map, selectedCity, masterclasses, polishCities]);
+  }, [leafletLoaded, map, selectedCity, masterclasses, mapLocations, polishCities]);
 
-  const getSelectedMasterclass = () => {
-    if (!selectedCity) return null;
-    return masterclasses.find(mc => mc.city === selectedCity);
+  const getSelectedMasterclasses = () => {
+    if (!selectedCity) return [];
+    return masterclasses.filter(mc => mc.city === selectedCity);
   };
 
-  const selectedMasterclass = getSelectedMasterclass();
+  const getSelectedMapLocations = () => {
+    if (!selectedCity) return [];
+    return mapLocations.filter(loc => loc.city === selectedCity);
+  };
+
+  const selectedMasterclasses = getSelectedMasterclasses();
+  const selectedMapLocations = getSelectedMapLocations();
 
   if (loading) {
     return (
@@ -414,11 +447,11 @@ export default function PolandMapSection() {
           )}
         </div>
 
-        {/* Modal Alert for Masterclass Details */}
-        {selectedMasterclass && (
+        {/* Modal for City Details */}
+        {selectedCity && (selectedMasterclasses.length > 0 || selectedMapLocations.length > 0) && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
             <AnimatedSection 
-              className="bg-white rounded-3xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto relative border-l-4 border-[var(--brown-color)] shadow-2xl"
+              className="bg-white rounded-3xl p-6 max-w-6xl w-full max-h-[90vh] overflow-y-auto relative border-l-4 border-[var(--brown-color)] shadow-2xl"
               direction="up"
               duration={0.3}
             >
@@ -430,80 +463,112 @@ export default function PolandMapSection() {
                 <X className="w-6 h-6 text-gray-500 hover:text-[var(--brown-color)]" />
               </button>
 
-              <div className="flex flex-col lg:flex-row gap-8">
-                {/* Image Section */}
-                <div className="lg:w-2/5">
-                  <div className="relative group flex items-center justify-center">
-                    <Image
-                      src={getRandomImage(selectedMasterclass.id, selectedMasterclass.city)}
-                      alt={selectedMasterclass.title[currentLocale as keyof typeof selectedMasterclass.title]}
-                      width={300}
-                      height={300}
-                      className="object-contain max-h-80 w-auto"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = "/materials/Donut png без фона.png"; // fallback image
-                      }}
-                    />
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">
+                {selectedCity}
+              </h2>
+
+              {/* Masterclasses Section */}
+              {selectedMasterclasses.length > 0 && (
+                <div className="mb-8">
+                  <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                    {currentLocale === "pl" ? "Warsztaty" : "Masterclasses"}
+                  </h3>
+                  <div className="space-y-4">
+                    {selectedMasterclasses.map((masterclass) => (
+                      <div key={masterclass.id} className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                        <div className="flex flex-col lg:flex-row gap-6">
+                          <div className="lg:w-1/3">
+                            <Image
+                              src={getRandomImage(masterclass.id, masterclass.city)}
+                              alt={masterclass.title[currentLocale as keyof typeof masterclass.title]}
+                              width={200}
+                              height={200}
+                              className="object-contain w-full max-h-48 rounded-lg"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = "/materials/Donut png без фона.png";
+                              }}
+                            />
+                          </div>
+                          <div className="lg:w-2/3">
+                            <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-[var(--brown-color)]/10 text-[var(--brown-color)] mb-2">
+                              {currentLocale === "pl" ? "Masterclass" : "Masterclass"}
+                            </span>
+                            <h4 className="text-xl font-bold text-gray-800 mb-3">
+                              {masterclass.title[currentLocale as keyof typeof masterclass.title]}
+                            </h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                              <div className="flex items-center gap-2">
+                                <MapPin className="w-4 h-4 text-gray-600" />
+                                <span className="text-sm text-gray-700">{masterclass.location[currentLocale as keyof typeof masterclass.location]}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Calendar className="w-4 h-4 text-gray-600" />
+                                <span className="text-sm text-gray-700">
+                                  {new Date(masterclass.date).toLocaleDateString(currentLocale)}
+                                  {masterclass.dateEnd && ` - ${new Date(masterclass.dateEnd).toLocaleDateString(currentLocale)}`}
+                                </span>
+                              </div>
+                            </div>
+                            <p className="text-sm text-gray-600 line-clamp-2">
+                              {masterclass.description[currentLocale as keyof typeof masterclass.description].split('\\n')[0]}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                
-                {/* Content Section */}
-                <div className="lg:w-3/5">
-                  {/* Title */}
-                  <div className="mb-6">
-                    <span className="inline-block px-4 py-2 rounded-full text-sm font-bold bg-[var(--brown-color)]/10 text-[var(--brown-color)] mb-3">
-                      {currentLocale === "pl" ? "Masterclass" : "Masterclass"}
-                    </span>
-                    <h3 className="text-2xl sm:text-3xl font-bold text-gray-800 leading-tight">
-                      {selectedMasterclass.title[currentLocale as keyof typeof selectedMasterclass.title]}
-                    </h3>
+              )}
+
+              {/* Map Locations Section */}
+              {selectedMapLocations.length > 0 && (
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                    {currentLocale === "pl" ? "Miejsca, w których byłem" : "Places I've been"}
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {selectedMapLocations.map((location) => (
+                      <div key={location.id} className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                        <div className="mb-3">
+                          <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-[var(--accent-color)]/10 text-[var(--accent-color)] mb-2">
+                            {location.type === "school" ? (currentLocale === "pl" ? "Szkoła" : "School") :
+                             location.type === "bakery" ? (currentLocale === "pl" ? "Piekarnia" : "Bakery") :
+                             location.type === "private_client" ? (currentLocale === "pl" ? "Klient prywatny" : "Private client") :
+                             (currentLocale === "pl" ? "Inne" : "Other")}
+                          </span>
+                          <h4 className="text-lg font-bold text-gray-800">
+                            {location.name[currentLocale as keyof typeof location.name]}
+                          </h4>
+                        </div>
+                        {location.description[currentLocale as keyof typeof location.description] && (
+                          <p className="text-sm text-gray-600 mb-3 line-clamp-3">
+                            {location.description[currentLocale as keyof typeof location.description]}
+                          </p>
+                        )}
+                        {location.photos && location.photos.length > 0 && (
+                          <div className="grid grid-cols-2 gap-2">
+                            {location.photos.slice(0, 4).map((photo, index) => (
+                              <div key={index} className="relative aspect-square rounded-lg overflow-hidden">
+                                <Image
+                                  src={photo}
+                                  alt={`${location.name[currentLocale as keyof typeof location.name]} - ${index + 1}`}
+                                  fill
+                                  className="object-cover"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                  }}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                  
-                  {/* Info Cards */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                    <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-xl border border-gray-100">
-                      <div className="p-2 bg-[var(--brown-color)]/10 rounded-lg">
-                        <MapPin className="w-5 h-5 text-[var(--brown-color)]" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500 font-medium">
-                          {currentLocale === "pl" ? "Lokalizacja" : "Location"}
-                        </p>
-                        <p className="text-gray-800 font-bold">{selectedMasterclass.location[currentLocale as keyof typeof selectedMasterclass.location]}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-xl border border-gray-100">
-                      <div className="p-2 bg-[var(--accent-color)]/10 rounded-lg">
-                        <Calendar className="w-5 h-5 text-[var(--accent-color)]" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500 font-medium">
-                          {currentLocale === "pl" ? "Data" : "Date"}
-                        </p>
-                        <p className="text-gray-800 font-bold text-sm">
-                          {new Date(selectedMasterclass.date).toLocaleDateString(currentLocale)} - {" "}
-                          {new Date(selectedMasterclass.dateEnd || selectedMasterclass.date).toLocaleDateString(currentLocale)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  
-                  {/* Description */}
-                  <div className="bg-gray-50 p-4 rounded-xl max-h-32 overflow-y-auto mb-6 border border-gray-100">
-                    <div className="text-gray-700 leading-relaxed">
-                      {selectedMasterclass.description[currentLocale as keyof typeof selectedMasterclass.description].split('\\n').slice(0, 3).map((paragraph: string, index: number) => (
-                        <p key={index} className="mb-2 text-sm">
-                          {paragraph}
-                        </p>
-                      ))}
-                    </div>
-                  </div>
-                  
                 </div>
-              </div>
+              )}
             </AnimatedSection>
           </div>
         )}

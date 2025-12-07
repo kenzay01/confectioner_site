@@ -1,4 +1,3 @@
-
 "use client";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 
@@ -9,167 +8,189 @@ export default function TermsOfService() {
     <div className="min-h-screen bg-[var(--main-color)] pt-20 px-4">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold text-center mb-8">
-          {currentLocale === 'pl' ? 'Regulamin' : 'Terms of Service'}
+          {currentLocale === 'pl' ? 'Regulamin świadczenia usług szkoleniowych' : 'Terms of Service'}
         </h1>
         
         <div className="bg-white rounded-lg shadow-lg p-8 space-y-6">
           {currentLocale === 'pl' ? (
             <>
               <section>
+                <h2 className="text-xl font-semibold mb-3">REGULAMIN ŚWIADCZENIA USŁUG SZKOLENIOWYCH</h2>
+                <p className="text-gray-700 mb-4 font-semibold">Yaroslav Semkiv &quot;Nieznany Piekarz&quot;</p>
+              </section>
+
+              <section>
                 <h2 className="text-xl font-semibold mb-3">1. Postanowienia ogólne</h2>
                 <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
-                  <li>Niniejszy regulamin określa zasady korzystania ze strony internetowej prowadzonej przez Yaroslav Semkiv (&quot;Nieznany piekarz&quot;), w tym zasady zakupu szkoleń oferowanych przez Administratora.</li>
-                  <li>Właścicielem Strony jest Yaroslav Semkiv Nieznany piekarz, z siedzibą w Warszawie, ul. Franciszka Adolfa Achera 9/U1, 02-495, wpisanym do CEIDG/KRS, NIP: 5272748962, REGON: 528678087, kontakt: slaviksemkiv12@gmail.com</li>
-                  <li>Kontakt z Administratorem możliwy jest drogą elektroniczną pod adresem e-mail: slaviksemkiv12@gmail.com.</li>
-                  <li>Regulamin jest udostępniany nieodpłatnie na Stronie w formie umożliwiającej jego pobranie, utrwalenie i wydrukowanie.</li>
-                  <li>Zakup szkolenia oznacza akceptację niniejszego Regulaminu.</li>
+                  <li>Niniejszy Regulamin określa zasady korzystania ze Strony internetowej oraz zasady zakupu i realizacji usług szkoleniowych oferowanych przez Administratora.</li>
+                  <li>Administratorem i sprzedawcą usług szkoleniowych jest:
+                    <ul className="list-disc list-inside mt-2 ml-4 space-y-1">
+                      <li>Yaroslav Semkiv &quot;Nieznany Piekarz&quot;</li>
+                      <li>Forma prawna: przedsiębiorca wpisany do CEIDG</li>
+                      <li>NIP: 5272748962</li>
+                      <li>REGON: 528678087</li>
+                      <li>Adres: ul. Franciszka Adolfa Achera 9/U1, 02-495 Warszawa</li>
+                      <li>E-mail: slaviksemkiv12@gmail.com</li>
+                      <li>Rachunek bankowy: 08 1160 2202 0000 0006 2929 4950</li>
+                    </ul>
+                  </li>
+                  <li>Regulamin udostępniany jest nieodpłatnie w sposób umożliwiający jego pobranie, zapisanie i wydrukowanie.</li>
+                  <li>Zakup szkolenia oznacza akceptację Regulaminu.</li>
                 </ol>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold mb-3">2. Definicje</h2>
                 <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
-                  <li><strong>Użytkownik/Klient</strong> – osoba korzystająca ze Strony i dokonująca zakupu szkolenia.</li>
-                  <li><strong>Administrator/Sprzedawca</strong> – właściciel Strony, organizator szkoleń.</li>
-                  <li><strong>Szkolenie</strong> – usługa edukacyjna (stacjonarna lub online) dostępna w ofercie Strony.</li>
-                  <li><strong>Umowa</strong> – umowa sprzedaży/usługi zawierana między Klientem a Sprzedawcą.</li>
+                  <li><strong>Użytkownik/Klient</strong> – osoba korzystająca ze Strony i kupująca szkolenie.</li>
+                  <li><strong>Administrator/Sprzedawca</strong> – właściciel marki &quot;Nieznany Piekarz&quot;.</li>
+                  <li><strong>Szkolenie</strong> – usługa edukacyjna stacjonarna lub online.</li>
+                  <li><strong>Umowa</strong> – umowa sprzedaży lub świadczenia usług zawarta pomiędzy Klientem a Administratorem.</li>
                 </ul>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold mb-3">3. Zakres usług</h2>
                 <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
-                  <li>Administrator prowadzi sprzedaż szkoleń stacjonarnych i/lub online poprzez Stronę.</li>
-                  <li>Opisy szkoleń, terminy, program oraz ceny podane są na Stronie.</li>
-                  <li>Ceny podane na Stronie są cenami brutto (zawierają wszystkie podatki).</li>
+                  <li>Administrator prowadzi sprzedaż szkoleń stacjonarnych i online.</li>
+                  <li>Opisy szkoleń, program oraz ceny znajdują się na Stronie.</li>
+                  <li>Ceny podane na Stronie są cenami brutto.</li>
                 </ol>
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold mb-3">4. Zasady składania zamówień</h2>
+                <h2 className="text-xl font-semibold mb-3">4. Wymagania techniczne</h2>
+                <p className="text-gray-700 mb-2 ml-4">Do korzystania ze szkoleń online wymagane jest:</p>
+                <ul className="list-disc list-inside text-gray-700 space-y-1 ml-8">
+                  <li>urządzenie z dostępem do Internetu,</li>
+                  <li>aktualna przeglądarka internetowa,</li>
+                  <li>aktywny adres e-mail,</li>
+                  <li>łącze internetowe min. 5 Mb/s.</li>
+                </ul>
+                <p className="text-gray-700 mt-2 ml-4">Administrator nie odpowiada za problemy techniczne po stronie Klienta.</p>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold mb-3">5. Zasady składania zamówień</h2>
                 <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
-                  <li>Klient składa zamówienie poprzez formularz rejestracyjny dostępny na Stronie.</li>
-                  <li>Warunkiem złożenia zamówienia jest podanie danych niezbędnych do realizacji umowy.</li>
-                  <li>Po złożeniu zamówienia Klient otrzymuje potwierdzenie na wskazany adres e-mail.</li>
-                  <li>Umowa sprzedaży zostaje zawarta z chwilą otrzymania potwierdzenia przez Klienta.</li>
+                  <li>Zamówienia składa się poprzez formularz na stronie internetowej.</li>
+                  <li>Klient zobowiązany jest podać prawdziwe dane.</li>
+                  <li>Po złożeniu zamówienia Klient otrzymuje potwierdzenie e-mail.</li>
+                  <li>Umowa zostaje zawarta z chwilą otrzymania potwierdzenia zamówienia.</li>
                 </ol>
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold mb-3">5. Płatności</h2>
-                <p className="text-gray-700 leading-relaxed ml-4">
-                  Płatności dokonywane są za pośrednictwem systemów płatności elektronicznych (Przelewy24) lub przelewem tradycyjnym.
-                </p>
-              </section>
-
-              <section>
-                <h2 className="text-xl font-semibold mb-3">6. Realizacja usług i dostawa</h2>
+                <h2 className="text-xl font-semibold mb-3">6. Płatności</h2>
                 <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
-                  <li>W przypadku szkoleń stacjonarnych – udział w szkoleniu jest możliwy po dokonaniu pełnej płatności.</li>
-                  <li>W przypadku kursów online – dostęp do materiałów szkoleniowych przekazywany jest drogą elektroniczną na adres e-mail podany przez Klienta w ciągu 24 godzin roboczych od zaksięgowania wpłaty na koncie Administratora.</li>
-                  <li>Materiały szkoleniowe dostarczane są w formie cyfrowej (linki do platformy e-learningowej, pliki PDF, wideo) na wskazany przez Klienta adres e-mail.</li>
-                  <li>Klient otrzymuje potwierdzenie dostarczenia materiałów na adres e-mail podany w zamówieniu.</li>
-                  <li>Administrator zastrzega sobie prawo do zmiany terminu szkolenia w przypadku wystąpienia przyczyn od niego niezależnych (np. choroba prowadzącego). W takiej sytuacji Klient ma prawo:
-                    <ul className="list-disc list-inside mt-2 ml-4 space-y-1">
-                      <li>zaakceptować nowy termin,</li>
-                      <li>lub odstąpić od umowy i uzyskać pełny zwrot wpłaty.</li>
-                    </ul>
-                  </li>
+                  <li>Płatności dokonywane są poprzez system płatności elektronicznych lub tradycyjny przelew.</li>
+                  <li>Brak płatności może skutkować anulowaniem zamówienia.</li>
                 </ol>
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold mb-3">7. Odstąpienie od umowy</h2>
+                <h2 className="text-xl font-semibold mb-3">7. Realizacja usług</h2>
+                
+                <h3 className="text-lg font-semibold mb-2 mt-4">Szkolenia stacjonarne:</h3>
                 <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
-                  <li>Klient będący konsumentem ma prawo odstąpić od umowy w terminie 14 dni od dnia jej zawarcia, bez podawania przyczyny.</li>
-                  <li>Prawo odstąpienia nie przysługuje, jeśli:
-                    <ul className="list-disc list-inside mt-2 ml-4 space-y-1">
-                      <li>szkolenie zostało w pełni zrealizowane przed upływem 14 dni (za zgodą Klienta),</li>
-                      <li>Klient uzyskał dostęp do materiałów online w wersji cyfrowej, które nie podlegają zwrotowi po rozpoczęciu korzystania.</li>
-                    </ul>
-                  </li>
-                  <li>W celu odstąpienia od umowy Klient powinien przesłać stosowne oświadczenie na adres e-mail Administratora.</li>
+                  <li>Udział w szkoleniu jest możliwy wyłącznie po opłaceniu go przez Klienta.</li>
+                  <li>Uczestnik zobowiązuje się do przestrzegania zasad BHP i zaleceń prowadzącego.</li>
+                  <li>Administrator nie ponosi odpowiedzialności za szkody wyrządzone przez Uczestnika.</li>
+                </ol>
+
+                <h3 className="text-lg font-semibold mb-2 mt-4">Zasady BHP:</h3>
+                <ul className="list-disc list-inside text-gray-700 space-y-1 ml-4">
+                  <li>Uczestnik musi stosować odzież ochronną: fartuch, obuwie robocze, włosy spięte lub zakryte.</li>
+                  <li>Zabronione jest noszenie biżuterii stanowiącej zagrożenie (pierścionki, bransoletki itp.).</li>
+                  <li>Zabrania się obsługiwania urządzeń bez instruktażu.</li>
+                  <li>Uczestnik zobowiązany jest do ostrożności przy pracy z gorącymi elementami, nożami, ciężkimi blachami i sprzętem.</li>
+                  <li>Uczestnik musi zgłosić wszelkie niebezpieczne sytuacje prowadzącemu.</li>
+                  <li>Zabrania się udziału w szkoleniu pod wpływem alkoholu lub środków odurzających.</li>
+                  <li>Naruszenie zasad BHP może skutkować usunięciem ze szkolenia bez zwrotu opłaty.</li>
+                </ul>
+
+                <h3 className="text-lg font-semibold mb-2 mt-4">Informacja o alergenach:</h3>
+                <ul className="list-disc list-inside text-gray-700 space-y-1 ml-4">
+                  <li>Podczas szkoleń używane są produkty mogące zawierać alergeny: gluten, jaja, mleko, orzechy, sezam, soja, kakao, miód i inne.</li>
+                  <li>Nie ma możliwości całkowitego wyeliminowania ryzyka zanieczyszczenia krzyżowego.</li>
+                  <li>Uczestnik zobowiązany jest zgłosić alergie min. 48 godzin przed szkoleniem.</li>
+                  <li>Administrator nie odpowiada za reakcje alergiczne wynikające z braku zgłoszenia lub zatajenia alergii.</li>
+                </ul>
+
+                <h3 className="text-lg font-semibold mb-2 mt-4">Szkolenia online:</h3>
+                <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
+                  <li>Dostęp do materiałów udzielany jest po zaksięgowaniu wpłaty.</li>
+                  <li>Materiały cyfrowe nie podlegają zwrotowi.</li>
+                </ol>
+
+                <h3 className="text-lg font-semibold mb-2 mt-4">Zmiana terminu szkolenia:</h3>
+                <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
+                  <li>Administrator może zmienić termin w sytuacjach niezależnych od niego.</li>
+                  <li>Klient może zaakceptować nowy termin lub otrzymać pełny zwrot wpłaty.</li>
                 </ol>
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold mb-3">8. Reklamacje i rozstrzyganie sporów</h2>
+                <h2 className="text-xl font-semibold mb-3">8. Odstąpienie od umowy i rezygnacja</h2>
+                
+                <h3 className="text-lg font-semibold mb-2 mt-4">Odstąpienie w ciągu 14 dni:</h3>
                 <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
-                  <li>Klient ma prawo złożyć reklamację w przypadku niezgodności usługi z umową.</li>
-                  <li>Reklamacje należy kierować na adres e-mail: slaviksemkiv12@gmail.com.</li>
-                  <li>Administrator rozpatrzy reklamację w terminie 14 dni od jej otrzymania, zgodnie z art. 561-563 Kodeksu cywilnego.</li>
-                  <li>W przypadku niezadowalającej odpowiedzi na reklamację, Klient może skorzystać z pozasądowych sposobów rozstrzygania sporów, w tym:
-                    <ul className="list-disc list-inside mt-2 ml-4 space-y-1">
-                      <li>Stałego Polubownego Sądu Konsumenckiego przy Wojewódzkim Inspektoracie Inspekcji Handlowej</li>
-                      <li>Europejskiej Platformy Rozstrzygania Sporów Online (ODR) dostępnej pod adresem: https://ec.europa.eu/consumers/odr/</li>
-                      <li>Pomocy Rzecznika Finansowego (w sprawach dotyczących płatności)</li>
-                    </ul>
-                  </li>
-                  <li>Klient może również skorzystać z pomocy miejskich lub powiatowych rzeczników konsumentów.</li>
+                  <li>Konsument może odstąpić od umowy w ciągu 14 dni.</li>
+                  <li>Prawo to nie obowiązuje, jeżeli szkolenie zostało wykonane lub Klient uzyskał dostęp do treści cyfrowych.</li>
+                </ol>
+
+                <h3 className="text-lg font-semibold mb-2 mt-4">Rezygnacja po 14 dniach:</h3>
+                <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
+                  <li>Po 14 dniach od zakupu zwrot środków nie przysługuje.</li>
+                  <li>Nieobecność na szkoleniu oznacza rezygnację bez zwrotu.</li>
+                  <li>Klient może przepisać miejsce innej osobie min. 48 h przed szkoleniem.</li>
+                  <li>Administrator może, ale nie musi, umożliwić zmianę terminu.</li>
                 </ol>
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold mb-3">9. Odpowiedzialność</h2>
+                <h2 className="text-xl font-semibold mb-3">9. Reklamacje</h2>
                 <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
-                  <li>Administrator nie ponosi odpowiedzialności za przerwy w funkcjonowaniu Strony spowodowane awariami niezależnymi od niego.</li>
-                  <li>Administrator nie odpowiada za brak możliwości uczestnictwa w szkoleniu z przyczyn leżących po stronie Klienta (np. brak dostępu do Internetu, błędne dane w zamówieniu).</li>
+                  <li>Reklamacje można zgłaszać maksymalnie 7 dni po szkoleniu.</li>
+                  <li>Reklamacja musi zawierać dane, opis zastrzeżeń i żądanie.</li>
+                  <li>Administrator rozpatruje reklamację w ciągu 14 dni.</li>
+                  <li>Reklamacji nie podlegają: subiektywne oceny, brak efektów, problemy techniczne Klienta.</li>
                 </ol>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold mb-3">10. Prawa autorskie</h2>
                 <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
-                  <li>Materiały szkoleniowe podlegają ochronie prawnej i mogą być wykorzystywane wyłącznie przez Klienta na własne potrzeby.</li>
-                  <li>Zabronione jest ich kopiowanie, rozpowszechnianie, udostępnianie osobom trzecim bez zgody Administratora.</li>
+                  <li>Materiały szkoleniowe są chronione prawem autorskim.</li>
+                  <li>Zabronione jest kopiowanie, udostępnianie, wykorzystywanie komercyjne.</li>
+                  <li>Klient otrzymuje licencję wyłącznie na własny użytek.</li>
                 </ol>
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold mb-3">11. Prawa konsumenta</h2>
+                <h2 className="text-xl font-semibold mb-3">11. Wizerunek uczestników</h2>
                 <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
-                  <li>Klient będący konsumentem ma prawo do:
-                    <ul className="list-disc list-inside mt-2 ml-4 space-y-1">
-                      <li>Otrzymania pełnych informacji o usłudze przed zawarciem umowy</li>
-                      <li>Odstąpienia od umowy w terminie 14 dni (zgodnie z art. 27 ustawy o prawach konsumenta)</li>
-                      <li>Gwarancji jakości usługi zgodnej z umową</li>
-                      <li>Dostępu do pozasądowych sposobów rozstrzygania sporów</li>
-                      <li>Ochrony danych osobowych zgodnie z RODO</li>
-                    </ul>
-                  </li>
-                  <li>Administrator informuje, że umowa może być zawarta w języku polskim.</li>
-                  <li>Klient może skorzystać z wzoru oświadczenia o odstąpieniu od umowy dostępnego na stronie internetowej.</li>
+                  <li>Uczestnik może wyrazić zgodę na wykorzystanie wizerunku.</li>
+                  <li>Zgoda obejmuje publikację w materiałach promocyjnych, social media i stronie.</li>
+                  <li>Zgoda jest dobrowolna, nieodpłatna i bezterminowa.</li>
+                  <li>Wycofanie zgody nie działa wstecz.</li>
                 </ol>
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold mb-3">12. Dane osobowe i cookies</h2>
-                <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
-                  <li>Administrator przetwarza dane osobowe Klientów zgodnie z obowiązującymi przepisami prawa, w tym RODO.</li>
-                  <li>Szczegółowe informacje dotyczące przetwarzania danych osobowych oraz plików cookies zawiera Polityka Prywatności dostępna na Stronie.</li>
-                </ol>
+                <h2 className="text-xl font-semibold mb-3">12. Dane osobowe</h2>
+                <p className="text-gray-700 ml-4">
+                  Przetwarzanie danych regulowane jest Polityką Prywatności zgodną z RODO.
+                </p>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold mb-3">13. Postanowienia końcowe</h2>
                 <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
-                  <li>Administrator zastrzega sobie prawo do zmiany Regulaminu.</li>
-                  <li>Do umów zawieranych między Klientem a Administratorem stosuje się prawo polskie.</li>
-                  <li>W sprawach nieuregulowanych niniejszym Regulaminem zastosowanie mają przepisy Kodeksu cywilnego oraz ustawy o prawach konsumenta.</li>
+                  <li>Administrator może zmienić Regulamin.</li>
+                  <li>W sprawach nieuregulowanych obowiązuje prawo polskie.</li>
+                  <li>Regulamin obowiązuje od dnia publikacji.</li>
                 </ol>
-              </section>
-
-              <section>
-                <h2 className="text-xl font-semibold mb-3">14. Dodatkowe informacje</h2>
-                <div className="text-gray-700 leading-relaxed ml-4">
-                  <p>Imię: Yaroslav</p>
-                  <p>Nazwisko: Semkiv</p>
-                  <p>Firma prowadzącego: Yaroslav Semkiv NIEZNANY PIEKARZ</p>
-                  <p>NIP: 5272748962</p>
-                  <p>REGON: 528678087</p>
-                  <p>Forma prawna: CEIDG - Osoba fizyczna prowadząca działalność gospodarczą</p>
-                  <p>Rekwizyty: 08 1160 2202 0000 0006 2929 4950</p>
-                </div>
               </section>
             </>
           ) : (
@@ -316,19 +337,6 @@ export default function TermsOfService() {
                   <li>Polish law applies to contracts concluded between the Client and Administrator.</li>
                   <li>In matters not regulated by these Terms of Service, the provisions of the Civil Code and the Consumer Rights Act apply.</li>
                 </ol>
-              </section>
-
-              <section>
-                <h2 className="text-xl font-semibold mb-3">14. Additional Information</h2>
-                <div className="text-gray-700 leading-relaxed ml-4">
-                  <p>First Name: Yaroslav</p>
-                  <p>Last Name: Semkiv</p>
-                  <p>Company: Yaroslav Semkiv NIEZNANY PIEKARZ</p>
-                  <p>NIP: 5272748962</p>
-                  <p>REGON: 528678087</p>
-                  <p>Legal Form: CEIDG - Individual Entrepreneur</p>
-                  <p>Account Details: 08 1160 2202 0000 0006 2929 4950</p>
-                </div>
               </section>
             </>
           )}

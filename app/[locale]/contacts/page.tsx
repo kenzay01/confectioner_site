@@ -33,11 +33,11 @@ export default function Contact() {
 
     // Форматуємо повідомлення для Telegram у MarkdownV2
     const telegramMessage = `
-📩 *Нове повідомлення з форми контактів*
+📩 *Nowa wiadomość z formularza kontaktowego*
 
-👤 *Ім'я*: ${escapeMarkdown(formData.name)}
+👤 *Imię i nazwisko*: ${escapeMarkdown(formData.name)}
 📧 *Email*: ${escapeMarkdown(formData.email)}
-💬 *Питання*:
+💬 *Pytanie*:
 _${escapeMarkdown(formData.question)}_
     `.trim();
 

@@ -154,7 +154,7 @@ export default function MasterClassPage() {
             >
               {masterclass.availableSlots - masterclass.pickedSlots > 0
                 ? currentLocale === "pl"
-                  ? "Oplatiti"
+                  ? "Zapłać"
                   : "Pay Now"
                 : currentLocale === "pl"
                 ? "Dołącz do listy oczekujących"

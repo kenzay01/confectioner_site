@@ -121,7 +121,7 @@ export default function AboutMe() {
                 </p>
                 <p className="mt-6 font-semibold text-gray-900">
                   For a tailored training quote visit{" "}
-                  <Link
+            <Link
                     href={`/${currentLocale}/contacts`}
                     className="underline hover:text-[var(--accent-color)] transition-colors"
                   >

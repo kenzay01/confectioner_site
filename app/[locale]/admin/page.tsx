@@ -20,6 +20,7 @@ import {
 import { Masterclass } from "@/types/masterclass";
 import { OnlineProduct } from "@/types/products";
 import { Partner } from "@/types/partner";
+import { MapLocation } from "@/types/mapLocation";
 import { useItems } from "@/context/itemsContext";
 import Image from "next/image";
 
@@ -45,7 +46,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     dateEnd: "",
     dateTimes: [],
     location: { pl: "", en: "" },
-    city: "", // Місто для відображення на мапі
+    city: "", // Miasto dla wyświetlenia na mapie
     title: { pl: "", en: "" },
     photo: "",
     description: { pl: "", en: "" },
@@ -76,11 +77,14 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
   );
   const [language, setLanguage] = useState<"pl" | "en">("pl");
   const [usePolishForEnglish, setUsePolishForEnglish] = useState<boolean>(false);
-  const [currentTab, setCurrentTab] = useState<"dashboard" | "masterclasses" | "products" | "partners">(
+  const [currentTab, setCurrentTab] = useState<"dashboard" | "masterclasses" | "products" | "partners" | "mapLocations">(
     "dashboard"
   );
   const [partners, setPartners] = useState<Partner[]>([]);
   const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
+  const [mapLocations, setMapLocations] = useState<MapLocation[]>([]);
+  const [editingMapLocation, setEditingMapLocation] = useState<MapLocation | null>(null);
+  const [showMapLocationForm, setShowMapLocationForm] = useState(false);
   const [showMasterclassForm, setShowMasterclassForm] = useState(false);
   const [showProductForm, setShowProductForm] = useState(false);
   const [showPartnerForm, setShowPartnerForm] = useState(false);
@@ -99,11 +103,12 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [masterclassRes, productRes, partnersRes, citiesRes] = await Promise.all([
+        const [masterclassRes, productRes, partnersRes, citiesRes, mapLocationsRes] = await Promise.all([
           fetch("/api/masterclasses"),
           fetch("/api/online-products"),
           fetch("/api/partners"),
           fetch("/api/cities"),
+          fetch("/api/map-locations"),
         ]);
         if (masterclassRes.ok) {
           const masterclassesData = await masterclassRes.json();
@@ -122,6 +127,12 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
           setPartners(partnersData);
         } else {
           setErrorMessage("Nie udało się załadować partnerów");
+        }
+        if (mapLocationsRes.ok) {
+          const mapLocationsData = await mapLocationsRes.json();
+          setMapLocations(mapLocationsData);
+        } else {
+          setErrorMessage("Nie udało się załadować punktów na mapie");
         }
         if (citiesRes.ok) {
           const citiesData = await citiesRes.json();
@@ -152,28 +163,40 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     }
   };
 
+  const refreshMapLocations = async () => {
+    try {
+      const res = await fetch("/api/map-locations");
+      if (res.ok) {
+        const data = await res.json();
+        setMapLocations(data);
+      }
+    } catch (error) {
+      console.error("Error refreshing map locations:", error);
+    }
+  };
+
   const handleAddMasterclass = async () => {
-    // Перевіряємо обов'язкові поля
+    // Sprawdzamy wymagane pola
     const missingFields = [];
     
-    if (!newMasterclass.date) missingFields.push("Дата початку");
-    if (newMasterclass.dateType === "range" && !newMasterclass.dateEnd) missingFields.push("Дата закінчення");
-    if (!newMasterclass.title?.pl) missingFields.push("Заголовок (польська)");
-    if (!newMasterclass.title?.en && !usePolishForEnglish) missingFields.push("Заголовок (англійська)");
-    if (!newMasterclass.description?.pl) missingFields.push("Опис (польська)");
-    if (!newMasterclass.description?.en && !usePolishForEnglish) missingFields.push("Опис (англійська)");
-    if (!newMasterclass.location?.pl) missingFields.push("Місце проведення (польська)");
-    if (!newMasterclass.location?.en && !usePolishForEnglish) missingFields.push("Місце проведення (англійська)");
-    if (!newMasterclass.city) missingFields.push("Місто (для мапи)");
-    if (!newMasterclass.price) missingFields.push("Ціна");
-    if (!newMasterclass.availableSlots) missingFields.push("Доступні місця");
+    if (!newMasterclass.date) missingFields.push("Data rozpoczęcia");
+    if (newMasterclass.dateType === "range" && !newMasterclass.dateEnd) missingFields.push("Data zakończenia");
+    if (!newMasterclass.title?.pl) missingFields.push("Tytuł (polski)");
+    if (!newMasterclass.title?.en && !usePolishForEnglish) missingFields.push("Tytuł (angielski)");
+    if (!newMasterclass.description?.pl) missingFields.push("Opis (polski)");
+    if (!newMasterclass.description?.en && !usePolishForEnglish) missingFields.push("Opis (angielski)");
+    if (!newMasterclass.location?.pl) missingFields.push("Miejsce przeprowadzenia (polski)");
+    if (!newMasterclass.location?.en && !usePolishForEnglish) missingFields.push("Miejsce przeprowadzenia (angielski)");
+    if (!newMasterclass.city) missingFields.push("Miasto (dla mapy)");
+    if (!newMasterclass.price) missingFields.push("Cena");
+    if (!newMasterclass.availableSlots) missingFields.push("Dostępne miejsca");
 
     if (missingFields.length > 0) {
-      setErrorMessage(`Будь ласка, заповніть обов'язкові поля: ${missingFields.join(", ")}`);
+      setErrorMessage(`Proszę wypełnić wymagane pola: ${missingFields.join(", ")}`);
       return;
     }
 
-    // Якщо використовуємо польську версію для англійської, копіюємо дані
+    // Jeśli używamy polskiej wersji dla angielskiej, kopiujemy dane
       const masterclassToAdd: Masterclass = {
         ...newMasterclass,
         id: Date.now().toString(),
@@ -225,10 +248,10 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
           setErrorMessage("");
           refreshMasterclasses();
         } else {
-          setErrorMessage("Не вдалося додати майстер-клас");
+          setErrorMessage("Nie udało się dodać warsztatu");
         }
       } catch (_error) {
-        setErrorMessage("Помилка при додаванні майстер-класу");
+        setErrorMessage("Błąd przy dodawaniu warsztatu");
     }
   };
 
@@ -255,10 +278,10 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
           setErrorMessage("");
           refreshMasterclasses();
         } else {
-          setErrorMessage("Не вдалося оновити майстер-клас");
+          setErrorMessage("Nie udało się zaktualizować warsztatu");
         }
       } catch (_error) {
-        setErrorMessage("Помилка при оновленні майстер-класу");
+        setErrorMessage("Błąd przy aktualizacji warsztatu");
       }
     }
   };
@@ -273,10 +296,10 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
         setErrorMessage("");
         refreshMasterclasses();
       } else {
-        setErrorMessage("Не вдалося видалити майстер-клас");
+        setErrorMessage("Nie udało się usunąć warsztatu");
       }
     } catch (_error) {
-      setErrorMessage("Помилка при видаленні майстер-класу");
+      setErrorMessage("Błąd przy usuwaniu warsztatu");
     }
   };
 
@@ -313,13 +336,13 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
           setErrorMessage("");
           refreshOnlineProducts();
         } else {
-          setErrorMessage("Не вдалося додати продукт");
+          setErrorMessage("Nie udało się dodać produktu");
         }
       } catch (_error) {
-        setErrorMessage("Помилка при додаванні продукту");
+        setErrorMessage("Błąd przy dodawaniu produktu");
       }
     } else {
-      setErrorMessage("Будь ласка, заповніть поля для всіх мов.");
+      setErrorMessage("Proszę wypełnić pola dla wszystkich języków.");
     }
   };
 
@@ -342,10 +365,10 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
           setErrorMessage("");
           refreshOnlineProducts();
         } else {
-          setErrorMessage("Не вдалося оновити продукт");
+          setErrorMessage("Nie udało się zaktualizować produktu");
         }
       } catch (_error) {
-        setErrorMessage("Помилка при оновленні продукту");
+        setErrorMessage("Błąd przy aktualizacji produktu");
       }
     }
   };
@@ -360,10 +383,10 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
         setErrorMessage("");
         refreshOnlineProducts();
       } else {
-        setErrorMessage("Не вдалося видалити продукт");
+        setErrorMessage("Nie udało się usunąć produktu");
       }
     } catch (_error) {
-      setErrorMessage("Помилка при видаленні продукту");
+      setErrorMessage("Błąd przy usuwaniu produktu");
     }
   };
 
@@ -448,6 +471,108 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     } catch (_error) {
       setErrorMessage("Błąd przy usuwaniu partnera");
     }
+  };
+
+  // Map Locations handlers
+  const [newMapLocation, setNewMapLocation] = useState<Partial<MapLocation>>({
+    city: "",
+    name: { pl: "", en: "" },
+    type: "other",
+    photos: [],
+    description: { pl: "", en: "" },
+  });
+  const [newPhotoUrl, setNewPhotoUrl] = useState("");
+
+  const handleAddMapLocation = async () => {
+    if (!newMapLocation.city || !newMapLocation.name?.pl) {
+      setErrorMessage("Proszę wypełnić wymagane pola: Miasto, Nazwa (polski)");
+      return;
+    }
+
+    const locationToAdd: MapLocation = {
+      ...newMapLocation,
+      id: Date.now().toString(),
+      photos: newMapLocation.photos || [],
+    } as MapLocation;
+
+    try {
+      const res = await fetch("/api/map-locations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(locationToAdd),
+      });
+      if (res.ok) {
+        const addedLocation = await res.json();
+        setMapLocations([...mapLocations, addedLocation]);
+        setNewMapLocation({
+          city: "",
+          name: { pl: "", en: "" },
+          type: "other",
+          photos: [],
+          description: { pl: "", en: "" },
+        });
+        setNewPhotoUrl("");
+        setShowMapLocationForm(false);
+        setErrorMessage("");
+        refreshMapLocations();
+      } else {
+        setErrorMessage("Nie udało się dodać punktu na mapie");
+      }
+    } catch (_error) {
+      setErrorMessage("Błąd przy dodawaniu punktu na mapie");
+    }
+  };
+
+  const handleEditMapLocation = async () => {
+    if (editingMapLocation) {
+      try {
+        const res = await fetch(`/api/map-locations/${editingMapLocation.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(editingMapLocation),
+        });
+        if (res.ok) {
+          const updatedLocation = await res.json();
+          setMapLocations(mapLocations.map((l) => (l.id === updatedLocation.id ? updatedLocation : l)));
+          setEditingMapLocation(null);
+          setErrorMessage("");
+          refreshMapLocations();
+        } else {
+          setErrorMessage("Nie udało się zaktualizować punktu na mapie");
+        }
+      } catch (_error) {
+        setErrorMessage("Błąd przy aktualizacji punktu na mapie");
+      }
+    }
+  };
+
+  const handleDeleteMapLocation = async (id: string) => {
+    try {
+      const res = await fetch(`/api/map-locations/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setMapLocations(mapLocations.filter((l) => l.id !== id));
+        refreshMapLocations();
+      } else {
+        setErrorMessage("Nie udało się usunąć punktu na mapie");
+      }
+    } catch (_error) {
+      setErrorMessage("Błąd przy usuwaniu punktu na mapie");
+    }
+  };
+
+  const addPhotoToLocation = (location: MapLocation | Partial<MapLocation>, photoUrl: string): string[] => {
+    if (!photoUrl.trim()) return location.photos || [];
+    const currentPhotos = location.photos || [];
+    if (!currentPhotos.includes(photoUrl)) {
+      return [...currentPhotos, photoUrl];
+    }
+    return currentPhotos;
+  };
+
+  const removePhotoFromLocation = (location: MapLocation | Partial<MapLocation>, photoUrl: string): string[] => {
+    return (location.photos || []).filter((p) => p !== photoUrl);
   };
 
   const addFaq = (
@@ -555,14 +680,14 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
               onChange={(e) => setLanguage(e.target.value as "pl" | "en")}
               className="bg-white text-black border-2 border-black rounded px-2 py-1"
             >
-              <option value="pl">Польська</option>
-              <option value="en">Англійська</option>
+              <option value="pl">Polski</option>
+              <option value="en">Angielski</option>
             </select>
             <button
               onClick={onLogout}
               className="px-4 py-2 rounded border-2 border-black text-black hover:bg-black hover:text-white transition-colors"
             >
-              Вийти
+              Wyloguj się
             </button>
           </div>
         </div>
@@ -611,6 +736,17 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
           >
             <Users className="w-4 h-4" />
             Partnerzy
+          </button>
+          <button
+            onClick={() => setCurrentTab("mapLocations")}
+            className={`flex items-center gap-2 px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
+              currentTab === "mapLocations" 
+                ? "bg-black text-white border-black shadow-lg" 
+                : "bg-transparent text-black border-gray-300 hover:bg-gray-50 hover:border-black"
+            }`}
+          >
+            <MapPin className="w-4 h-4" />
+            Punkty na mapie
           </button>
         </div>
 
@@ -896,7 +1032,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-black mb-1">Тип дати</label>
+                  <label className="block text-black mb-1">Typ daty</label>
                   <select
                     value={newMasterclass.dateType || "single"}
                     onChange={(e) => {
@@ -915,8 +1051,8 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     }}
                     className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                   >
-                    <option value="single">Один день</option>
-                    <option value="range">Період</option>
+                    <option value="single">Jeden dzień</option>
+                    <option value="range">Okres</option>
                   </select>
                 </div>
                 <div
@@ -928,7 +1064,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                 >
                   <div>
                     <label className="block text-black mb-1">
-                      Дата початку
+                      Data rozpoczęcia
                     </label>
                     <input
                       type="date"
@@ -953,7 +1089,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                   {newMasterclass.dateType === "range" && (
                     <div>
                       <label className="block text-black mb-1">
-                        Дата закінчення
+                        Data zakończenia
                       </label>
                       <input
                         type="date"
@@ -1013,7 +1149,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     className={`w-full px-3 py-2 border-2 border-black rounded bg-white text-black ${
                       language === "en" && usePolishForEnglish ? "opacity-50" : ""
                     }`}
-                    placeholder="Місце проведення"
+                    placeholder="Miejsce przeprowadzenia"
                     disabled={language === "en" && usePolishForEnglish}
                   />
                 </div>
@@ -1084,7 +1220,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     className={`w-full px-3 py-2 border-2 border-black rounded bg-white text-black ${
                       language === "en" && usePolishForEnglish ? "opacity-50" : ""
                     }`}
-                    placeholder="Заголовок"
+                    placeholder="Tytuł"
                     disabled={language === "en" && usePolishForEnglish}
                   />
                 </div>
@@ -1125,7 +1261,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     className={`w-full px-3 py-2 border-2 border-black rounded bg-white text-black ${
                       language === "en" && usePolishForEnglish ? "opacity-50" : ""
                     }`}
-                    placeholder="Опис"
+                    placeholder="Opis"
                     rows={4}
                     disabled={language === "en" && usePolishForEnglish}
                   />
@@ -1147,7 +1283,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                 </div>
                 <div>
                   <label className="block text-black mb-1">
-                    Доступні місця
+                    Dostępne miejsca
                   </label>
                   <input
                     type="number"
@@ -1159,7 +1295,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                       })
                     }
                     className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
-                    placeholder="Доступні місця"
+                    placeholder="Dostępne miejsca"
                   />
                 </div>
                 <div className="col-span-2">
@@ -1185,7 +1321,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                           setNewFaq({ ...newFaq, question: e.target.value })
                         }
                         className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
-                        placeholder="Питання"
+                        placeholder="Pytanie"
                       />
                       <input
                         type="text"
@@ -1194,7 +1330,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                           setNewFaq({ ...newFaq, answer: e.target.value })
                         }
                         className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
-                        placeholder="Відповідь"
+                        placeholder="Odpowiedź"
                       />
                     </div>
                     <button
@@ -1202,7 +1338,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                       className="px-4 py-2 rounded border-2 border-black text-black hover:bg-black hover:text-white transition-colors flex items-center gap-2"
                     >
                       <Plus size={20} />
-                      Додати FAQ
+                      Dodaj FAQ
                     </button>
                     {newMasterclass.faqs?.[language]?.map((faq) => (
                       <div
@@ -1211,10 +1347,10 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                       >
                         <div>
                           <p className="text-gray-100">
-                            <strong>Питання:</strong> {faq.question}
+                            <strong>Pytanie:</strong> {faq.question}
                           </p>
                           <p className="text-gray-600">
-                            <strong>Відповідь:</strong> {faq.answer}
+                            <strong>Odpowiedź:</strong> {faq.answer}
                           </p>
                         </div>
                         <button
@@ -1257,9 +1393,9 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
             {/* Masterclass List */}
             <div className="mt-6 space-y-4">
               {loading ? (
-                <p className="text-gray-300">Завантаження...</p>
+                <p className="text-gray-300">Ładowanie...</p>
               ) : !masterclasses.length ? (
-                <p className="text-gray-300">Немає</p>
+                <p className="text-gray-300">Brak</p>
               ) : (
                 masterclasses.map((masterclass) => (
                   <div
@@ -1286,7 +1422,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                             : `${masterclass.date} - ${masterclass.dateEnd}`}{" "}
                           | {masterclass.location[language]} |{" "}
                           {masterclass.price} zł | {masterclass.availableSlots}{" "}
-                          місць | Заброньовано: {masterclass.pickedSlots}
+                          miejsc | Zarezerwowano: {masterclass.pickedSlots}
                         </p>
                       </div>
                     </div>
@@ -1294,14 +1430,14 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                       <button
                         onClick={() => setEditingMasterclass(masterclass)}
                         className="flex items-center gap-1 px-3 py-2 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium"
-                        title="Редагувати"
+                        title="Edytuj"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteMasterclass(masterclass.id)}
                         className="flex items-center gap-1 px-3 py-2 rounded-lg border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200 font-medium"
-                        title="Видалити"
+                        title="Usuń"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -1316,12 +1452,12 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
               <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
                 <div className="bg-white p-6 rounded-lg w-[800px] border-2 border-black">
                   <h2 className="text-xl font-semibold text-black mb-4">
-                    Редагувати майстер-клас
+                    Edytuj warsztat
                   </h2>
                   <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto">
                     <div>
                       <label className="block text-black mb-1">
-                        Тип дати
+                        Typ daty
                       </label>
                       <select
                         value={editingMasterclass.dateType}
@@ -1341,13 +1477,13 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         }}
                         className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                       >
-                        <option value="single">Один день</option>
-                        <option value="range">Період</option>
+                        <option value="single">Jeden dzień</option>
+                        <option value="range">Okres</option>
                       </select>
                     </div>
                     <div>
                       <label className="block text-black mb-1">
-                        Дата початку
+                        Data rozpoczęcia
                       </label>
                       <input
                         type="date"
@@ -1372,7 +1508,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     {editingMasterclass.dateType === "range" && (
                       <div>
                         <label className="block text-black mb-1">
-                          Дата закінчення
+                          Data zakończenia
                         </label>
                         <input
                           type="date"
@@ -1395,8 +1531,8 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
 
                     <div>
                       <label className="block text-black mb-1">
-                        Місце проведення (
-                        {language === "pl" ? "Польська" : "Англійська"})
+                        Miejsce przeprowadzenia (
+                        {language === "pl" ? "Polski" : "Angielski"})
                       </label>
                       <input
                         type="text"
@@ -1411,7 +1547,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                           })
                         }
                         className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
-                        placeholder="Місце проведення"
+                        placeholder="Miejsce przeprowadzenia"
                       />
                     </div>
                     
@@ -1444,8 +1580,8 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     
                     <div>
                       <label className="block text-black mb-1">
-                        Заголовок (
-                        {language === "pl" ? "Польська" : "Англійська"})
+                        Tytuł (
+                        {language === "pl" ? "Polski" : "Angielski"})
                       </label>
                       <input
                         type="text"
@@ -1460,12 +1596,12 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                           })
                         }
                         className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
-                        placeholder="Заголовок"
+                        placeholder="Tytuł"
                       />
                     </div>
                     <div>
                       <label className="block text-black mb-1">
-                        Опис ({language === "pl" ? "Польська" : "Англійська"})
+                        Opis ({language === "pl" ? "Polski" : "Angielski"})
                       </label>
                       <textarea
                         value={editingMasterclass.description[language]}
@@ -1479,7 +1615,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                           })
                         }
                         className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
-                        placeholder="Опис"
+                        placeholder="Opis"
                         rows={4}
                       />
                     </div>
@@ -1502,7 +1638,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     </div>
                     <div>
                       <label className="block text-black mb-1">
-                        Доступні місця
+                        Dostępne miejsca
                       </label>
                       <input
                         type="number"
@@ -1514,12 +1650,12 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                           })
                         }
                         className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
-                        placeholder="Доступні місця"
+                        placeholder="Dostępne miejsca"
                       />
                     </div>
                     <div>
                       <label className="block text-black mb-1">
-                        Заброньовані місця
+                        Zarezerwowane miejsca
                       </label>
                       <input
                         type="number"
@@ -1531,12 +1667,12 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                           })
                         }
                         className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
-                        placeholder="Заброньовані місця"
+                        placeholder="Zarezerwowane miejsca"
                       />
                     </div>
                     <div className="col-span-2">
                       <label className="block text-black mb-1">
-                        FAQ ({language === "pl" ? "Польська" : "Англійська"})
+                        FAQ ({language === "pl" ? "Polski" : "Angielski"})
                       </label>
                       <div className="space-y-2">
                         <div className="grid grid-cols-2 gap-2">
@@ -1547,7 +1683,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                               setNewFaq({ ...newFaq, question: e.target.value })
                             }
                             className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
-                            placeholder="Питання"
+                            placeholder="Pytanie"
                           />
                           <input
                             type="text"
@@ -1556,7 +1692,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                               setNewFaq({ ...newFaq, answer: e.target.value })
                             }
                             className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
-                            placeholder="Відповідь"
+                            placeholder="Odpowiedź"
                           />
                         </div>
                         <button
@@ -1564,7 +1700,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                           className="px-4 py-2 rounded border-2 border-black text-black hover:bg-black hover:text-white transition-colors flex items-center gap-2"
                         >
                           <Plus size={20} />
-                          Додати FAQ
+                          Dodaj FAQ
                         </button>
                         {editingMasterclass.faqs?.[language]?.map((faq) => (
                           <div
@@ -1573,10 +1709,10 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                           >
                             <div>
                               <p className="text-gray-100">
-                                <strong>Питання:</strong> {faq.question}
+                                <strong>Pytanie:</strong> {faq.question}
                               </p>
                               <p className="text-gray-600">
-                                <strong>Відповідь:</strong> {faq.answer}
+                                <strong>Odpowiedź:</strong> {faq.answer}
                               </p>
                             </div>
                             <button
@@ -1602,14 +1738,14 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                       className="flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-gray-400 text-gray-400 hover:bg-gray-400 hover:text-white transition-all duration-200 font-medium"
                     >
                       <X className="w-4 h-4" />
-                      Скасувати
+                      Anuluj
                     </button>
                     <button
                       onClick={handleEditMasterclass}
                       className="flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium shadow-sm hover:shadow-md"
                     >
                       <Save className="w-4 h-4" />
-                      Зберегти
+                      Zapisz
                     </button>
                   </div>
                 </div>
@@ -1786,7 +1922,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                 className="flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium shadow-sm hover:shadow-md"
               >
                 <Plus className="w-4 h-4" />
-                Додати продукт
+                Dodaj produkt
               </button>
             </div>
             )}
@@ -1806,9 +1942,9 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
             {/* Online Products List */}
             <div className="mt-6 space-y-4">
               {loading ? (
-                <p className="text-gray-300">Завантаження...</p>
+                <p className="text-gray-300">Ładowanie...</p>
               ) : !onlineProducts.length ? (
-                <p className="text-gray-300">Немає</p>
+                <p className="text-gray-300">Brak</p>
               ) : (
                 onlineProducts.map((product) => (
                   <div
@@ -1831,10 +1967,10 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         </h3>
                         <p className="text-gray-600">
                           {product.type === "course"
-                            ? "Курс"
+                            ? "Kurs"
                             : product.type === "consultation"
-                            ? "Консультація"
-                            : "Книга рецептів"}{" "}
+                            ? "Konsultacja"
+                            : "Książka przepisów"}{" "}
                           | {product.price} zł
                         </p>
                       </div>
@@ -1843,14 +1979,14 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                       <button
                         onClick={() => setEditingProduct(product)}
                         className="flex items-center gap-1 px-3 py-2 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium"
-                        title="Редагувати"
+                        title="Edytuj"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteProduct(product.id)}
                         className="flex items-center gap-1 px-3 py-2 rounded-lg border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200 font-medium"
-                        title="Видалити"
+                        title="Usuń"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -1865,12 +2001,12 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
               <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
                 <div className="bg-brown p-6 rounded-lg max-w-lg w-full">
                   <h2 className="text-xl font-semibold text-black mb-4">
-                    Редагувати продукт
+                    Edytuj produkt
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto">
                     <div>
                       <label className="block text-black mb-1">
-                        Тип продукту
+                        Typ produktu
                       </label>
                       <select
                         value={editingProduct.type}
@@ -1885,15 +2021,15 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         }
                         className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                       >
-                        <option value="course">Курс</option>
-                        <option value="consultation">Консультація</option>
-                        <option value="recipe">Книга рецептів</option>
+                        <option value="course">Kurs</option>
+                        <option value="consultation">Konsultacja</option>
+                        <option value="recipe">Książka przepisów</option>
                       </select>
                     </div>
                     <div>
                       <label className="block text-black mb-1">
-                        Заголовок (
-                        {language === "pl" ? "Польська" : "Англійська"})
+                        Tytuł (
+                        {language === "pl" ? "Polski" : "Angielski"})
                       </label>
                       <input
                         type="text"
@@ -1908,12 +2044,12 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                           })
                         }
                         className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
-                        placeholder="Заголовок"
+                        placeholder="Tytuł"
                       />
                     </div>
                     <div>
                       <label className="block text-black mb-1">
-                        Опис ({language === "pl" ? "Польська" : "Англійська"})
+                        Opis ({language === "pl" ? "Polski" : "Angielski"})
                       </label>
                       <textarea
                         value={editingProduct.description[language]}
@@ -1927,7 +2063,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                           })
                         }
                         className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
-                        placeholder="Опис"
+                        placeholder="Opis"
                         rows={4}
                       />
                     </div>
@@ -1955,14 +2091,14 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                       className="flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-gray-400 text-gray-400 hover:bg-gray-400 hover:text-white transition-all duration-200 font-medium"
                     >
                       <X className="w-4 h-4" />
-                      Скасувати
+                      Anuluj
                     </button>
                     <button
                       onClick={handleEditProduct}
                       className="flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium shadow-sm hover:shadow-md"
                     >
                       <Save className="w-4 h-4" />
-                      Зберегти
+                      Zapisz
                     </button>
                   </div>
                 </div>
@@ -2299,6 +2435,435 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
             )}
           </div>
         )}
+
+        {currentTab === "mapLocations" && (
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <MapPin className="w-5 h-5 text-gray-600" />
+                <h2 className="text-xl font-semibold text-black">
+                  Punkty na mapie
+                </h2>
+              </div>
+              <button
+                onClick={() => setShowMapLocationForm(!showMapLocationForm)}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium"
+              >
+                <Plus className="w-4 h-4" />
+                {showMapLocationForm ? "Anuluj" : "Dodaj punkt"}
+              </button>
+            </div>
+
+            {showMapLocationForm && (
+              <div className="bg-white p-6 rounded-xl border-2 border-gray-200 mb-6">
+                <h3 className="text-lg font-semibold mb-4">Nowy punkt na mapie</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-black mb-1">Miasto *</label>
+                    <select
+                      value={newMapLocation.city || ""}
+                      onChange={(e) =>
+                        setNewMapLocation({
+                          ...newMapLocation,
+                          city: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                    >
+                      <option value="">Wybierz miasto</option>
+                      {polishCities.map((city) => (
+                        <option key={city.name} value={city.name}>
+                          {city.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-black mb-1">Typ miejsca</label>
+                    <select
+                      value={newMapLocation.type || "other"}
+                      onChange={(e) =>
+                        setNewMapLocation({
+                          ...newMapLocation,
+                          type: e.target.value as "school" | "bakery" | "private_client" | "other",
+                        })
+                      }
+                      className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                    >
+                      <option value="school">Szkoła</option>
+                      <option value="bakery">Piekarnia</option>
+                      <option value="private_client">Klient prywatny</option>
+                      <option value="other">Inne</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-black mb-1">Nazwa miejsca (polski) *</label>
+                    <input
+                      type="text"
+                      value={newMapLocation.name?.pl || ""}
+                      onChange={(e) =>
+                        setNewMapLocation({
+                          ...newMapLocation,
+                          name: {
+                            pl: e.target.value,
+                            en: newMapLocation.name?.en || "",
+                          },
+                        })
+                      }
+                      className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                      placeholder="Nazwa miejsca"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-black mb-1">Nazwa miejsca (angielski)</label>
+                    <input
+                      type="text"
+                      value={newMapLocation.name?.en || ""}
+                      onChange={(e) =>
+                        setNewMapLocation({
+                          ...newMapLocation,
+                          name: {
+                            pl: newMapLocation.name?.pl || "",
+                            en: e.target.value,
+                          },
+                        })
+                      }
+                      className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                      placeholder="Place name"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-black mb-1">Opis (polski)</label>
+                    <textarea
+                      value={newMapLocation.description?.pl || ""}
+                      onChange={(e) =>
+                        setNewMapLocation({
+                          ...newMapLocation,
+                          description: {
+                            pl: e.target.value,
+                            en: newMapLocation.description?.en || "",
+                          },
+                        })
+                      }
+                      className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                      rows={3}
+                      placeholder="Opis miejsca"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-black mb-1">Opis (angielski)</label>
+                    <textarea
+                      value={newMapLocation.description?.en || ""}
+                      onChange={(e) =>
+                        setNewMapLocation({
+                          ...newMapLocation,
+                          description: {
+                            pl: newMapLocation.description?.pl || "",
+                            en: e.target.value,
+                          },
+                        })
+                      }
+                      className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                      rows={3}
+                      placeholder="Place description"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-black mb-1">Dodaj URL zdjęcia</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newPhotoUrl}
+                        onChange={(e) => setNewPhotoUrl(e.target.value)}
+                        className="flex-1 px-3 py-2 border-2 border-black rounded bg-white text-black"
+                        placeholder="https://..."
+                        onKeyPress={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            const updatedPhotos = addPhotoToLocation(newMapLocation, newPhotoUrl);
+                            setNewMapLocation({ ...newMapLocation, photos: updatedPhotos });
+                            setNewPhotoUrl("");
+                          }
+                        }}
+                      />
+                      <button
+                        onClick={() => {
+                          const updatedPhotos = addPhotoToLocation(newMapLocation, newPhotoUrl);
+                          setNewMapLocation({ ...newMapLocation, photos: updatedPhotos });
+                          setNewPhotoUrl("");
+                        }}
+                        className="px-4 py-2 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                    {newMapLocation.photos && newMapLocation.photos.length > 0 && (
+                      <div className="mt-2 space-y-2">
+                        {newMapLocation.photos.map((photo, index) => (
+                          <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+                            <span className="flex-1 text-sm truncate">{photo}</span>
+                            <button
+                              onClick={() => {
+                                const updatedPhotos = removePhotoFromLocation(newMapLocation, photo);
+                                setNewMapLocation({ ...newMapLocation, photos: updatedPhotos });
+                              }}
+                              className="px-2 py-1 rounded border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={handleAddMapLocation}
+                  className="mt-4 flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium"
+                >
+                  <Plus className="w-4 h-4" />
+                  Dodaj punkt na mapie
+                </button>
+              </div>
+            )}
+
+            <div className="mt-6 space-y-4">
+              {loading ? (
+                <p className="text-gray-300">Ładowanie...</p>
+              ) : !mapLocations.length ? (
+                <p className="text-gray-300">Brak punktów na mapie</p>
+              ) : (
+                mapLocations.map((location) => (
+                  <div
+                    key={location.id}
+                    className="bg-white p-4 rounded-xl border-2 border-gray-200 hover:border-gray-300 transition-all duration-200"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-black text-lg mb-2">
+                          {location.name[language]} - {location.city}
+                        </h4>
+                        <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-2">
+                          <span>Typ: {
+                            location.type === "school" ? "Szkoła" :
+                            location.type === "bakery" ? "Piekarnia" :
+                            location.type === "private_client" ? "Klient prywatny" :
+                            "Inne"
+                          }</span>
+                          <span>Zdjęć: {location.photos.length}</span>
+                        </div>
+                        {location.description[language] && (
+                          <p className="text-sm text-gray-600 line-clamp-2">
+                            {location.description[language]}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setEditingMapLocation(location)}
+                          className="flex items-center gap-1 px-3 py-2 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium"
+                          title="Edytuj"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteMapLocation(location.id)}
+                          className="flex items-center gap-1 px-3 py-2 rounded-lg border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200 font-medium"
+                          title="Usuń"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Edit Map Location Modal */}
+            {editingMapLocation && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white p-6 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                  <h2 className="text-xl font-semibold text-black mb-4">
+                    Edytuj punkt na mapie
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-black mb-1">Miasto *</label>
+                      <select
+                        value={editingMapLocation.city}
+                        onChange={(e) =>
+                          setEditingMapLocation({
+                            ...editingMapLocation,
+                            city: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                      >
+                        <option value="">Wybierz miasto</option>
+                        {polishCities.map((city) => (
+                          <option key={city.name} value={city.name}>
+                            {city.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-black mb-1">Typ miejsca</label>
+                      <select
+                        value={editingMapLocation.type}
+                        onChange={(e) =>
+                          setEditingMapLocation({
+                            ...editingMapLocation,
+                            type: e.target.value as "school" | "bakery" | "private_client" | "other",
+                          })
+                        }
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                      >
+                        <option value="school">Szkoła</option>
+                        <option value="bakery">Piekarnia</option>
+                        <option value="private_client">Klient prywatny</option>
+                        <option value="other">Inne</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-black mb-1">Nazwa miejsca (polski) *</label>
+                      <input
+                        type="text"
+                        value={editingMapLocation.name.pl}
+                        onChange={(e) =>
+                          setEditingMapLocation({
+                            ...editingMapLocation,
+                            name: {
+                              ...editingMapLocation.name,
+                              pl: e.target.value,
+                            },
+                          })
+                        }
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-black mb-1">Nazwa miejsca (angielski)</label>
+                      <input
+                        type="text"
+                        value={editingMapLocation.name.en}
+                        onChange={(e) =>
+                          setEditingMapLocation({
+                            ...editingMapLocation,
+                            name: {
+                              ...editingMapLocation.name,
+                              en: e.target.value,
+                            },
+                          })
+                        }
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-black mb-1">Opis (polski)</label>
+                      <textarea
+                        value={editingMapLocation.description.pl}
+                        onChange={(e) =>
+                          setEditingMapLocation({
+                            ...editingMapLocation,
+                            description: {
+                              ...editingMapLocation.description,
+                              pl: e.target.value,
+                            },
+                          })
+                        }
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                        rows={3}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-black mb-1">Opis (angielski)</label>
+                      <textarea
+                        value={editingMapLocation.description.en}
+                        onChange={(e) =>
+                          setEditingMapLocation({
+                            ...editingMapLocation,
+                            description: {
+                              ...editingMapLocation.description,
+                              en: e.target.value,
+                            },
+                          })
+                        }
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                        rows={3}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-black mb-1">Zdjęcia</label>
+                      <div className="flex gap-2 mb-2">
+                        <input
+                          type="text"
+                          value={newPhotoUrl}
+                          onChange={(e) => setNewPhotoUrl(e.target.value)}
+                          className="flex-1 px-3 py-2 border-2 border-black rounded bg-white text-black"
+                          placeholder="https://..."
+                          onKeyPress={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              const updatedPhotos = addPhotoToLocation(editingMapLocation, newPhotoUrl);
+                              setEditingMapLocation({ ...editingMapLocation, photos: updatedPhotos });
+                              setNewPhotoUrl("");
+                            }
+                          }}
+                        />
+                        <button
+                          onClick={() => {
+                            const updatedPhotos = addPhotoToLocation(editingMapLocation, newPhotoUrl);
+                            setEditingMapLocation({ ...editingMapLocation, photos: updatedPhotos });
+                            setNewPhotoUrl("");
+                          }}
+                          className="px-4 py-2 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+                      {editingMapLocation.photos.length > 0 && (
+                        <div className="space-y-2">
+                          {editingMapLocation.photos.map((photo, index) => (
+                            <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+                              <span className="flex-1 text-sm truncate">{photo}</span>
+                              <button
+                                onClick={() => {
+                                  const updatedPhotos = removePhotoFromLocation(editingMapLocation, photo);
+                                  setEditingMapLocation({ ...editingMapLocation, photos: updatedPhotos });
+                                }}
+                                className="px-2 py-1 rounded border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-4 mt-6">
+                    <button
+                      onClick={() => setEditingMapLocation(null)}
+                      className="flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-gray-400 text-gray-400 hover:bg-gray-400 hover:text-white transition-all duration-200 font-medium"
+                    >
+                      <X className="w-4 h-4" />
+                      Anuluj
+                    </button>
+                    <button
+                      onClick={handleEditMapLocation}
+                      className="flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+                    >
+                      <Save className="w-4 h-4" />
+                      Zapisz
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -2322,7 +2887,7 @@ const AdminLogin = ({ onLogin }: { onLogin: () => void }) => {
         localStorage.setItem("adminLoggedIn", "true");
         onLogin();
       } else {
-        setError("Невірний логін або пароль");
+        setError("Nieprawidłowy login lub hasło");
       }
       setLoading(false);
     }, 500);
@@ -2333,10 +2898,10 @@ const AdminLogin = ({ onLogin }: { onLogin: () => void }) => {
       <div className="max-w-md w-full space-y-6 sm:space-y-7 md:space-y-8 bg-[var(--accent-color)] p-6 sm:p-7 md:p-8 rounded-lg shadow-lg">
         <div className="text-center">
           <h2 className="text-2xl sm:text-2xl md:text-3xl font-extrabold text-brown">
-            Адмін панель
+            Panel administracyjny
           </h2>
           <p className="mt-1 sm:mt-2 text-xs sm:text-sm md:text-sm text-gray-300">
-            Введіть свої облікові дані для доступу до адмін панелі
+            Wprowadź swoje dane logowania, aby uzyskać dostęp do panelu administracyjnego
           </p>
         </div>
 
@@ -2350,7 +2915,7 @@ const AdminLogin = ({ onLogin }: { onLogin: () => void }) => {
           <div className="rounded-md space-y-3 sm:space-y-4">
             <div>
               <label htmlFor="username" className="block text-gray-100 mb-1">
-                Логін
+                Login
               </label>
               <input
                 id="username"
@@ -2359,14 +2924,14 @@ const AdminLogin = ({ onLogin }: { onLogin: () => void }) => {
                 autoComplete="username"
                 required
                 className="appearance-none rounded relative block w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-brown placeholder-gray-400 text-gray-100 focus:outline-none focus:ring-brown focus:border-brown focus:z-10 text-xs sm:text-sm md:text-sm bg-[var(--accent-color)]"
-                placeholder="Логін"
+                placeholder="Login"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
               />
             </div>
             <div>
               <label htmlFor="password" className="block text-gray-100 mb-1">
-                Пароль
+                Hasło
               </label>
               <input
                 id="password"
@@ -2375,7 +2940,7 @@ const AdminLogin = ({ onLogin }: { onLogin: () => void }) => {
                 autoComplete="current-password"
                 required
                 className="appearance-none rounded relative block w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-brown placeholder-gray-400 text-gray-100 focus:outline-none focus:ring-brown focus:border-brown focus:z-10 text-xs sm:text-sm md:text-sm bg-[var(--accent-color)]"
-                placeholder="Пароль"
+                placeholder="Hasło"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -2389,7 +2954,7 @@ const AdminLogin = ({ onLogin }: { onLogin: () => void }) => {
               onClick={handleLogin}
               className="btn-unified w-full disabled:opacity-50"
             >
-              {loading ? "Вхід..." : "Увійти"}
+              {loading ? "Logowanie..." : "Zaloguj się"}
             </button>
           </div>
         </div>

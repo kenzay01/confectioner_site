@@ -44,12 +44,12 @@ export default function PaymentModal({
     if (!formData.fullName) {
       newErrors.fullName =
         currentLocale === "pl"
-          ? "Podaj imię i nazwisko"
-          : "Please enter your full name";
+          ? "To pole jest wymagane"
+          : "This field is required";
     }
     if (!formData.email) {
       newErrors.email =
-        currentLocale === "pl" ? "Podaj email" : "Please enter your email";
+        currentLocale === "pl" ? "To pole jest wymagane" : "This field is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email =
         currentLocale === "pl"
@@ -59,8 +59,8 @@ export default function PaymentModal({
     if (!formData.phone) {
       newErrors.phone =
         currentLocale === "pl"
-          ? "Podaj numer telefonu"
-          : "Please enter your phone number";
+          ? "To pole jest wymagane"
+          : "This field is required";
     } else if (!/^\+?\d{7,15}$/.test(formData.phone)) {
       newErrors.phone =
         currentLocale === "pl"
@@ -69,43 +69,34 @@ export default function PaymentModal({
     }
     if (!formData.city) {
       newErrors.city =
-        currentLocale === "pl" ? "Podaj miasto" : "Please enter city";
+        currentLocale === "pl" ? "To pole jest wymagane" : "This field is required";
     }
     if (!formData.regulationAccepted) {
       newErrors.regulationAccepted =
         currentLocale === "pl"
-          ? "Musisz zaakceptować regulamin"
-          : "You must accept the regulation";
+          ? "Aby kontynuować, prosimy o akceptację regulaminu"
+          : "Please accept the regulation to continue";
     }
-    if (!formData.imageConsent) {
-      newErrors.imageConsent =
-        currentLocale === "pl"
-          ? "Wybierz zgodę na udostępnienie wizerunku"
-          : "Select image consent option";
-    } else if (formData.imageConsent === "disagree") {
-      newErrors.imageConsent =
-        currentLocale === "pl"
-          ? "Aby kontynuować, musisz wyrazić zgodę na udostępnienie wizerunku"
-          : "To continue, you must agree to image sharing";
-    }
+    // Wizerunek - to jest informacja dla admina, użytkownik może wybrać dowolnie
+    // Nie blokujemy jeśli wybierze "Nie wyrażam zgody"
     if (formData.invoiceNeeded) {
       if (!formData.companyName) {
         newErrors.companyName =
           currentLocale === "pl"
-            ? "Podaj nazwę firmy"
-            : "Please enter company name";
+            ? "To pole jest wymagane"
+            : "This field is required";
       }
       if (!formData.nip) {
         newErrors.nip =
           currentLocale === "pl"
-            ? "Podaj numer NIP"
-            : "Please enter tax number (NIP)";
+            ? "To pole jest wymagane"
+            : "This field is required";
       }
       if (!formData.companyAddress) {
         newErrors.companyAddress =
           currentLocale === "pl"
-            ? "Podaj adres firmy"
-            : "Please enter company address";
+            ? "To pole jest wymagane"
+            : "This field is required";
       }
     }
     setErrors(newErrors);
@@ -313,12 +304,8 @@ export default function PaymentModal({
               className="w-full btn-unified"
             >
               {currentLocale === "pl"
-                ? item.type === "masterclass"
-                  ? "Zapisz się na Masterclass"
-                  : "Kup Produkt"
-                : item.type === "masterclass"
-                ? "Join Masterclass"
-                : "Buy Product"}
+                ? "Weź udział"
+                : "Join"}
             </button>
           </div>
         ) : (
@@ -498,7 +485,7 @@ export default function PaymentModal({
 
               <div>
                 <label className="block font-medium mb-2">
-                  {currentLocale === "pl" ? "Udostępnienie wizerunku" : "Image consent"}*
+                  {currentLocale === "pl" ? "Udostępnienie wizerunku" : "Image consent"}
                 </label>
                 <div className="grid gap-2">
                   <label className="flex items-center gap-2">
@@ -552,7 +539,7 @@ export default function PaymentModal({
                       ? "Tworzenie płatności..."
                       : "Creating payment..."
                     : currentLocale === "pl"
-                    ? "Zapłać teraz"
+                    ? "Opłać"
                     : "Pay now"}
                 </button>
               </div>
