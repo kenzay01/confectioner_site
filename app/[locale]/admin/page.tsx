@@ -97,6 +97,12 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     question: "",
     answer: "",
   });
+  const [isUploadingMapPhoto, setIsUploadingMapPhoto] = useState(false);
+  const [mapPhotoUploadError, setMapPhotoUploadError] = useState("");
+  const [isUploadingMasterclassPhoto, setIsUploadingMasterclassPhoto] =
+    useState(false);
+  const [masterclassPhotoUploadError, setMasterclassPhotoUploadError] =
+    useState("");
 
   // Fetch masterclasses and products on mount
   useEffect(() => {
@@ -481,7 +487,6 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     photos: [],
     description: { pl: "", en: "" },
   });
-  const [newPhotoUrl, setNewPhotoUrl] = useState("");
 
   const handleAddMapLocation = async () => {
     if (!newMapLocation.city || !newMapLocation.name?.pl) {
@@ -511,7 +516,6 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
           photos: [],
           description: { pl: "", en: "" },
         });
-        setNewPhotoUrl("");
         setShowMapLocationForm(false);
         setErrorMessage("");
         refreshMapLocations();
@@ -573,6 +577,103 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
 
   const removePhotoFromLocation = (location: MapLocation | Partial<MapLocation>, photoUrl: string): string[] => {
     return (location.photos || []).filter((p) => p !== photoUrl);
+  };
+
+  const uploadMapLocationPhotos = async (files: FileList | File[], target: "new" | "edit") => {
+    const fileArray = Array.from(files);
+    if (!fileArray.length) return;
+
+    setIsUploadingMapPhoto(true);
+    setMapPhotoUploadError("");
+
+    try {
+      const uploadedUrls: string[] = [];
+
+      for (const file of fileArray) {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await fetch("/api/upload-map-photo", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!res.ok) {
+          throw new Error("Upload failed");
+        }
+
+        const data = await res.json();
+        if (data.url) {
+          uploadedUrls.push(data.url as string);
+        }
+      }
+
+      if (uploadedUrls.length) {
+        if (target === "new") {
+          setNewMapLocation((prev) => ({
+            ...prev,
+            photos: [...(prev.photos || []), ...uploadedUrls],
+          }));
+        } else if (target === "edit" && editingMapLocation) {
+          setEditingMapLocation({
+            ...editingMapLocation,
+            photos: [...(editingMapLocation.photos || []), ...uploadedUrls],
+          });
+        }
+      }
+    } catch (_error) {
+      setMapPhotoUploadError("Nie udało się przesłać zdjęcia. Spróbuj ponownie.");
+    } finally {
+      setIsUploadingMapPhoto(false);
+    }
+  };
+
+  const uploadMasterclassPhoto = async (
+    files: FileList | File[],
+    target: "new" | "edit"
+  ) => {
+    const fileArray = Array.from(files);
+    if (!fileArray.length) return;
+
+    const file = fileArray[0];
+
+    setIsUploadingMasterclassPhoto(true);
+    setMasterclassPhotoUploadError("");
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/upload-map-photo", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        throw new Error("Upload failed");
+      }
+
+      const data = await res.json();
+      if (data.url) {
+        if (target === "new") {
+          setNewMasterclass((prev) => ({
+            ...prev,
+            photo: data.url as string,
+          }));
+        } else if (target === "edit" && editingMasterclass) {
+          setEditingMasterclass({
+            ...editingMasterclass,
+            photo: data.url as string,
+          });
+        }
+      }
+    } catch (_error) {
+      setMasterclassPhotoUploadError(
+        "Nie udało się przesłać zdjęcia. Spróbuj ponownie."
+      );
+    } finally {
+      setIsUploadingMasterclassPhoto(false);
+    }
   };
 
   const addFaq = (
@@ -1298,6 +1399,69 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     placeholder="Dostępne miejsca"
                   />
                 </div>
+                <div>
+                  <label className="block text-black mb-1">
+                    Zdjęcie warsztatu
+                    <span className="block text-xs text-gray-500">
+                      Przeciągnij i upuść zdjęcie lub wybierz je z dysku.
+                    </span>
+                  </label>
+                  <div
+                    className="mt-1 flex flex-col gap-2"
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                        uploadMasterclassPhoto(e.dataTransfer.files, "new");
+                      }
+                    }}
+                  >
+                    <label className="flex flex-col items-center justify-center gap-2 px-4 py-6 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 text-center cursor-pointer hover:border-black hover:bg-gray-100 transition-colors">
+                      <span className="text-sm font-medium text-black">
+                        Przeciągnij i upuść zdjęcie tutaj
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        lub kliknij, aby wybrać z dysku
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          if (e.target.files) {
+                            uploadMasterclassPhoto(e.target.files, "new");
+                          }
+                        }}
+                      />
+                    </label>
+                    {isUploadingMasterclassPhoto && (
+                      <p className="text-xs text-gray-500">
+                        Przesyłanie zdjęcia...
+                      </p>
+                    )}
+                    {masterclassPhotoUploadError && (
+                      <p className="text-xs text-red-500">
+                        {masterclassPhotoUploadError}
+                      </p>
+                    )}
+                  </div>
+                  {newMasterclass.photo && (
+                    <div className="mt-3 w-full max-w-xs">
+                      <div className="relative aspect-video rounded-lg overflow-hidden border-2 border-gray-200 bg-gray-50">
+                        <Image
+                          src={newMasterclass.photo}
+                          alt="Podgląd zdjęcia warsztatu"
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
                 <div className="col-span-2">
                   <label className="block text-black mb-1">
                     <div className="flex items-center gap-2">
@@ -1652,6 +1816,69 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                         placeholder="Dostępne miejsca"
                       />
+                    </div>
+                    <div>
+                      <label className="block text-black mb-1">
+                        Zdjęcie warsztatu
+                        <span className="block text-xs text-gray-500">
+                          Przeciągnij i upuść zdjęcie lub wybierz je z dysku.
+                        </span>
+                      </label>
+                      <div
+                        className="mt-1 flex flex-col gap-2"
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                            uploadMasterclassPhoto(e.dataTransfer.files, "edit");
+                          }
+                        }}
+                      >
+                        <label className="flex flex-col items-center justify-center gap-2 px-4 py-6 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 text-center cursor-pointer hover:border-black hover:bg-gray-100 transition-colors">
+                          <span className="text-sm font-medium text-black">
+                            Przeciągnij i upuść zdjęcie tutaj
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            lub kliknij, aby wybrać z dysku
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              if (e.target.files) {
+                                uploadMasterclassPhoto(e.target.files, "edit");
+                              }
+                            }}
+                          />
+                        </label>
+                        {isUploadingMasterclassPhoto && (
+                          <p className="text-xs text-gray-500">
+                            Przesyłanie zdjęcia...
+                          </p>
+                        )}
+                        {masterclassPhotoUploadError && (
+                          <p className="text-xs text-red-500">
+                            {masterclassPhotoUploadError}
+                          </p>
+                        )}
+                      </div>
+                      {editingMasterclass.photo && (
+                        <div className="mt-3 w-full max-w-xs">
+                          <div className="relative aspect-video rounded-lg overflow-hidden border-2 border-gray-200 bg-gray-50">
+                            <Image
+                              src={editingMasterclass.photo}
+                              alt="Podgląd zdjęcia warsztatu"
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <div>
                       <label className="block text-black mb-1">
@@ -2569,45 +2796,73 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-black mb-1">Dodaj URL zdjęcia</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={newPhotoUrl}
-                        onChange={(e) => setNewPhotoUrl(e.target.value)}
-                        className="flex-1 px-3 py-2 border-2 border-black rounded bg-white text-black"
-                        placeholder="https://..."
-                        onKeyPress={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            const updatedPhotos = addPhotoToLocation(newMapLocation, newPhotoUrl);
-                            setNewMapLocation({ ...newMapLocation, photos: updatedPhotos });
-                            setNewPhotoUrl("");
-                          }
-                        }}
-                      />
-                      <button
-                        onClick={() => {
-                          const updatedPhotos = addPhotoToLocation(newMapLocation, newPhotoUrl);
-                          setNewMapLocation({ ...newMapLocation, photos: updatedPhotos });
-                          setNewPhotoUrl("");
-                        }}
-                        className="px-4 py-2 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </button>
+                    <label className="block text-black mb-1">
+                      Zdjęcia z warsztatów
+                      <span className="block text-xs text-gray-500">
+                        Przeciągnij i upuść zdjęcia lub wybierz je z dysku. Możesz dodać kilka zdjęć.
+                      </span>
+                    </label>
+                    <div
+                      className="mt-1 flex flex-col gap-2"
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                          uploadMapLocationPhotos(e.dataTransfer.files, "new");
+                        }
+                      }}
+                    >
+                      <label className="flex flex-col items-center justify-center gap-2 px-4 py-6 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 text-center cursor-pointer hover:border-black hover:bg-gray-100 transition-colors">
+                        <span className="text-sm font-medium text-black">
+                          Przeciągnij i upuść zdjęcia tutaj
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          lub kliknij, aby wybrać z dysku
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                          onChange={(e) => {
+                            if (e.target.files) {
+                              uploadMapLocationPhotos(e.target.files, "new");
+                            }
+                          }}
+                        />
+                      </label>
+                      {isUploadingMapPhoto && (
+                        <p className="text-xs text-gray-500">
+                          Przesyłanie zdjęć...
+                        </p>
+                      )}
+                      {mapPhotoUploadError && (
+                        <p className="text-xs text-red-500">
+                          {mapPhotoUploadError}
+                        </p>
+                      )}
                     </div>
                     {newMapLocation.photos && newMapLocation.photos.length > 0 && (
-                      <div className="mt-2 space-y-2">
+                      <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 gap-2">
                         {newMapLocation.photos.map((photo, index) => (
-                          <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                            <span className="flex-1 text-sm truncate">{photo}</span>
+                          <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+                            <Image
+                              src={photo}
+                              alt={`Podgląd zdjęcia ${index + 1}`}
+                              fill
+                              className="object-cover"
+                            />
                             <button
                               onClick={() => {
                                 const updatedPhotos = removePhotoFromLocation(newMapLocation, photo);
                                 setNewMapLocation({ ...newMapLocation, photos: updatedPhotos });
                               }}
-                              className="px-2 py-1 rounded border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                              className="absolute top-1 right-1 px-1.5 py-1 rounded-full bg-black/60 text-white hover:bg-black transition-colors"
+                              type="button"
                             >
                               <Trash2 className="w-3 h-3" />
                             </button>
@@ -2795,45 +3050,73 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                       />
                     </div>
                     <div className="col-span-2">
-                      <label className="block text-black mb-1">Zdjęcia</label>
-                      <div className="flex gap-2 mb-2">
-                        <input
-                          type="text"
-                          value={newPhotoUrl}
-                          onChange={(e) => setNewPhotoUrl(e.target.value)}
-                          className="flex-1 px-3 py-2 border-2 border-black rounded bg-white text-black"
-                          placeholder="https://..."
-                          onKeyPress={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              const updatedPhotos = addPhotoToLocation(editingMapLocation, newPhotoUrl);
-                              setEditingMapLocation({ ...editingMapLocation, photos: updatedPhotos });
-                              setNewPhotoUrl("");
-                            }
-                          }}
-                        />
-                        <button
-                          onClick={() => {
-                            const updatedPhotos = addPhotoToLocation(editingMapLocation, newPhotoUrl);
-                            setEditingMapLocation({ ...editingMapLocation, photos: updatedPhotos });
-                            setNewPhotoUrl("");
-                          }}
-                          className="px-4 py-2 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
+                      <label className="block text-black mb-1">
+                        Zdjęcia z warsztatów
+                        <span className="block text-xs text-gray-500">
+                          Przeciągnij i upuść zdjęcia lub wybierz je z dysku. Możesz dodać kilka zdjęć.
+                        </span>
+                      </label>
+                      <div
+                        className="mt-1 flex flex-col gap-2"
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                            uploadMapLocationPhotos(e.dataTransfer.files, "edit");
+                          }
+                        }}
+                      >
+                        <label className="flex flex-col items-center justify-center gap-2 px-4 py-6 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 text-center cursor-pointer hover:border-black hover:bg-gray-100 transition-colors">
+                          <span className="text-sm font-medium text-black">
+                            Przeciągnij i upuść zdjęcia tutaj
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            lub kliknij, aby wybrać z dysku
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            className="hidden"
+                            onChange={(e) => {
+                              if (e.target.files) {
+                                uploadMapLocationPhotos(e.target.files, "edit");
+                              }
+                            }}
+                          />
+                        </label>
+                        {isUploadingMapPhoto && (
+                          <p className="text-xs text-gray-500">
+                            Przesyłanie zdjęć...
+                          </p>
+                        )}
+                        {mapPhotoUploadError && (
+                          <p className="text-xs text-red-500">
+                            {mapPhotoUploadError}
+                          </p>
+                        )}
                       </div>
                       {editingMapLocation.photos.length > 0 && (
-                        <div className="space-y-2">
+                        <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 gap-2">
                           {editingMapLocation.photos.map((photo, index) => (
-                            <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                              <span className="flex-1 text-sm truncate">{photo}</span>
+                            <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+                              <Image
+                                src={photo}
+                                alt={`Podgląd zdjęcia ${index + 1}`}
+                                fill
+                                className="object-cover"
+                              />
                               <button
                                 onClick={() => {
                                   const updatedPhotos = removePhotoFromLocation(editingMapLocation, photo);
                                   setEditingMapLocation({ ...editingMapLocation, photos: updatedPhotos });
                                 }}
-                                className="px-2 py-1 rounded border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                                className="absolute top-1 right-1 px-1.5 py-1 rounded-full bg-black/60 text-white hover:bg-black transition-colors"
+                                type="button"
                               >
                                 <Trash2 className="w-3 h-3" />
                               </button>

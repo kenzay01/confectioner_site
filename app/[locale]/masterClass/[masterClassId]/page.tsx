@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import { Calendar, MapPin, Users } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -162,6 +163,23 @@ export default function MasterClassPage() {
             </button>
           </div>
         </div>
+        {/* Photo Section */}
+        {masterclass.photo && (
+          <div className="mb-12">
+            <div className="relative w-full max-w-3xl mx-auto aspect-[16/9] rounded-3xl overflow-hidden shadow-xl border border-white/40 bg-white/20">
+              <Image
+                src={masterclass.photo}
+                alt={
+                  currentLocale === "pl"
+                    ? `Zdjęcie z warsztatu ${masterclass.title[currentLocale]}`
+                    : `Photo from masterclass ${masterclass.title[currentLocale]}`
+                }
+                fill
+                className="object-cover"
+              />
+            </div>
+          </div>
+        )}
         {/* Description Section */}
         <div className="mb-12">
           <h2 className="text-3xl sm:text-4xl font-bold text-[var(--accent-color)] mb-8 text-center">

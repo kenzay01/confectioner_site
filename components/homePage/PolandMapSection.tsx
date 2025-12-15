@@ -6,6 +6,7 @@ import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import AnimatedSection from "@/components/AnimatedSection";
 import { X, MapPin, Calendar } from "lucide-react";
 import { MapLocation } from "@/types/mapLocation";
+import { getCityName } from "@/utils/cityTranslations";
 
 // Leaflet types
 interface LeafletMap {
@@ -81,6 +82,11 @@ export default function PolandMapSection() {
   const [leafletLoaded, setLeafletLoaded] = useState(false);
   const [polishCities, setPolishCities] = useState<Array<{name: string, lat: number, lng: number}>>([]);
   const [mapLocations, setMapLocations] = useState<MapLocation[]>([]);
+  const [photoGallery, setPhotoGallery] = useState<{
+    photos: string[];
+    index: number;
+    title: string;
+  } | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
   const currentLocale = useCurrentLanguage();
   const { masterclasses, loading } = useItems();
@@ -104,7 +110,6 @@ export default function PolandMapSection() {
 
   // Функція для отримання випадкового фото
   const getRandomImage = (masterclassId: string, city?: string) => {
-    // Використовуємо ID майстер-класу та місто як seed для стабільності
     const combinedSeed = masterclassId + (city || '');
     const seed = combinedSeed.split('').reduce((a, b) => {
       a = ((a << 5) - a) + b.charCodeAt(0);
@@ -116,14 +121,12 @@ export default function PolandMapSection() {
     return selectedImage;
   };
 
-  // Завантаження Leaflet, міст та точок на карті
+  // Ładowanie Leaflet, listy miast oraz punktów na mapie
   useEffect(() => {
     const loadData = async () => {
-      // Завантажуємо міста
       const cities = await loadPolishCities();
       setPolishCities(cities);
 
-      // Завантажуємо точки на карті
       try {
         const locationsRes = await fetch('/api/map-locations');
         if (locationsRes.ok) {
@@ -134,15 +137,12 @@ export default function PolandMapSection() {
         console.error('Error loading map locations:', error);
       }
 
-      // Завантажуємо Leaflet
       if (typeof window !== 'undefined' && !window.L) {
-        // Завантажуємо CSS
         const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css';
         document.head.appendChild(link);
 
-        // Завантажуємо JS
         const script = document.createElement('script');
         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js';
         script.onload = () => setLeafletLoaded(true);
@@ -160,56 +160,64 @@ export default function PolandMapSection() {
     if (leafletLoaded && mapRef.current && !map) {
       const L = window.L;
       
-      // Додаємо глобальну функцію для обробки кліків
       window.selectCity = (cityName: string) => {
         console.log('Global click handler:', cityName);
         setSelectedCity(prevSelected => prevSelected === cityName ? null : cityName);
       };
       
       const mapInstance = L.map(mapRef.current, {
-        center: [51.9194, 19.1451], // Центр Польщі
-        zoom: 6.2,
+        center: [52.0, 19.0],
+        zoom: 6.5,
         scrollWheelZoom: true,
         zoomControl: true,
+        attributionControl: false,
+        // Bardziej ciasne granice, żeby mapa skupiała się tylko na Polsce
         maxBounds: [
-          [48.8, 14.0], // Більш точні межі для Польщі
-          [55.2, 24.2]  // Північно-східний кут
+          [48.9, 13.9], // południowo-zachodni narożnik
+          [55.0, 24.3], // północno-wschodni narożnik
         ],
-        maxBoundsViscosity: 1.0, // Не дозволяємо вийти за межі
-        minZoom: 6,
+        maxBoundsViscosity: 1.0,
+        minZoom: 6.2,
         maxZoom: 9
       });
 
-      // Додатково обмежуємо переміщення карти
       mapInstance.setMaxBounds([
-        [48.8, 14.0],
-        [55.2, 24.2]
+        [48.9, 13.9],
+        [55.0, 24.3]
       ]);
 
-      // Додаємо мінімалістичні тайли CartoDB
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: '© OpenStreetMap contributors © CARTO',
-        maxZoom: 18,
-        subdomains: 'abcd',
-        accessToken: null
+      // НОВА МАПА: Stadia Maps - Alidade Smooth (мінімалістична, сучасна, з польською мовою)
+      L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', {
+        attribution: '© <a href="https://stadiamaps.com/">Stadia Maps</a> © <a href="https://openmaptiles.org/">OpenMapTiles</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 20
       }).addTo(mapInstance);
 
-      // Збираємо всі унікальні міста з майстер-класів та точок на карті
+      // АЛЬТЕРНАТИВА 1: Stadia Maps - OSM Bright (яскравіша, детальніша)
+      // L.tileLayer('https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png', {
+      //   attribution: '© <a href="https://stadiamaps.com/">Stadia Maps</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      //   maxZoom: 20
+      // }).addTo(mapInstance);
+
+      // АЛЬТЕРНАТИВА 2: OpenStreetMap Standard (класична, надійна)
+      // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      //   attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      //   maxZoom: 19
+      // }).addTo(mapInstance);
+
       const citiesWithMasterclasses = new Set(masterclasses.filter(mc => mc.city).map(mc => mc.city));
       const citiesWithLocations = new Set(mapLocations.filter(loc => loc.city).map(loc => loc.city));
       const allCities = new Set([...citiesWithMasterclasses, ...citiesWithLocations]);
-
-      // Додаємо маркери для кожного міста
+        
       allCities.forEach((cityName) => {
         const cityData = polishCities.find(city => city.name === cityName);
         if (!cityData) return;
 
-        // Перевіряємо, чи є майстер-класи або точки в цьому місті
         const hasMasterclasses = citiesWithMasterclasses.has(cityName);
         const hasLocations = citiesWithLocations.has(cityName);
         const locationCount = mapLocations.filter(loc => loc.city === cityName).length;
 
-        // Створюємо custom HTML маркер у вигляді піна локації
+        const translatedCityName = getCityName(cityName, currentLocale);
+
         const markerHtml = `
           <div class="custom-marker-container" style="position: relative;">
             <div class="pulse-ring" style="
@@ -265,12 +273,11 @@ export default function PolandMapSection() {
             }
           });
 
-        // Додаємо tooltip з інформацією про кількість точок
-        let tooltipText = cityName;
+        let tooltipText = translatedCityName;
         if (hasMasterclasses && hasLocations) {
-          tooltipText = `${cityName} (${locationCount} miejsc)`;
+          tooltipText = `${translatedCityName} (${locationCount} ${currentLocale === 'pl' ? 'miejsc' : 'places'})`;
         } else if (hasLocations) {
-          tooltipText = `${cityName} (${locationCount} miejsc)`;
+          tooltipText = `${translatedCityName} (${locationCount} ${currentLocale === 'pl' ? 'miejsc' : 'places'})`;
         }
 
         marker.bindTooltip(tooltipText, {
@@ -280,7 +287,6 @@ export default function PolandMapSection() {
         });
       });
 
-      // Додаємо CSS для анімації в стилі сайту
       const style = document.createElement('style');
       style.textContent = `
         @keyframes pulse {
@@ -329,19 +335,21 @@ export default function PolandMapSection() {
           color: white !important;
           transform: scale(1.05) !important;
         }
+        .leaflet-control-attribution {
+          display: none !important;
+        }
       `;
       document.head.appendChild(style);
 
       setMap(mapInstance);
     }
 
-    // Cleanup глобальної функції при розмонтуванні
     return () => {
       if (window.selectCity) {
         delete window.selectCity;
       }
     };
-  }, [leafletLoaded, map, selectedCity, masterclasses, mapLocations, polishCities]);
+  }, [leafletLoaded, map, selectedCity, masterclasses, mapLocations, polishCities, currentLocale]);
 
   const getSelectedMasterclasses = () => {
     if (!selectedCity) return [];
@@ -362,7 +370,9 @@ export default function PolandMapSection() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Завантаження...</p>
+            <p className="text-gray-600">
+              {currentLocale === "pl" ? "Ładowanie..." : "Loading..."}
+            </p>
           </div>
         </div>
       </AnimatedSection>
@@ -374,9 +384,6 @@ export default function PolandMapSection() {
       <div className="max-w-6xl mx-auto">
         <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr] items-center mb-16">
           <div className="order-2 lg:order-1 text-center lg:text-left flex flex-col items-center lg:items-start">
-            {/* <p className="text-sm uppercase tracking-[0.2em] text-[var(--brown-color)] mb-4">
-              {currentLocale === "pl" ? "Poznaj prowadzącego" : "Meet the trainer"}
-            </p> */}
             <div className="space-y-4 text-base sm:text-lg text-gray-700 leading-relaxed">
               <p>
                 {currentLocale === "pl"
@@ -389,21 +396,16 @@ export default function PolandMapSection() {
                   : "During my trainings I teach how to work with natural sourdough, manage fermentation over time and craft laminated doughs that impress with structure and aroma."}
               </p>
               <p>
-                {currentLocale === "pl"
+                {currentLocale === "pl" 
                   ? "Moje warsztaty to nie tylko wiedza technologiczna – to praktyka, doświadczenie i pasja do prostych, naturalnych składników."
                   : "My workshops are more than technical knowledge – they are practice, experience and passion for simple, natural ingredients."}
               </p>
               <p>
-                {currentLocale === "pl"
+                {currentLocale === "pl" 
                   ? "Dołącz do grona piekarzy, którzy wprowadzili do swoich pracowni naturalne, długo fermentowane pieczywo."
                   : "Join the bakers who have introduced naturally long-fermented breads into their bakeries."}
               </p>
             </div>
-            {/* <p className="mt-6 text-2xl font-semibold text-gray-900">
-              Rzemiosło piekarnicze,
-              <br />
-              które buduje charakter
-            </p> */}
             <button
               type="button"
               onClick={handleScrollToMap}
@@ -441,7 +443,9 @@ export default function PolandMapSection() {
             <div className="absolute inset-0 flex items-center justify-center bg-gray-50 rounded-2xl">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">Завантаження карти...</p>
+                <p className="text-gray-600">
+                  {currentLocale === "pl" ? "Ładowanie mapy..." : "Loading map..."}
+                </p>
               </div>
             </div>
           )}
@@ -455,7 +459,6 @@ export default function PolandMapSection() {
               direction="up"
               duration={0.3}
             >
-              {/* Close Button */}
               <button
                 onClick={() => setSelectedCity(null)}
                 className="absolute top-4 right-4 btn-unified p-2 rounded-full z-10"
@@ -464,10 +467,9 @@ export default function PolandMapSection() {
               </button>
 
               <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">
-                {selectedCity}
+                {getCityName(selectedCity, currentLocale)}
               </h2>
 
-              {/* Masterclasses Section */}
               {selectedMasterclasses.length > 0 && (
                 <div className="mb-8">
                   <h3 className="text-xl font-semibold text-gray-800 mb-4">
@@ -521,51 +523,124 @@ export default function PolandMapSection() {
                 </div>
               )}
 
-              {/* Map Locations Section */}
               {selectedMapLocations.length > 0 && (
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-5">
                     {currentLocale === "pl" ? "Miejsca, w których byłem" : "Places I've been"}
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {selectedMapLocations.map((location) => (
-                      <div key={location.id} className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                        <div className="mb-3">
-                          <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-[var(--accent-color)]/10 text-[var(--accent-color)] mb-2">
-                            {location.type === "school" ? (currentLocale === "pl" ? "Szkoła" : "School") :
-                             location.type === "bakery" ? (currentLocale === "pl" ? "Piekarnia" : "Bakery") :
-                             location.type === "private_client" ? (currentLocale === "pl" ? "Klient prywatny" : "Private client") :
-                             (currentLocale === "pl" ? "Inne" : "Other")}
-                          </span>
-                          <h4 className="text-lg font-bold text-gray-800">
-                            {location.name[currentLocale as keyof typeof location.name]}
-                          </h4>
-                        </div>
-                        {location.description[currentLocale as keyof typeof location.description] && (
-                          <p className="text-sm text-gray-600 mb-3 line-clamp-3">
-                            {location.description[currentLocale as keyof typeof location.description]}
-                          </p>
-                        )}
-                        {location.photos && location.photos.length > 0 && (
-                          <div className="grid grid-cols-2 gap-2">
-                            {location.photos.slice(0, 4).map((photo, index) => (
-                              <div key={index} className="relative aspect-square rounded-lg overflow-hidden">
-                                <Image
-                                  src={photo}
-                                  alt={`${location.name[currentLocale as keyof typeof location.name]} - ${index + 1}`}
-                                  fill
-                                  className="object-cover"
-                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.style.display = 'none';
-                                  }}
-                                />
-                              </div>
-                            ))}
+                  <div className="space-y-6">
+                    {selectedMapLocations.map((location) => {
+                      const photos = location.photos || [];
+                      const hasPhotos = photos.length > 0;
+                      const mainPhoto = hasPhotos ? photos[0] : "/materials/Donut png без фона.png";
+                      const extraPhotos = hasPhotos ? photos.slice(1, 6) : [];
+
+                      return (
+                        <article
+                          key={location.id}
+                          className="bg-gradient-to-br from-white via-[#fff9f5] to-white rounded-3xl border border-[var(--brown-color)]/15 shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden"
+                        >
+                          {/* Info first */}
+                          <div className="p-6 sm:p-7 border-b border-[var(--brown-color)]/10">
+                            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                              <span className="inline-flex px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-[0.16em] bg-[var(--accent-color)]/12 text-[var(--accent-color)]">
+                                {location.type === "school"
+                                  ? currentLocale === "pl" ? "Szkoła" : "School"
+                                  : location.type === "bakery"
+                                  ? currentLocale === "pl" ? "Piekarnia" : "Bakery"
+                                  : location.type === "private_client"
+                                  ? currentLocale === "pl" ? "Klient prywatny" : "Private client"
+                                  : currentLocale === "pl" ? "Inne" : "Other"}
+                              </span>
+                              <span className="text-[12px] text-gray-600 flex items-center gap-1.5">
+                                <MapPin className="w-3.5 h-3.5 text-[var(--brown-color)]/80" />
+                                <span className="font-medium">
+                                  {getCityName(location.city, currentLocale)}
+                                </span>
+                              </span>
+                            </div>
+
+                            <h4 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-3">
+                              {location.name[currentLocale as keyof typeof location.name]}
+                            </h4>
+
+                            {location.description[currentLocale as keyof typeof location.description] && (
+                              <p className="text-base sm:text-lg text-gray-800 leading-relaxed">
+                                {location.description[currentLocale as keyof typeof location.description]}
+                              </p>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    ))}
+
+                          {/* Then gallery */}
+                          {hasPhotos && (
+                            <div className="p-4 sm:p-5 bg-gradient-to-r from-white to-[#fff3e6]">
+                              <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-[1.8fr,1.4fr] items-stretch">
+                                {/* Main photo */}
+                                <button
+                                  type="button"
+                                  className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100 group cursor-pointer"
+                                  onClick={() =>
+                                    setPhotoGallery({
+                                      photos,
+                                      index: 0,
+                                      title: location.name[currentLocale as keyof typeof location.name],
+                                    })
+                                  }
+                                >
+                                  <Image
+                                    src={mainPhoto}
+                                    alt={`${location.name[currentLocale as keyof typeof location.name]} - główne zdjęcie`}
+                                    fill
+                                    className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                                    onError={(e) => {
+                                      const target = e.target as HTMLImageElement;
+                                      target.src = "/materials/Donut png без фона.png";
+                                    }}
+                                  />
+                                  {photos.length > 1 && (
+                                    <div className="absolute right-3 bottom-3 px-3 py-1.5 rounded-full bg-black/60 text-[11px] font-medium text-white backdrop-blur-sm">
+                                      {currentLocale === "pl"
+                                        ? `+${photos.length - 1} zdjęć`
+                                        : `+${photos.length - 1} photos`}
+                                    </div>
+                                  )}
+                                </button>
+
+                                {/* Extra photos */}
+                                {extraPhotos.length > 0 && (
+                                  <div className="grid grid-cols-4 sm:grid-cols-2 gap-2 sm:gap-3">
+                                    {extraPhotos.map((photo, index) => (
+                                      <div
+                                        key={index}
+                                        className="relative aspect-square rounded-xl overflow-hidden border border-gray-200 bg-gray-100 cursor-pointer group"
+                                        onClick={() =>
+                                          setPhotoGallery({
+                                            photos,
+                                            index: index + 1,
+                                            title: location.name[currentLocale as keyof typeof location.name],
+                                          })
+                                        }
+                                      >
+                                        <Image
+                                          src={photo}
+                                          alt={`${location.name[currentLocale as keyof typeof location.name]} - ${index + 2}`}
+                                          fill
+                                          className="object-cover transition-transform duration-300 group-hover:scale-[1.05]"
+                                          onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.style.display = "none";
+                                          }}
+                                        />
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </article>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -573,6 +648,105 @@ export default function PolandMapSection() {
           </div>
         )}
       </div>
+      {/* Photo gallery lightbox */}
+      {photoGallery && photoGallery.photos.length > 0 && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[10000] px-4">
+          <div className="bg-white rounded-3xl max-w-5xl w-full max-h-[90vh] p-4 sm:p-6 flex flex-col gap-4 relative">
+            <button
+              type="button"
+              onClick={() => setPhotoGallery(null)}
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 p-2 rounded-full bg-black/5 hover:bg-black/10 transition-colors"
+            >
+              <X className="w-5 h-5 text-gray-700" />
+            </button>
+
+            <div className="flex flex-col gap-3 mt-4">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
+                {photoGallery.title}
+              </h3>
+              <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100">
+                <Image
+                  src={photoGallery.photos[photoGallery.index]}
+                  alt={`${photoGallery.title} - ${photoGallery.index + 1}`}
+                  fill
+                  className="object-contain bg-gray-900/5"
+                />
+                {/* Prev / Next */}
+                {photoGallery.photos.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      className="absolute left-2 top-1/2 -translate-y-1/2 px-2.5 py-2 rounded-full bg-black/55 text-white hover:bg-black/80 transition-colors text-xs sm:text-sm"
+                      onClick={() =>
+                        setPhotoGallery((prev) =>
+                          !prev
+                            ? prev
+                            : {
+                                ...prev,
+                                index:
+                                  (prev.index - 1 + prev.photos.length) %
+                                  prev.photos.length,
+                              }
+                        )
+                      }
+                    >
+                      ‹
+                    </button>
+                    <button
+                      type="button"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-2 rounded-full bg-black/55 text-white hover:bg-black/80 transition-colors text-xs sm:text-sm"
+                      onClick={() =>
+                        setPhotoGallery((prev) =>
+                          !prev
+                            ? prev
+                            : {
+                                ...prev,
+                                index: (prev.index + 1) % prev.photos.length,
+                              }
+                        )
+                      }
+                    >
+                      ›
+                    </button>
+                  </>
+                )}
+              </div>
+              {photoGallery.photos.length > 1 && (
+                <div className="grid grid-cols-5 sm:grid-cols-8 gap-2 mt-1">
+                  {photoGallery.photos.map((photo, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() =>
+                        setPhotoGallery((prev) =>
+                          !prev
+                            ? prev
+                            : {
+                                ...prev,
+                                index,
+                              }
+                        )
+                      }
+                      className={`relative aspect-square rounded-lg overflow-hidden border ${
+                        index === photoGallery.index
+                          ? "border-[var(--brown-color)]"
+                          : "border-gray-200"
+                      } bg-gray-100`}
+                    >
+                      <Image
+                        src={photo}
+                        alt={`${photoGallery.title} miniatura ${index + 1}`}
+                        fill
+                        className="object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </AnimatedSection>
   );
 }

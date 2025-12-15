@@ -1,2 +1,20 @@
-[]
-
+[
+  {
+    "city": "Warszawa",
+    "name": {
+      "pl": "Test",
+      "en": "test test"
+    },
+    "type": "bakery",
+    "photos": [
+      "/uploads/map-locations/1765804837713-84d2241504a86ecfab5d19650862965c.png",
+      "/uploads/map-locations/1765804838216-9effc8918322028dcf645fd784aa4333.jpg",
+      "/uploads/map-locations/1765804838474-53679b562987bf39953ee6d7a6208c5b.jpg"
+    ],
+    "description": {
+      "pl": "test test",
+      "en": "test test teste"
+    },
+    "id": "1765804368292"
+  }
+]

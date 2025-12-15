@@ -115,7 +115,7 @@ export default function TermsOfService() {
                   <li>Nie ma możliwości całkowitego wyeliminowania ryzyka zanieczyszczenia krzyżowego.</li>
                   <li>Uczestnik zobowiązany jest zgłosić alergie min. 48 godzin przed szkoleniem.</li>
                   <li>Administrator nie odpowiada za reakcje alergiczne wynikające z braku zgłoszenia lub zatajenia alergii.</li>
-                </ul>
+                    </ul>
 
                 <h3 className="text-lg font-semibold mb-2 mt-4">Szkolenia online:</h3>
                 <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
