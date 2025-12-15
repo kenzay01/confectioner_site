@@ -65,9 +65,9 @@ export function middleware(request: NextRequest) {
     // Шрифти тільки з дозволених джерел
     "font-src 'self' https://fonts.gstatic.com data:",
     // Зображення з обмежених джерел (у тому числі тайли мап)
-    "img-src 'self' data: https://telebots.site https://tiles.stadiamaps.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://cdnjs.cloudflare.com",
+    "img-src 'self' data: https://telebots.site https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://cdnjs.cloudflare.com",
     // З'єднання тільки з дозволених API (у тому числі тайли мап)
-    "connect-src 'self' https://api.telegram.org https://api.przelewy24.pl https://secure.przelewy24.pl https://sheets.googleapis.com https://www.googleapis.com https://tiles.stadiamaps.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com",
+    "connect-src 'self' https://api.telegram.org https://api.przelewy24.pl https://secure.przelewy24.pl https://sheets.googleapis.com https://www.googleapis.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com",
     // Заборонити iframe (захист від clickjacking)
     "frame-src 'self' https://secure.przelewy24.pl",
     "frame-ancestors 'none'",

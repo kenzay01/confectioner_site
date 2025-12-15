@@ -166,43 +166,32 @@ export default function PolandMapSection() {
       };
       
       const mapInstance = L.map(mapRef.current, {
-        center: [52.0, 19.0],
-        zoom: 6.5,
+        center: [52.2, 19.2],
+        zoom: 6.6,
         scrollWheelZoom: true,
         zoomControl: true,
         attributionControl: false,
-        // Bardziej ciasne granice, żeby mapa skupiała się tylko na Polsce
+        // Granice skupione ściśle na Polsce
         maxBounds: [
-          [48.9, 13.9], // południowo-zachodni narożnik
-          [55.0, 24.3], // północno-wschodni narożnik
+          [49.0, 14.0], // południowo-zachodni narożnik
+          [55.0, 24.2], // północno-wschodni narożnik
         ],
         maxBoundsViscosity: 1.0,
         minZoom: 6.2,
-        maxZoom: 9
+        maxZoom: 10
       });
 
       mapInstance.setMaxBounds([
-        [48.9, 13.9],
-        [55.0, 24.3]
+        [49.0, 14.0],
+        [55.0, 24.2]
       ]);
 
-      // НОВА МАПА: Stadia Maps - Alidade Smooth (мінімалістична, сучасна, з польською мовою)
-      L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', {
-        attribution: '© <a href="https://stadiamaps.com/">Stadia Maps</a> © <a href="https://openmaptiles.org/">OpenMapTiles</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 20
+      // OpenStreetMap Standard (lokalne nazwy miast, bezpłatne)
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution:
+          '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19,
       }).addTo(mapInstance);
-
-      // АЛЬТЕРНАТИВА 1: Stadia Maps - OSM Bright (яскравіша, детальніша)
-      // L.tileLayer('https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png', {
-      //   attribution: '© <a href="https://stadiamaps.com/">Stadia Maps</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      //   maxZoom: 20
-      // }).addTo(mapInstance);
-
-      // АЛЬТЕРНАТИВА 2: OpenStreetMap Standard (класична, надійна)
-      // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      //   attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      //   maxZoom: 19
-      // }).addTo(mapInstance);
 
       const citiesWithMasterclasses = new Set(masterclasses.filter(mc => mc.city).map(mc => mc.city));
       const citiesWithLocations = new Set(mapLocations.filter(loc => loc.city).map(loc => loc.city));
@@ -319,21 +308,39 @@ export default function PolandMapSection() {
           pointer-events: auto !important;
         }
         .leaflet-control-zoom {
-          border-radius: 16px !important;
-          box-shadow: 0 6px 20px rgba(0,0,0,0.15) !important;
-          border: 2px solid var(--brown-color) !important;
+          border-radius: 999px !important;
+          box-shadow: 0 4px 14px rgba(0,0,0,0.12) !important;
+          border: 1px solid rgba(80,45,28,0.45) !important;
+          overflow: hidden !important;
         }
         .leaflet-control-zoom a {
-          border-radius: 12px !important;
-          background: white !important;
+          border-radius: 0 !important;
+          background: #fffdf9 !important;
           color: var(--brown-color) !important;
-          font-weight: 700 !important;
-          transition: all 0.3s ease !important;
+          font-weight: 600 !important;
+          transition: all 0.2s ease !important;
         }
         .leaflet-control-zoom a:hover {
           background: var(--brown-color) !important;
           color: white !important;
-          transform: scale(1.05) !important;
+        }
+        /* Minimalistyczna, jednokolorowa mapa z polskimi nazwami */
+        .leaflet-tile {
+          filter: grayscale(1) saturate(0) contrast(0.85) brightness(1.05);
+        }
+        /* Vignette: podświetlona Polska, sąsiednie kraje przyciemnone (efekt blur/dim) */
+        #poland-map .leaflet-container::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(
+            circle at 50% 45%,
+            rgba(0, 0, 0, 0) 0%,
+            rgba(0, 0, 0, 0) 45%,
+            rgba(80, 45, 28, 0.55) 100%
+          );
+          pointer-events: none;
+          mix-blend-mode: multiply;
         }
         .leaflet-control-attribution {
           display: none !important;
