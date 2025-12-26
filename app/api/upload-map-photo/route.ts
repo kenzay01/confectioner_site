@@ -3,6 +3,11 @@ import { writeFile, mkdir, access } from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 
+interface FileLike {
+  name: string;
+  arrayBuffer(): Promise<ArrayBuffer>;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
@@ -13,11 +18,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Перевірка, що це File/Blob об'єкт (має метод arrayBuffer)
-    if (typeof (file as any).arrayBuffer !== "function") {
+    const fileLike = file as FileLike;
+    if (typeof fileLike.arrayBuffer !== "function") {
       return NextResponse.json({ error: "Nieprawidłowy format pliku" }, { status: 400 });
     }
 
-    const arrayBuffer = await (file as any).arrayBuffer();
+    const arrayBuffer = await fileLike.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
     const uploadsDir = path.join(process.cwd(), "public", "uploads", "map-locations");
@@ -43,7 +49,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const originalFileName = (file as any).name || "file";
+    const originalFileName = fileLike.name || "file";
     const ext = path.extname(originalFileName) || ".jpg";
     const randomName = crypto.randomBytes(16).toString("hex");
     const fileName = `${Date.now()}-${randomName}${ext}`;
