@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Відправляємо дані в Google Sheets
-    const sheetsResponse = await fetch("/api/google-sheets", {
+    const sheetsResponse = await fetch(`${req.nextUrl.origin}/api/google-sheets`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -34,40 +34,52 @@ export async function POST(req: NextRequest) {
       console.error('Failed to add data to Google Sheets');
     }
 
-    // Підготовка повідомлення для Telegram
+    // Підготовка email повідомлення
     const isPaid = status === 'success';
     const statusEmoji = isPaid ? '✅' : '❌';
     const statusText = isPaid ? 'ОПЛАЧЕНО' : 'НЕ ОПЛАЧЕНО';
     
-    let telegramMessage = `${statusEmoji} **НОВЕ ЗАМОВЛЕННЯ** \\(${statusText}\\)\n\n`;
-    telegramMessage += `📝 **Тип**: ${itemType === 'masterclass' ? 'Мастеркласс' : 'Товар'}\n`;
-    telegramMessage += `🆔 **ID**: ${itemId}\n`;
-    telegramMessage += `👤 **Ім\\'я**: ${formData.fullName || 'Не вказано'}\n`;
-    telegramMessage += `📧 **Email**: ${formData.email || 'Не вказано'}\n`;
-    telegramMessage += `📱 **Telefon**: ${formData.phone || 'Не вказано'}\n`;
-    telegramMessage += `🏙️ **Miasto**: ${formData.city || 'Не вказано'}\n`;
-    telegramMessage += `📝 **Zgoda na wizerunek**: ${formData.imageConsent || 'Не вказано'}\n`;
-    telegramMessage += `💰 **Сума**: ${amount / 100} PLN\n`;
-    telegramMessage += `🆔 **Session ID**: ${sessionId}\n`;
+    const subject = `${statusEmoji} Nowe zamówienie - ${statusText}`;
+    
+    let emailHtml = `
+      <h2>${statusEmoji} <strong>NOWE ZAMÓWIENIE</strong> (${statusText})</h2>
+      <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+      <p><strong>📝 Typ:</strong> ${itemType === 'masterclass' ? 'Warsztat' : 'Produkt'}</p>
+      <p><strong>🆔 ID:</strong> ${itemId}</p>
+      <p><strong>👤 Imię i nazwisko:</strong> ${formData.fullName || 'Nie podano'}</p>
+      <p><strong>📧 Email:</strong> ${formData.email || 'Nie podano'}</p>
+      <p><strong>📱 Telefon:</strong> ${formData.phone || 'Nie podano'}</p>
+      <p><strong>🏙️ Miasto:</strong> ${formData.city || 'Nie podano'}</p>
+      <p><strong>📝 Zgoda na wizerunek:</strong> ${formData.imageConsent || 'Nie podano'}</p>
+      <p><strong>💰 Suma:</strong> ${amount / 100} PLN</p>
+      <p><strong>🆔 Session ID:</strong> ${sessionId}</p>
+    `;
     
     if (formData.invoiceNeeded) {
-      telegramMessage += `\n📋 **ДАНІ ДЛЯ ФАКТУРИ**:\n`;
-      telegramMessage += `🏢 **Назва компанії**: ${formData.companyName || 'Не вказано'}\n`;
-      telegramMessage += `🔢 **NIP**: ${formData.nip || 'Не вказано'}\n`;
-      telegramMessage += `📍 **Адреса**: ${formData.companyAddress || 'Не вказано'}\n`;
+      emailHtml += `
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+        <h3>📋 DANE DO FAKTURY:</h3>
+        <p><strong>🏢 Nazwa firmy:</strong> ${formData.companyName || 'Nie podano'}</p>
+        <p><strong>🔢 NIP:</strong> ${formData.nip || 'Nie podano'}</p>
+        <p><strong>📍 Adres:</strong> ${formData.companyAddress || 'Nie podano'}</p>
+      `;
     }
 
-    // Відправляємо повідомлення в Telegram
-    const telegramResponse = await fetch("/api/send-telegram", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+    const emailText = emailHtml.replace(/<[^>]*>/g, '').replace(/\n\s*\n/g, '\n');
+
+    // Відправляємо email
+    const emailResponse = await fetch(`${req.nextUrl.origin}/api/send-email`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        message: telegramMessage
+        subject,
+        html: emailHtml,
+        text: emailText
       })
     });
 
-    if (!telegramResponse.ok) {
-      console.error('Failed to send Telegram message');
+    if (!emailResponse.ok) {
+      console.error('Failed to send email notification');
     }
 
     // Якщо це мастеркласс і платіж успішний, зменшуємо кількість доступних місць
@@ -81,7 +93,7 @@ export async function POST(req: NextRequest) {
       success: true,
       message: 'Payment processed successfully',
       sheetsSuccess: sheetsResponse.ok,
-      telegramSuccess: telegramResponse.ok
+      emailSuccess: emailResponse.ok
     });
 
   } catch (error) {

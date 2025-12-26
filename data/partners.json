@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "name": {
+      "pl": "Telebots",
+      "en": ""
+    },
+    "description": {
+      "pl": "telebots cool guys",
+      "en": ""
+    },
+    "logo": "/uploads/map-locations/1766705211628-8aa13c0265cd99e6879ee01f891267ee.png",
+    "website": "",
+    "isActive": true,
+    "id": "1766705214450"
+  }
+]

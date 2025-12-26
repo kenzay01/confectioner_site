@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
-import LogoWithoutBg from "@/public/logo-removebg-preview.png";
+import LogoFinal from "@/public/materials/logo-final.png";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import { useDictionary } from "@/hooks/getDictionary";
 import { Locale } from "@/i18n/config";
@@ -47,19 +47,19 @@ const Header = () => {
           >
             <div className="hidden sm:flex">
               <Image
-                src={LogoWithoutBg}
+                src={LogoFinal}
                 alt="Logo"
-                width={165}
-                height={165}
+                width={120}
+                height={120}
                 className="flex-shrink-0 mt-2"
               />
             </div>
             <div className="flex sm:hidden">
               <Image
-                src={LogoWithoutBg}
+                src={LogoFinal}
                 alt="Logo"
-                width={100}
-                height={100}
+                width={70}
+                height={70}
                 className="flex-shrink-0"
               />
             </div>

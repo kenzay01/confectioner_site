@@ -26,5 +26,77 @@
       "en": []
     },
     "id": "1765805364039"
+  },
+  {
+    "dateType": "single",
+    "date": "2025-12-30",
+    "dateEnd": "",
+    "dateTimes": [],
+    "location": {
+      "pl": "warshawa",
+      "en": "warshawa"
+    },
+    "city": "Warszawa",
+    "title": {
+      "pl": "testyetetsteytesstyeyteytesy ",
+      "en": "testyetetsteytesstyeyteytesy "
+    },
+    "photo": "/uploads/map-locations/1766705283445-c1da50573518fad4cda33928ba5e98db.jpg",
+    "description": {
+      "pl": "dsjfjkdsjkfjkdskjfjkdsjfjdsjk",
+      "en": "dsjfjkdsjkfjkdskjfjkdsjfjdsjk"
+    },
+    "price": 200,
+    "availableSlots": 200,
+    "pickedSlots": 0,
+    "faqs": {
+      "pl": [],
+      "en": []
+    },
+    "id": "1766705318139"
+  },
+  {
+    "dateType": "single",
+    "date": "2025-12-31",
+    "dateEnd": "",
+    "dateTimes": [],
+    "location": {
+      "pl": "Warshawa",
+      "en": "Warshawa"
+    },
+    "city": "Kraków",
+    "title": {
+      "pl": "tetstadhjd",
+      "en": "tetstadhjd"
+    },
+    "photo": "/uploads/map-locations/1766705587692-2c19b5c23988867dbca14201126a5aa9.jpg",
+    "description": {
+      "pl": "fskdkfskjdsf\ndsklskldaksl\n\nkdsklksakakdlkdsakldskldkl\nkldskalkldsaklsdkldlksa",
+      "en": "fskdkfskjdsf\ndsklskldaksl\n\nkdsklksakakdlkdsakldskldkl\nkldskalkldsaklsdkldlksa"
+    },
+    "price": 1000,
+    "availableSlots": 10,
+    "pickedSlots": 0,
+    "faqs": {
+      "pl": [
+        {
+          "question": "tetsteeyt",
+          "answer": "esuiueuiseiues",
+          "id": "1766705593315"
+        },
+        {
+          "question": "sdkkjasdkja",
+          "answer": "dasklkdsaklsd",
+          "id": "1766705598015"
+        },
+        {
+          "question": "test pyt",
+          "answer": "test answer",
+          "id": "1766705608127"
+        }
+      ],
+      "en": []
+    },
+    "id": "1766705612136"
   }
 ]

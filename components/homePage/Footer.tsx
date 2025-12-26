@@ -1,10 +1,12 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import { useDictionary } from "@/hooks/getDictionary";
 import { Locale } from "@/i18n/config";
 import AnimatedSection from "../AnimatedSection"; // Імпортуйте утилітний компонент
 import {Instagram} from "lucide-react";
+import LogoFinal from "@/public/materials/logo-final.png";
 
 export default function Footer() {
   const currentLocale = useCurrentLanguage();
@@ -28,26 +30,13 @@ export default function Footer() {
     >
       <div className="flex justify-center h-24 mb-8 pr-4">
         <div className="relative w-32 h-24">
-          <video
-            autoPlay
-            muted
-            playsInline
-            preload="auto"
-            webkit-playsinline="true"
-            x5-playsinline="true"
-            x5-video-player-type="h5"
-            x5-video-player-fullscreen="true"
+          <Image
+            src={LogoFinal}
+            alt="Confectioner Masterclasses Logo"
+            width={128}
+            height={96}
             className="w-full h-full object-contain"
-            onLoadedData={(e) => {
-              e.currentTarget.play().catch(console.error);
-            }}
-            onEnded={(e) => {
-              e.currentTarget.pause();
-              e.currentTarget.currentTime = e.currentTarget.duration;
-            }}
-          >
-            <source src="/white_BG.mp4" type="video/mp4" />
-          </video>
+          />
         </div>
       </div>
       <nav className="flex justify-center space-x-4 mb-4">
@@ -101,7 +90,7 @@ export default function Footer() {
           {dict?.footer?.createdBy || "Website created by"}{" "}
         </span>
         <Link 
-          href="https://telebots.site/pl" 
+          href="https://new.telebots.site/pl" 
           target="_blank" 
           rel="noopener noreferrer"
           className="text-gray-700 hover:text-black transition-colors underline font-medium"
@@ -110,7 +99,7 @@ export default function Footer() {
         </Link>
         <span> - </span>
         <Link 
-          href="https://telebots.site/pl" 
+          href="https://new.telebots.site/pl" 
           target="_blank" 
           rel="noopener noreferrer"
           className="text-gray-700 hover:text-black transition-colors underline font-medium"

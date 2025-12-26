@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   X,
   Plus,
@@ -44,6 +44,8 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     dateType: "single",
     date: "",
     dateEnd: "",
+    startTime: "",
+    endTime: "",
     dateTimes: [],
     location: { pl: "", en: "" },
     city: "", // Miasto dla wyświetlenia na mapie
@@ -103,6 +105,8 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     useState(false);
   const [masterclassPhotoUploadError, setMasterclassPhotoUploadError] =
     useState("");
+  const [isUploadingPartnerLogo, setIsUploadingPartnerLogo] = useState(false);
+  const [partnerLogoUploadError, setPartnerLogoUploadError] = useState("");
 
   // Fetch masterclasses and products on mount
   useEffect(() => {
@@ -236,6 +240,8 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
             dateType: "single",
             date: "",
             dateEnd: "",
+            startTime: "",
+            endTime: "",
             dateTimes: [],
             location: { pl: "", en: "" },
             city: "",
@@ -676,6 +682,54 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     }
   };
 
+  const uploadPartnerLogo = async (
+    files: FileList | File[],
+    target: "new" | "edit"
+  ) => {
+    const fileArray = Array.from(files);
+    if (!fileArray.length) return;
+
+    const file = fileArray[0];
+
+    setIsUploadingPartnerLogo(true);
+    setPartnerLogoUploadError("");
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/upload-map-photo", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        throw new Error("Upload failed");
+      }
+
+      const data = await res.json();
+      if (data.url) {
+        if (target === "new") {
+          setNewPartner((prev) => ({
+            ...prev,
+            logo: data.url as string,
+          }));
+        } else if (target === "edit" && editingPartner) {
+          setEditingPartner({
+            ...editingPartner,
+            logo: data.url as string,
+          });
+        }
+      }
+    } catch (_error) {
+      setPartnerLogoUploadError(
+        "Nie udało się przesłać logo. Spróbuj ponownie."
+      );
+    } finally {
+      setIsUploadingPartnerLogo(false);
+    }
+  };
+
   const addFaq = (
     setState:
       | React.Dispatch<React.SetStateAction<Partial<Masterclass>>>
@@ -728,7 +782,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     });
   };
 
-  const generateDateTimes = (
+  const generateDateTimes = useCallback((
     startDate: string,
     endDate: string
   ): DateTimeSlot[] => {
@@ -736,16 +790,50 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     const dates: DateTimeSlot[] = [];
     const currentDate = new Date(startDate);
     const end = new Date(endDate);
-    while (currentDate <= end) {
+    
+    // Обмежуємо максимальну кількість днів для продуктивності
+    const maxDays = 365;
+    let dayCount = 0;
+    
+    while (currentDate <= end && dayCount < maxDays) {
       dates.push({
         date: currentDate.toISOString().split("T")[0],
         time: "",
-        id: Date.now().toString() + Math.random(),
+        id: `${currentDate.getTime()}-${dayCount}`,
       });
       currentDate.setDate(currentDate.getDate() + 1);
+      dayCount++;
     }
     return dates;
-  };
+  }, []);
+
+  // Генерація dateTimes асинхронно для оптимізації продуктивності
+  useEffect(() => {
+    if (
+      newMasterclass.dateType === "range" &&
+      newMasterclass.date &&
+      newMasterclass.dateEnd
+    ) {
+      // Використовуємо setTimeout для асинхронної генерації, щоб не блокувати UI
+      const timer = setTimeout(() => {
+        const dateTimes = generateDateTimes(
+          newMasterclass.date || "",
+          newMasterclass.dateEnd || ""
+        );
+        setNewMasterclass((prev) => ({
+          ...prev,
+          dateTimes,
+        }));
+      }, 100); // Невелика затримка для оптимізації
+
+      return () => clearTimeout(timer);
+    } else if (newMasterclass.dateType === "single") {
+      setNewMasterclass((prev) => ({
+        ...prev,
+        dateTimes: [],
+      }));
+    }
+  }, [newMasterclass.dateType, newMasterclass.date, newMasterclass.dateEnd, generateDateTimes]);
 
   useEffect(() => {
     if (editingMasterclass || editingProduct) {
@@ -1138,17 +1226,11 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     value={newMasterclass.dateType || "single"}
                     onChange={(e) => {
                       const dateType = e.target.value as "single" | "range";
-                      setNewMasterclass({
-                        ...newMasterclass,
+                      setNewMasterclass((prev) => ({
+                        ...prev,
                         dateType,
-                        dateTimes:
-                          dateType === "range"
-                            ? generateDateTimes(
-                                newMasterclass.date || "",
-                                newMasterclass.dateEnd || ""
-                              )
-                            : [],
-                      });
+                        dateTimes: dateType === "range" ? prev.dateTimes || [] : [],
+                      }));
                     }}
                     className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                   >
@@ -1172,17 +1254,10 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                       value={newMasterclass.date || ""}
                       onChange={(e) => {
                         const date = e.target.value;
-                        setNewMasterclass({
-                          ...newMasterclass,
+                        setNewMasterclass((prev) => ({
+                          ...prev,
                           date,
-                          dateTimes:
-                            newMasterclass.dateType === "range"
-                              ? generateDateTimes(
-                                  date,
-                                  newMasterclass.dateEnd || ""
-                                )
-                              : [],
-                        });
+                        }));
                       }}
                       className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                     />
@@ -1197,14 +1272,56 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         value={newMasterclass.dateEnd || ""}
                         onChange={(e) => {
                           const dateEnd = e.target.value;
-                          setNewMasterclass({
-                            ...newMasterclass,
+                          setNewMasterclass((prev) => ({
+                            ...prev,
                             dateEnd,
-                            dateTimes: generateDateTimes(
-                              newMasterclass.date || "",
-                              dateEnd
-                            ),
-                          });
+                          }));
+                        }}
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                      />
+                    </div>
+                  )}
+                </div>
+                
+                {/* Time fields */}
+                <div
+                  className={`${
+                    newMasterclass.dateType === "range"
+                      ? "grid grid-cols-1 sm:grid-cols-2 gap-4"
+                      : ""
+                  }`}
+                >
+                  <div>
+                    <label className="block text-black mb-1">
+                      Godzina rozpoczęcia
+                    </label>
+                    <input
+                      type="time"
+                      value={newMasterclass.startTime || ""}
+                      onChange={(e) => {
+                        const startTime = e.target.value;
+                        setNewMasterclass((prev) => ({
+                          ...prev,
+                          startTime,
+                        }));
+                      }}
+                      className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                    />
+                  </div>
+                  {newMasterclass.dateType === "range" && (
+                    <div>
+                      <label className="block text-black mb-1">
+                        Godzina zakończenia
+                      </label>
+                      <input
+                        type="time"
+                        value={newMasterclass.endTime || ""}
+                        onChange={(e) => {
+                          const endTime = e.target.value;
+                          setNewMasterclass((prev) => ({
+                            ...prev,
+                            endTime,
+                          }));
                         }}
                         className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                       />
@@ -1275,8 +1392,8 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                   >
                     <option value="">Wybierz miasto</option>
-                    {polishCities.map((city) => (
-                      <option key={city.name} value={city.name}>
+                    {polishCities.map((city, index) => (
+                      <option key={`${city.name}-${index}`} value={city.name}>
                         {city.name}
                       </option>
                     ))}
@@ -1692,10 +1809,56 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         />
                       </div>
                     )}
-
+                  
+                  {/* Time fields for editing */}
+                  <div
+                    className={`${
+                      editingMasterclass.dateType === "range"
+                        ? "grid grid-cols-1 sm:grid-cols-2 gap-4"
+                        : ""
+                    }`}
+                  >
                     <div>
                       <label className="block text-black mb-1">
-                        Miejsce przeprowadzenia (
+                        Godzina rozpoczęcia
+                      </label>
+                      <input
+                        type="time"
+                        value={editingMasterclass.startTime || ""}
+                        onChange={(e) => {
+                          const startTime = e.target.value;
+                          setEditingMasterclass({
+                            ...editingMasterclass,
+                            startTime,
+                          });
+                        }}
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                      />
+                    </div>
+                    {editingMasterclass.dateType === "range" && (
+                      <div>
+                        <label className="block text-black mb-1">
+                          Godzina zakończenia
+                        </label>
+                        <input
+                          type="time"
+                          value={editingMasterclass.endTime || ""}
+                          onChange={(e) => {
+                            const endTime = e.target.value;
+                            setEditingMasterclass({
+                              ...editingMasterclass,
+                              endTime,
+                            });
+                          }}
+                          className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-black mb-1">
+                      Miejsce przeprowadzenia (
                         {language === "pl" ? "Polski" : "Angielski"})
                       </label>
                       <input
@@ -1734,8 +1897,8 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                       >
                         <option value="">Wybierz miasto</option>
-                        {polishCities.map((city) => (
-                          <option key={city.name} value={city.name}>
+                        {polishCities.map((city, index) => (
+                          <option key={`${city.name}-${index}`} value={city.name}>
                             {city.name}
                           </option>
                         ))}
@@ -2448,20 +2611,68 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                       rows={4}
                     />
                   </div>
-                  <div>
-                    <label className="block text-black mb-1">URL logo</label>
-                    <input
-                      type="text"
-                      value={newPartner.logo || ""}
-                      onChange={(e) =>
-                        setNewPartner({
-                          ...newPartner,
-                          logo: e.target.value,
-                        })
-                      }
-                      className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
-                      placeholder="URL logo"
-                    />
+                  <div className="col-span-2">
+                    <label className="block text-black mb-1">
+                      Logo partnera
+                      <span className="block text-xs text-gray-500">
+                        Przeciągnij i upuść logo tutaj lub kliknij, aby wybrać plik.
+                      </span>
+                    </label>
+                    <div
+                      className="mt-1 flex flex-col gap-2"
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                          uploadPartnerLogo(e.dataTransfer.files, "new");
+                        }
+                      }}
+                    >
+                      <label className="flex flex-col items-center justify-center gap-2 px-4 py-6 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 text-center cursor-pointer hover:border-black hover:bg-gray-100 transition-colors">
+                        <span className="text-sm font-medium text-black">
+                          Przeciągnij i upuść logo tutaj
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          lub kliknij, aby wybrać z dysku
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            if (e.target.files) {
+                              uploadPartnerLogo(e.target.files, "new");
+                            }
+                          }}
+                        />
+                      </label>
+                      {isUploadingPartnerLogo && (
+                        <p className="text-xs text-gray-500">
+                          Przesyłanie logo...
+                        </p>
+                      )}
+                      {partnerLogoUploadError && (
+                        <p className="text-xs text-red-500">
+                          {partnerLogoUploadError}
+                        </p>
+                      )}
+                      {newPartner.logo && (
+                        <div className="mt-3 w-full max-w-xs">
+                          <div className="relative aspect-square w-32 rounded-lg overflow-hidden border-2 border-gray-200 bg-gray-50">
+                            <Image
+                              src={newPartner.logo}
+                              alt="Podgląd logo partnera"
+                              fill
+                              className="object-contain p-2"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <label className="block text-black mb-1">Strona internetowa</label>
@@ -2610,20 +2821,68 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         rows={4}
                       />
                     </div>
-                    <div>
-                      <label className="block text-black mb-1">URL logo</label>
-                      <input
-                        type="text"
-                        value={editingPartner.logo}
-                        onChange={(e) =>
-                          setEditingPartner({
-                            ...editingPartner,
-                            logo: e.target.value,
-                          })
-                        }
-                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
-                        placeholder="URL logo"
-                      />
+                    <div className="col-span-2">
+                      <label className="block text-black mb-1">
+                        Logo partnera
+                        <span className="block text-xs text-gray-500">
+                          Przeciągnij i upuść logo tutaj lub kliknij, aby wybrać plik.
+                        </span>
+                      </label>
+                      <div
+                        className="mt-1 flex flex-col gap-2"
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                            uploadPartnerLogo(e.dataTransfer.files, "edit");
+                          }
+                        }}
+                      >
+                        <label className="flex flex-col items-center justify-center gap-2 px-4 py-6 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 text-center cursor-pointer hover:border-black hover:bg-gray-100 transition-colors">
+                          <span className="text-sm font-medium text-black">
+                            Przeciągnij i upuść logo tutaj
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            lub kliknij, aby wybrać z dysku
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              if (e.target.files) {
+                                uploadPartnerLogo(e.target.files, "edit");
+                              }
+                            }}
+                          />
+                        </label>
+                        {isUploadingPartnerLogo && (
+                          <p className="text-xs text-gray-500">
+                            Przesyłanie logo...
+                          </p>
+                        )}
+                        {partnerLogoUploadError && (
+                          <p className="text-xs text-red-500">
+                            {partnerLogoUploadError}
+                          </p>
+                        )}
+                        {editingPartner.logo && (
+                          <div className="mt-3 w-full max-w-xs">
+                            <div className="relative aspect-square w-32 rounded-lg overflow-hidden border-2 border-gray-200 bg-gray-50">
+                              <Image
+                                src={editingPartner.logo}
+                                alt="Podgląd logo partnera"
+                                fill
+                                className="object-contain p-2"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div>
                       <label className="block text-black mb-1">Strona internetowa</label>
@@ -2956,8 +3215,8 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                       >
                         <option value="">Wybierz miasto</option>
-                        {polishCities.map((city) => (
-                          <option key={city.name} value={city.name}>
+                        {polishCities.map((city, index) => (
+                          <option key={`${city.name}-${index}`} value={city.name}>
                             {city.name}
                           </option>
                         ))}

@@ -19,11 +19,7 @@ export default function Contact() {
   };
 
   // Функція для екранування всіх зарезервованих символів у MarkdownV2
-  const escapeMarkdown = (text: string) => {
-    return text.replace(/[_\*\[\]\(\)\~`>#\+-=|\{\}\.!]/g, "\\$&");
-  };
-
-  const handleSubmit = async () => {
+    const handleSubmit = async () => {
     if (!formData.name || !formData.question) {
       setStatus("error");
       return;
@@ -31,27 +27,44 @@ export default function Contact() {
 
     setStatus("loading");
 
-    // Форматуємо повідомлення для Telegram у MarkdownV2
-    const telegramMessage = `
-📩 *Nowa wiadomość z formularza kontaktowego*
+    // Форматуємо email повідомлення
+    const emailSubject = "📩 Nowa wiadomość z formularza kontaktowego";
+    
+    const emailHtml = `
+      <h2>📩 Nowa wiadomość z formularza kontaktowego</h2>
+      <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+      <p><strong>👤 Imię i nazwisko:</strong> ${formData.name}</p>
+      <p><strong>📧 Email:</strong> ${formData.email || 'Nie podano'}</p>
+      <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+      <p><strong>💬 Pytanie:</strong></p>
+      <p style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; white-space: pre-wrap;">${formData.question}</p>
+    `;
 
-👤 *Imię i nazwisko*: ${escapeMarkdown(formData.name)}
-📧 *Email*: ${escapeMarkdown(formData.email)}
-💬 *Pytanie*:
-_${escapeMarkdown(formData.question)}_
+    const emailText = `
+Nowa wiadomość z formularza kontaktowego
+
+Imię i nazwisko: ${formData.name}
+Email: ${formData.email || 'Nie podano'}
+
+Pytanie:
+${formData.question}
     `.trim();
 
     try {
-      // Відправка в Telegram
-      const telegramResponse = await fetch("/api/send-telegram", {
+      // Відправка email
+      const emailResponse = await fetch("/api/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: telegramMessage }),
+        body: JSON.stringify({ 
+          subject: emailSubject,
+          html: emailHtml,
+          text: emailText
+        }),
       });
 
-      if (!telegramResponse.ok) {
-        const errorData = await telegramResponse.json();
-        throw new Error(errorData.details || "Failed to send Telegram message");
+      if (!emailResponse.ok) {
+        const errorData = await emailResponse.json();
+        throw new Error(errorData.details || "Failed to send email");
       }
 
       // Відправка в Google Sheets

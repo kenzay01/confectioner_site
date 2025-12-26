@@ -479,12 +479,12 @@ export default function PolandMapSection() {
 
               {selectedMasterclasses.length > 0 && (
                 <div className="mb-8">
-                  <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                  <h3 className="text-2xl sm:text-3xl font-semibold text-gray-800 mb-6">
                     {currentLocale === "pl" ? "Warsztaty" : "Masterclasses"}
                   </h3>
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     {selectedMasterclasses.map((masterclass) => (
-                      <div key={masterclass.id} className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                      <div key={masterclass.id} className="bg-gray-50 p-5 sm:p-6 rounded-xl border border-gray-200">
                         <div className="flex flex-col lg:flex-row gap-6">
                           <div className="lg:w-1/3">
                             <Image
@@ -500,26 +500,26 @@ export default function PolandMapSection() {
                             />
                           </div>
                           <div className="lg:w-2/3">
-                            <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-[var(--brown-color)]/10 text-[var(--brown-color)] mb-2">
+                            <span className="inline-block px-3 py-1.5 rounded-full text-sm font-bold bg-[var(--brown-color)]/10 text-[var(--brown-color)] mb-3">
                               {currentLocale === "pl" ? "Masterclass" : "Masterclass"}
                             </span>
-                            <h4 className="text-xl font-bold text-gray-800 mb-3">
+                            <h4 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4">
                               {masterclass.title[currentLocale as keyof typeof masterclass.title]}
                             </h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                               <div className="flex items-center gap-2">
-                                <MapPin className="w-4 h-4 text-gray-600" />
-                                <span className="text-sm text-gray-700">{masterclass.location[currentLocale as keyof typeof masterclass.location]}</span>
+                                <MapPin className="w-5 h-5 text-gray-600" />
+                                <span className="text-base text-gray-700">{masterclass.location[currentLocale as keyof typeof masterclass.location]}</span>
                               </div>
                               <div className="flex items-center gap-2">
-                                <Calendar className="w-4 h-4 text-gray-600" />
-                                <span className="text-sm text-gray-700">
+                                <Calendar className="w-5 h-5 text-gray-600" />
+                                <span className="text-base text-gray-700">
                                   {new Date(masterclass.date).toLocaleDateString(currentLocale)}
                                   {masterclass.dateEnd && ` - ${new Date(masterclass.dateEnd).toLocaleDateString(currentLocale)}`}
                                 </span>
                               </div>
                             </div>
-                            <p className="text-sm text-gray-600 line-clamp-2">
+                            <p className="text-base text-gray-600 leading-relaxed line-clamp-2">
                               {masterclass.description[currentLocale as keyof typeof masterclass.description].split('\\n')[0]}
                             </p>
                           </div>
@@ -532,60 +532,62 @@ export default function PolandMapSection() {
 
               {selectedMapLocations.length > 0 && (
                 <div>
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-5">
+                  <h3 className="text-xl font-semibold text-[var(--accent-color)] mb-6">
                     {currentLocale === "pl" ? "Miejsca, w których byłem" : "Places I've been"}
                   </h3>
-                  <div className="space-y-6">
+                  <div className="space-y-5">
                     {selectedMapLocations.map((location) => {
                       const photos = location.photos || [];
                       const hasPhotos = photos.length > 0;
                       const mainPhoto = hasPhotos ? photos[0] : "/materials/Donut png без фона.png";
-                      const extraPhotos = hasPhotos ? photos.slice(1, 6) : [];
+                      const extraPhotos = hasPhotos ? photos.slice(1, 5) : [];
 
                       return (
                         <article
                           key={location.id}
-                          className="bg-gradient-to-br from-white via-[#fff9f5] to-white rounded-3xl border border-[var(--brown-color)]/15 shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden"
+                          className="bg-white rounded-2xl border border-gray-200/80 hover:border-[var(--brown-color)]/30 hover:shadow-md transition-all duration-300 overflow-hidden"
                         >
-                          {/* Info first */}
-                          <div className="p-6 sm:p-7 border-b border-[var(--brown-color)]/10">
-                            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-                              <span className="inline-flex px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-[0.16em] bg-[var(--accent-color)]/12 text-[var(--accent-color)]">
-                                {location.type === "school"
-                                  ? currentLocale === "pl" ? "Szkoła" : "School"
-                                  : location.type === "bakery"
-                                  ? currentLocale === "pl" ? "Piekarnia" : "Bakery"
-                                  : location.type === "private_client"
-                                  ? currentLocale === "pl" ? "Klient prywatny" : "Private client"
-                                  : currentLocale === "pl" ? "Inne" : "Other"}
-                              </span>
-                              <span className="text-[12px] text-gray-600 flex items-center gap-1.5">
-                                <MapPin className="w-3.5 h-3.5 text-[var(--brown-color)]/80" />
-                                <span className="font-medium">
-                                  {getCityName(location.city, currentLocale)}
+                          {/* Info section */}
+                          <div className="p-5 sm:p-6">
+                            <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+                              <div className="flex items-center gap-2.5">
+                                <span className="inline-flex px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-[var(--brown-color)]/8 text-[var(--brown-color)]">
+                                  {location.type === "school"
+                                    ? currentLocale === "pl" ? "Szkoła" : "School"
+                                    : location.type === "bakery"
+                                    ? currentLocale === "pl" ? "Piekarnia" : "Bakery"
+                                    : location.type === "private_client"
+                                    ? currentLocale === "pl" ? "Klient prywatny" : "Private client"
+                                    : currentLocale === "pl" ? "Inne" : "Other"}
                                 </span>
-                              </span>
+                                <span className="text-xs text-gray-500 flex items-center gap-1.5">
+                                  <MapPin className="w-3 h-3 text-[var(--brown-color)]/60" />
+                                  <span className="font-medium">
+                                    {getCityName(location.city, currentLocale)}
+                                  </span>
+                                </span>
+                              </div>
                             </div>
 
-                            <h4 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-3">
+                            <h4 className="text-lg sm:text-xl font-bold text-[var(--accent-color)] mb-3">
                               {location.name[currentLocale as keyof typeof location.name]}
                             </h4>
 
                             {location.description[currentLocale as keyof typeof location.description] && (
-                              <p className="text-base sm:text-lg text-gray-800 leading-relaxed">
+                              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
                                 {location.description[currentLocale as keyof typeof location.description]}
                               </p>
                             )}
                           </div>
 
-                          {/* Then gallery */}
+                          {/* Gallery section */}
                           {hasPhotos && (
-                            <div className="p-4 sm:p-5 bg-gradient-to-r from-white to-[#fff3e6]">
-                              <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-[1.8fr,1.4fr] items-stretch">
+                            <div className="px-5 sm:px-6 pb-5 sm:pb-6 bg-gray-50/50">
+                              <div className="grid gap-3 grid-cols-1 sm:grid-cols-[2fr,1fr]">
                                 {/* Main photo */}
                                 <button
                                   type="button"
-                                  className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100 group cursor-pointer"
+                                  className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-gray-100 group cursor-pointer border border-gray-200/60 hover:border-[var(--brown-color)]/40 transition-colors"
                                   onClick={() =>
                                     setPhotoGallery({
                                       photos,
@@ -598,28 +600,29 @@ export default function PolandMapSection() {
                                     src={mainPhoto}
                                     alt={`${location.name[currentLocale as keyof typeof location.name]} - główne zdjęcie`}
                                     fill
-                                    className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                                    className="object-cover transition-transform duration-500 group-hover:scale-105"
                                     onError={(e) => {
                                       const target = e.target as HTMLImageElement;
                                       target.src = "/materials/Donut png без фона.png";
                                     }}
                                   />
                                   {photos.length > 1 && (
-                                    <div className="absolute right-3 bottom-3 px-3 py-1.5 rounded-full bg-black/60 text-[11px] font-medium text-white backdrop-blur-sm">
+                                    <div className="absolute right-2 bottom-2 px-2.5 py-1 rounded-md bg-black/70 text-[10px] font-semibold text-white backdrop-blur-sm">
                                       {currentLocale === "pl"
-                                        ? `+${photos.length - 1} zdjęć`
-                                        : `+${photos.length - 1} photos`}
+                                        ? `+${photos.length - 1}`
+                                        : `+${photos.length - 1}`}
                                     </div>
                                   )}
                                 </button>
 
-                                {/* Extra photos */}
+                                {/* Extra photos grid */}
                                 {extraPhotos.length > 0 && (
-                                  <div className="grid grid-cols-4 sm:grid-cols-2 gap-2 sm:gap-3">
+                                  <div className="grid grid-cols-2 gap-2">
                                     {extraPhotos.map((photo, index) => (
-                                      <div
+                                      <button
                                         key={index}
-                                        className="relative aspect-square rounded-xl overflow-hidden border border-gray-200 bg-gray-100 cursor-pointer group"
+                                        type="button"
+                                        className="relative aspect-square rounded-lg overflow-hidden border border-gray-200/60 bg-gray-100 cursor-pointer group hover:border-[var(--brown-color)]/40 transition-all"
                                         onClick={() =>
                                           setPhotoGallery({
                                             photos,
@@ -632,13 +635,13 @@ export default function PolandMapSection() {
                                           src={photo}
                                           alt={`${location.name[currentLocale as keyof typeof location.name]} - ${index + 2}`}
                                           fill
-                                          className="object-cover transition-transform duration-300 group-hover:scale-[1.05]"
+                                          className="object-cover transition-transform duration-500 group-hover:scale-110"
                                           onError={(e) => {
                                             const target = e.target as HTMLImageElement;
                                             target.style.display = "none";
                                           }}
                                         />
-                                      </div>
+                                      </button>
                                     ))}
                                   </div>
                                 )}

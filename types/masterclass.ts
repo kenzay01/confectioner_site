@@ -3,7 +3,8 @@ export interface Masterclass {
   dateType: "single" | "range";
   date: string;
   dateEnd?: string;
-  //   startTime?: string;
+  startTime?: string;
+  endTime?: string;
   dateTimes?: { id: string; date: string; time: string }[];
   location: {
     pl: string;

@@ -137,8 +137,8 @@ export default function RootLayout({
     <html lang="pl" className={`${montserrat.variable} font-sans`}>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/logo-removebg-preview.png" type="image/png" />
-        <link rel="apple-touch-icon" href="/logo-removebg-preview.png" />
+        <link rel="icon" href="/logo.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/logo.png" />
       </head>
       <body>
         <Header />
