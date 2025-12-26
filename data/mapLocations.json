@@ -16,5 +16,21 @@
       "en": "test test teste"
     },
     "id": "1765804368292"
+  },
+  {
+    "city": "Warszawa",
+    "name": {
+      "pl": "sdc",
+      "en": "dsdf"
+    },
+    "type": "other",
+    "photos": [
+      "/uploads/map-locations/1766710902783-0651453a1bd526923b2f20d39da66f4f.png"
+    ],
+    "description": {
+      "pl": "fdadsf",
+      "en": "dfsa"
+    },
+    "id": "1766710921366"
   }
 ]
