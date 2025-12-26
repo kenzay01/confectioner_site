@@ -5,7 +5,7 @@ const EMAILJS_SERVICE_ID = process.env.EMAILJS_SERVICE_ID;
 const EMAILJS_TEMPLATE_ID = process.env.EMAILJS_TEMPLATE_ID;
 const EMAILJS_PUBLIC_KEY = process.env.EMAILJS_PUBLIC_KEY;
 const EMAILJS_PRIVATE_KEY = process.env.EMAILJS_PRIVATE_KEY;
-const RECIPIENT_EMAIL = "roman.fedoniuk@gmail.com";
+const RECIPIENT_EMAIL = "Nieznanypiekarz@gmail.com";
 
 export async function POST(req: NextRequest) {
   try {
