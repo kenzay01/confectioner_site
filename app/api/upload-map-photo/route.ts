@@ -8,11 +8,16 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get("file");
 
-    if (!file || !(file instanceof File)) {
+    if (!file || typeof file === "string") {
       return NextResponse.json({ error: "Brak pliku" }, { status: 400 });
     }
 
-    const arrayBuffer = await file.arrayBuffer();
+    // Перевірка, що це File/Blob об'єкт (має метод arrayBuffer)
+    if (typeof (file as any).arrayBuffer !== "function") {
+      return NextResponse.json({ error: "Nieprawidłowy format pliku" }, { status: 400 });
+    }
+
+    const arrayBuffer = await (file as any).arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
     const uploadsDir = path.join(process.cwd(), "public", "uploads", "map-locations");
@@ -38,7 +43,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const ext = path.extname(file.name) || ".jpg";
+    const originalFileName = (file as any).name || "file";
+    const ext = path.extname(originalFileName) || ".jpg";
     const randomName = crypto.randomBytes(16).toString("hex");
     const fileName = `${Date.now()}-${randomName}${ext}`;
     const filePath = path.join(uploadsDir, fileName);
