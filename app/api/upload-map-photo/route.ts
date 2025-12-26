@@ -3,28 +3,26 @@ import { writeFile, mkdir, access } from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 
-interface FileLike {
-  name: string;
-  arrayBuffer(): Promise<ArrayBuffer>;
-}
-
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const file = formData.get("file");
 
-    if (!file || typeof file === "string") {
+    if (!file) {
       return NextResponse.json({ error: "Brak pliku" }, { status: 400 });
     }
 
-    // Перевірка, що це File/Blob об'єкт (має метод arrayBuffer)
-    const fileLike = file as FileLike;
-    if (typeof fileLike.arrayBuffer !== "function") {
+    if (typeof file === "string") {
       return NextResponse.json({ error: "Nieprawidłowy format pliku" }, { status: 400 });
     }
 
-    const arrayBuffer = await fileLike.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    // Конвертуємо File/Blob в Buffer
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    if (buffer.length === 0) {
+      return NextResponse.json({ error: "Plik jest pusty" }, { status: 400 });
+    }
 
     const uploadsDir = path.join(process.cwd(), "public", "uploads", "map-locations");
     
@@ -49,24 +47,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const originalFileName = fileLike.name || "file";
+    const originalFileName = file.name || "file";
     const ext = path.extname(originalFileName) || ".jpg";
     const randomName = crypto.randomBytes(16).toString("hex");
     const fileName = `${Date.now()}-${randomName}${ext}`;
     const filePath = path.join(uploadsDir, fileName);
 
-    try {
-      await writeFile(filePath, buffer);
-    } catch (writeError) {
-      console.error("Error writing file:", writeError);
-      return NextResponse.json(
-        { error: "Nie można zapisać pliku na serwerze" },
-        { status: 500 }
-      );
-    }
+    await writeFile(filePath, buffer);
 
     const url = `/uploads/map-locations/${fileName}`;
-
     return NextResponse.json({ url });
   } catch (error) {
     console.error("Upload error:", error);
