@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import AnimatedSection from "@/components/AnimatedSection";
-import { X, MapPin, Calendar } from "lucide-react";
+import { X, MapPin, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { MapLocation } from "@/types/mapLocation";
 import { getCityName } from "@/utils/cityTranslations";
 
@@ -474,66 +474,33 @@ export default function PolandMapSection() {
                           </div>
 
                           {/* Gallery section */}
-                          {hasPhotos && mainPhoto && (
-                            <div className="px-5 sm:px-6 pb-5 sm:pb-6 bg-gray-50/50">
-                              <div className="grid gap-3 grid-cols-1 sm:grid-cols-[2fr,1fr]">
-                                {/* Main photo */}
-                                <button
-                                  type="button"
-                                  className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-gray-100 group cursor-pointer border border-gray-200/60 hover:border-[var(--brown-color)]/40 transition-colors"
-                                  onClick={() =>
-                                    setPhotoGallery({
-                                      photos,
-                                      index: 0,
-                                      title: location.name[currentLocale as keyof typeof location.name],
-                                    })
-                                  }
-                                >
-                                  <Image
-                                    src={mainPhoto}
-                                    alt={`${location.name[currentLocale as keyof typeof location.name]} - główne zdjęcie`}
-                                    fill
-                                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                  />
-                                  {photos.length > 1 && (
-                                    <div className="absolute right-2 bottom-2 px-2.5 py-1 rounded-md bg-black/70 text-[10px] font-semibold text-white backdrop-blur-sm">
-                                      {currentLocale === "pl"
-                                        ? `+${photos.length - 1}`
-                                        : `+${photos.length - 1}`}
-                                    </div>
-                                  )}
-                                </button>
-
-                                {/* Extra photos grid */}
-                                {extraPhotos.length > 0 && (
-                                  <div className="grid grid-cols-2 gap-2">
-                                    {extraPhotos.map((photo, index) => (
-                                      <button
-                                        key={index}
-                                        type="button"
-                                        className="relative aspect-square rounded-lg overflow-hidden border border-gray-200/60 bg-gray-100 cursor-pointer group hover:border-[var(--brown-color)]/40 transition-all"
-                                        onClick={() =>
-                                          setPhotoGallery({
-                                            photos,
-                                            index: index + 1,
-                                            title: location.name[currentLocale as keyof typeof location.name],
-                                          })
-                                        }
-                                      >
-                                        <Image
-                                          src={photo}
-                                          alt={`${location.name[currentLocale as keyof typeof location.name]} - ${index + 2}`}
-                                          fill
-                                          className="object-cover transition-transform duration-500 group-hover:scale-110"
-                                          onError={(e) => {
-                                            const target = e.target as HTMLImageElement;
-                                            target.style.display = "none";
-                                          }}
-                                        />
-                                      </button>
-                                    ))}
-                                  </div>
-                                )}
+                          {hasPhotos && mainPhoto && photos.length > 1 && (
+                            <div className="px-5 sm:px-6 pb-5 sm:pb-6">
+                              <h3 className="text-lg sm:text-xl font-semibold text-[var(--accent-color)] mb-4">
+                                {currentLocale === "pl" ? "Galeria zdjęć" : "Photo Gallery"}
+                              </h3>
+                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                {photos.map((photo, index) => (
+                                  <button
+                                    key={index}
+                                    type="button"
+                                    onClick={() =>
+                                      setPhotoGallery({
+                                        photos,
+                                        index: index,
+                                        title: location.name[currentLocale as keyof typeof location.name],
+                                      })
+                                    }
+                                    className="relative aspect-square rounded-xl overflow-hidden border-2 border-gray-200 hover:border-[var(--brown-color)] transition-colors group"
+                                  >
+                                    <Image
+                                      src={photo}
+                                      alt={`${location.name[currentLocale as keyof typeof location.name]} - ${index + 1}`}
+                                      fill
+                                      className="object-cover transition-transform duration-300 group-hover:scale-110"
+                                    />
+                                  </button>
+                                ))}
                               </div>
                             </div>
                           )}
@@ -549,100 +516,85 @@ export default function PolandMapSection() {
       </div>
       {/* Photo gallery lightbox */}
       {photoGallery && photoGallery.photos.length > 0 && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[10000] px-4">
-          <div className="bg-white rounded-3xl max-w-5xl w-full max-h-[90vh] p-4 sm:p-6 flex flex-col gap-4 relative">
+        <div 
+          className="fixed inset-0 bg-black/90 z-[10000] flex items-center justify-center p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setPhotoGallery(null);
+            }
+          }}
+        >
+          <div 
+            className="relative max-w-7xl w-full max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               type="button"
               onClick={() => setPhotoGallery(null)}
-              className="absolute top-3 right-3 sm:top-4 sm:right-4 p-2 rounded-full bg-black/5 hover:bg-black/10 transition-colors"
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 p-2 rounded-full bg-black/50 hover:bg-black/70 transition-colors z-10"
             >
-              <X className="w-5 h-5 text-gray-700" />
+              <X className="w-6 h-6 text-white" />
             </button>
-
-            <div className="flex flex-col gap-3 mt-4">
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
-                {photoGallery.title}
-              </h3>
-              <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100">
-                <Image
-                  src={photoGallery.photos[photoGallery.index]}
-                  alt={`${photoGallery.title} - ${photoGallery.index + 1}`}
-                  fill
-                  className="object-contain bg-gray-900/5"
-                />
-                {/* Prev / Next */}
-                {photoGallery.photos.length > 1 && (
-                  <>
-                    <button
-                      type="button"
-                      className="absolute left-2 top-1/2 -translate-y-1/2 px-2.5 py-2 rounded-full bg-black/55 text-white hover:bg-black/80 transition-colors text-xs sm:text-sm"
-                      onClick={() =>
-                        setPhotoGallery((prev) =>
-                          !prev
-                            ? prev
-                            : {
-                                ...prev,
-                                index:
-                                  (prev.index - 1 + prev.photos.length) %
-                                  prev.photos.length,
-                              }
-                        )
-                      }
-                    >
-                      ‹
-                    </button>
-                    <button
-                      type="button"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-2 rounded-full bg-black/55 text-white hover:bg-black/80 transition-colors text-xs sm:text-sm"
-                      onClick={() =>
-                        setPhotoGallery((prev) =>
-                          !prev
-                            ? prev
-                            : {
-                                ...prev,
-                                index: (prev.index + 1) % prev.photos.length,
-                              }
-                        )
-                      }
-                    >
-                      ›
-                    </button>
-                  </>
-                )}
-              </div>
+            <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-gray-900 mb-4">
+              <Image
+                src={photoGallery.photos[photoGallery.index]}
+                alt={`${photoGallery.title} - ${photoGallery.index + 1}`}
+                fill
+                className="object-contain"
+                priority
+              />
               {photoGallery.photos.length > 1 && (
-                <div className="grid grid-cols-5 sm:grid-cols-8 gap-2 mt-1">
-                  {photoGallery.photos.map((photo, index) => (
-                    <button
-                      key={index}
-                      type="button"
-                      onClick={() =>
-                        setPhotoGallery((prev) =>
-                          !prev
-                            ? prev
-                            : {
-                                ...prev,
-                                index,
-                              }
-                        )
-                      }
-                      className={`relative aspect-square rounded-lg overflow-hidden border ${
-                        index === photoGallery.index
-                          ? "border-[var(--brown-color)]"
-                          : "border-gray-200"
-                      } bg-gray-100`}
-                    >
-                      <Image
-                        src={photo}
-                        alt={`${photoGallery.title} miniatura ${index + 1}`}
-                        fill
-                        className="object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
+                <>
+                  <button
+                    type="button"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 px-3 py-2 rounded-full bg-black/55 text-white hover:bg-black/80 transition-colors"
+                    onClick={() =>
+                      setPhotoGallery({
+                        ...photoGallery,
+                        index: (photoGallery.index - 1 + photoGallery.photos.length) % photoGallery.photos.length,
+                      })
+                    }
+                  >
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                  <button
+                    type="button"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-2 rounded-full bg-black/55 text-white hover:bg-black/80 transition-colors"
+                    onClick={() =>
+                      setPhotoGallery({
+                        ...photoGallery,
+                        index: (photoGallery.index + 1) % photoGallery.photos.length,
+                      })
+                    }
+                  >
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+                </>
               )}
             </div>
+            {photoGallery.photos.length > 1 && (
+              <div className="grid grid-cols-5 sm:grid-cols-8 gap-2 max-h-32 overflow-y-auto">
+                {photoGallery.photos.map((photo, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => setPhotoGallery({ ...photoGallery, index })}
+                    className={`relative aspect-square rounded-lg overflow-hidden border-2 ${
+                      index === photoGallery.index
+                        ? "border-[var(--brown-color)]"
+                        : "border-gray-600"
+                    } bg-gray-800`}
+                  >
+                    <Image
+                      src={photo}
+                      alt={`${photoGallery.title} miniatura ${index + 1}`}
+                      fill
+                      className="object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -328,8 +328,20 @@ export default function MasterClassPage() {
         />
         {/* Waitlist Modal */}
         {isWaitlistOpen && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
-            <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative">
+          <div 
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setIsWaitlistOpen(false);
+                setWaitlistForm({ fullName: "", email: "", phone: "", message: "" });
+                setWaitlistStatus("idle");
+              }
+            }}
+          >
+            <div 
+              className="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative"
+              onClick={(e) => e.stopPropagation()}
+            >
               <button
                 onClick={() => {
                   setIsWaitlistOpen(false);
@@ -467,8 +479,18 @@ export default function MasterClassPage() {
         )}
         {/* Photo Gallery Modal */}
         {photoGallery && (
-          <div className="fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center p-4">
-            <div className="relative max-w-7xl w-full max-h-[90vh] flex flex-col">
+          <div 
+            className="fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setPhotoGallery(null);
+              }
+            }}
+          >
+            <div 
+              className="relative max-w-7xl w-full max-h-[90vh] flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
               <button
                 type="button"
                 onClick={() => setPhotoGallery(null)}

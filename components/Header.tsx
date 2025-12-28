@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -17,6 +17,18 @@ const Header = () => {
   const currentLocale = useCurrentLanguage();
   const { dict } = useDictionary(currentLocale as Locale);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // Блокуємо скрол при відкритому меню
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMenuOpen]);
 
   // Normalize pathname for comparison (remove trailing slashes and handle locale)
   const normalizePath = (path: string) => {
