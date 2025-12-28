@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     }
 
     const uploadsDir = path.join(process.cwd(), "public", "uploads", "map-locations");
-    await mkdir(uploadsDir, { recursive: true });
+      await mkdir(uploadsDir, { recursive: true });
 
     const originalFileName = file.name || "file";
     const ext = path.extname(originalFileName).toLowerCase() || ".jpg";
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     const fileName = `${Date.now()}-${randomName}${ext}`;
     const filePath = path.join(uploadsDir, fileName);
 
-    await writeFile(filePath, buffer);
+      await writeFile(filePath, buffer);
 
     // Перевірка після запису
     if (existsSync(filePath)) {

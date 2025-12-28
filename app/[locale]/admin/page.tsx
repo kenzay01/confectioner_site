@@ -51,6 +51,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     city: "", // Miasto dla wyświetlenia na mapie
     title: { pl: "", en: "" },
     photo: "",
+    photos: [],
     description: { pl: "", en: "" },
     price: 0,
     availableSlots: 0,
@@ -197,7 +198,6 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     if (!newMasterclass.description?.en && !usePolishForEnglish) missingFields.push("Opis (angielski)");
     if (!newMasterclass.location?.pl) missingFields.push("Miejsce przeprowadzenia (polski)");
     if (!newMasterclass.location?.en && !usePolishForEnglish) missingFields.push("Miejsce przeprowadzenia (angielski)");
-    if (!newMasterclass.city) missingFields.push("Miasto (dla mapy)");
     if (!newMasterclass.price) missingFields.push("Cena");
     if (!newMasterclass.availableSlots) missingFields.push("Dostępne miejsca");
 
@@ -207,24 +207,27 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     }
 
     // Jeśli używamy polskiej wersji dla angielskiej, kopiujemy dane
+      const photos = newMasterclass.photos || (newMasterclass.photo ? [newMasterclass.photo] : []);
       const masterclassToAdd: Masterclass = {
         ...newMasterclass,
         id: Date.now().toString(),
         pickedSlots: 0,
         faqs: newMasterclass.faqs || { pl: [], en: [] },
-      title: {
-        pl: newMasterclass.title?.pl || "",
-        en: usePolishForEnglish ? newMasterclass.title?.pl || "" : newMasterclass.title?.en || ""
-      },
-      description: {
-        pl: newMasterclass.description?.pl || "",
-        en: usePolishForEnglish ? newMasterclass.description?.pl || "" : newMasterclass.description?.en || ""
-      },
-      location: {
-        pl: newMasterclass.location?.pl || "",
-        en: usePolishForEnglish ? newMasterclass.location?.pl || "" : newMasterclass.location?.en || ""
-      },
-      city: newMasterclass.city || ""
+        photo: photos[0] || newMasterclass.photo || "",
+        photos: photos.length > 0 ? photos : undefined,
+        title: {
+          pl: newMasterclass.title?.pl || "",
+          en: usePolishForEnglish ? newMasterclass.title?.pl || "" : newMasterclass.title?.en || ""
+        },
+        description: {
+          pl: newMasterclass.description?.pl || "",
+          en: usePolishForEnglish ? newMasterclass.description?.pl || "" : newMasterclass.description?.en || ""
+        },
+        location: {
+          pl: newMasterclass.location?.pl || "",
+          en: usePolishForEnglish ? newMasterclass.location?.pl || "" : newMasterclass.location?.en || ""
+        },
+        city: ""
       } as Masterclass;
 
       try {
@@ -247,6 +250,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
             city: "",
             title: { pl: "", en: "" },
             photo: "",
+            photos: [],
             description: { pl: "", en: "" },
             price: 0,
             availableSlots: 0,
@@ -641,35 +645,51 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     const fileArray = Array.from(files);
     if (!fileArray.length) return;
 
-    const file = fileArray[0];
-
     setIsUploadingMasterclassPhoto(true);
     setMasterclassPhotoUploadError("");
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
+      const uploadedUrls: string[] = [];
+      
+      for (const file of fileArray) {
+        const formData = new FormData();
+        formData.append("file", file);
 
-      const res = await fetch("/api/upload-map-photo", {
-        method: "POST",
-        body: formData,
-      });
+        const res = await fetch("/api/upload-map-photo", {
+          method: "POST",
+          body: formData,
+        });
 
-      if (!res.ok) {
-        throw new Error("Upload failed");
+        if (!res.ok) {
+          throw new Error("Upload failed");
+        }
+
+        const data = await res.json();
+        if (data.url) {
+          uploadedUrls.push(data.url);
+        }
       }
 
-      const data = await res.json();
-      if (data.url) {
+      if (uploadedUrls.length > 0) {
         if (target === "new") {
-          setNewMasterclass((prev) => ({
-            ...prev,
-            photo: data.url as string,
-          }));
+          setNewMasterclass((prev) => {
+            const existingPhotos = prev.photos || [];
+            const existingPhoto = prev.photo ? [prev.photo] : [];
+            const allPhotos = [...existingPhoto, ...existingPhotos, ...uploadedUrls];
+            return {
+              ...prev,
+              photo: allPhotos[0] || prev.photo, // Перше фото для зворотної сумісності
+              photos: allPhotos,
+            };
+          });
         } else if (target === "edit" && editingMasterclass) {
+          const existingPhotos = editingMasterclass.photos || [];
+          const existingPhoto = editingMasterclass.photo ? [editingMasterclass.photo] : [];
+          const allPhotos = [...existingPhoto, ...existingPhotos, ...uploadedUrls];
           setEditingMasterclass({
             ...editingMasterclass,
-            photo: data.url as string,
+            photo: allPhotos[0] || editingMasterclass.photo,
+            photos: allPhotos,
           });
         }
       }
@@ -1284,51 +1304,6 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                 </div>
                 
                 {/* Time fields */}
-                <div
-                  className={`${
-                    newMasterclass.dateType === "range"
-                      ? "grid grid-cols-1 sm:grid-cols-2 gap-4"
-                      : ""
-                  }`}
-                >
-                  <div>
-                    <label className="block text-black mb-1">
-                      Godzina rozpoczęcia
-                    </label>
-                    <input
-                      type="time"
-                      value={newMasterclass.startTime || ""}
-                      onChange={(e) => {
-                        const startTime = e.target.value;
-                        setNewMasterclass((prev) => ({
-                          ...prev,
-                          startTime,
-                        }));
-                      }}
-                      className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
-                    />
-                  </div>
-                  {newMasterclass.dateType === "range" && (
-                    <div>
-                      <label className="block text-black mb-1">
-                        Godzina zakończenia
-                      </label>
-                      <input
-                        type="time"
-                        value={newMasterclass.endTime || ""}
-                        onChange={(e) => {
-                          const endTime = e.target.value;
-                          setNewMasterclass((prev) => ({
-                            ...prev,
-                            endTime,
-                          }));
-                        }}
-                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
-                      />
-                    </div>
-                  )}
-                </div>
-
                 <div>
                   <label className="block text-black mb-1">
                     <div className="flex items-center gap-2">
@@ -1370,34 +1345,6 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     placeholder="Miejsce przeprowadzenia"
                     disabled={language === "en" && usePolishForEnglish}
                   />
-                </div>
-                
-                {/* City Field */}
-                <div>
-                  <label className="block text-black mb-1">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-gray-600" />
-                      Miasto (dla mapy)
-                      <span className="text-xs text-gray-500">(wybierz miasto z listy)</span>
-                    </div>
-                  </label>
-                  <select
-                    value={newMasterclass.city || ""}
-                    onChange={(e) =>
-                      setNewMasterclass({
-                        ...newMasterclass,
-                        city: e.target.value,
-                      })
-                    }
-                    className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
-                  >
-                    <option value="">Wybierz miasto</option>
-                    {polishCities.map((city, index) => (
-                      <option key={`${city.name}-${index}`} value={city.name}>
-                        {city.name}
-                      </option>
-                    ))}
-                  </select>
                 </div>
                 
                 <div>
@@ -1518,9 +1465,9 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                 </div>
                 <div>
                   <label className="block text-black mb-1">
-                    Zdjęcie warsztatu
+                    Zdjęcia warsztatu
                     <span className="block text-xs text-gray-500">
-                      Przeciągnij i upuść zdjęcie lub wybierz je z dysku.
+                      Przeciągnij i upuść zdjęcia lub wybierz je z dysku. Możesz dodać wiele zdjęć.
                     </span>
                   </label>
                   <div
@@ -1539,14 +1486,15 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                   >
                     <label className="flex flex-col items-center justify-center gap-2 px-4 py-6 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 text-center cursor-pointer hover:border-black hover:bg-gray-100 transition-colors">
                       <span className="text-sm font-medium text-black">
-                        Przeciągnij i upuść zdjęcie tutaj
+                        Przeciągnij i upuść zdjęcia tutaj
                       </span>
                       <span className="text-xs text-gray-500">
-                        lub kliknij, aby wybrać z dysku
+                        lub kliknij, aby wybrać z dysku (można wybrać wiele)
                       </span>
                       <input
                         type="file"
                         accept="image/*"
+                        multiple
                         className="hidden"
                         onChange={(e) => {
                           if (e.target.files) {
@@ -1557,7 +1505,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     </label>
                     {isUploadingMasterclassPhoto && (
                       <p className="text-xs text-gray-500">
-                        Przesyłanie zdjęcia...
+                        Przesyłanie zdjęć...
                       </p>
                     )}
                     {masterclassPhotoUploadError && (
@@ -1566,18 +1514,47 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                       </p>
                     )}
                   </div>
-                  {newMasterclass.photo && (
-                    <div className="mt-3 w-full max-w-xs">
-                      <div className="relative aspect-video rounded-lg overflow-hidden border-2 border-gray-200 bg-gray-50">
-                        <Image
-                          src={newMasterclass.photo}
-                          alt="Podgląd zdjęcia warsztatu"
-                          fill
-                          className="object-cover"
-                        />
+                  {(() => {
+                    const photos = newMasterclass.photos || (newMasterclass.photo ? [newMasterclass.photo] : []);
+                    return photos.length > 0 && (
+                      <div className="mt-3">
+                        <p className="text-xs text-gray-600 mb-2">
+                          Załadowane zdjęcia ({photos.length}):
+                        </p>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                          {photos.map((photo, index) => (
+                            <div key={index} className="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 bg-gray-50">
+                              <Image
+                                src={photo}
+                                alt={`Zdjęcie ${index + 1}`}
+                                fill
+                                className="object-cover"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updatedPhotos = photos.filter((_, i) => i !== index);
+                                  setNewMasterclass((prev) => ({
+                                    ...prev,
+                                    photo: updatedPhotos[0] || "",
+                                    photos: updatedPhotos,
+                                  }));
+                                }}
+                                className="absolute top-1 right-1 px-1.5 py-1 rounded-full bg-black/60 text-white hover:bg-black transition-colors"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                              {index === 0 && (
+                                <div className="absolute bottom-1 left-1 px-2 py-0.5 rounded bg-[var(--brown-color)] text-white text-xs font-semibold">
+                                  Główne
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </div>
                 <div className="col-span-2">
                   <label className="block text-black mb-1">
@@ -1685,13 +1662,19 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                   >
                     <div className="flex items-center gap-4">
                       <div className="flex-shrink-0">
-                        <Image
-                          src={masterclass.photo}
-                          alt="Masterclass"
-                          width={64}
-                          height={64}
-                          className="w-16 h-16 object-cover rounded"
-                        />
+                        {masterclass.photo ? (
+                          <Image
+                            src={masterclass.photo}
+                            alt="Masterclass"
+                            width={64}
+                            height={64}
+                            className="w-16 h-16 object-cover rounded"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 bg-gray-300 rounded flex items-center justify-center text-gray-500 text-xs">
+                            Brak
+                          </div>
+                        )}
                       </div>
                       <div>
                         <h3 className="text-black font-semibold">
@@ -1982,9 +1965,9 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     </div>
                     <div>
                       <label className="block text-black mb-1">
-                        Zdjęcie warsztatu
+                        Zdjęcia warsztatu
                         <span className="block text-xs text-gray-500">
-                          Przeciągnij i upuść zdjęcie lub wybierz je z dysku.
+                          Przeciągnij i upuść zdjęcia lub wybierz je z dysku. Możesz dodać wiele zdjęć.
                         </span>
                       </label>
                       <div
@@ -2003,14 +1986,15 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                       >
                         <label className="flex flex-col items-center justify-center gap-2 px-4 py-6 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 text-center cursor-pointer hover:border-black hover:bg-gray-100 transition-colors">
                           <span className="text-sm font-medium text-black">
-                            Przeciągnij i upuść zdjęcie tutaj
+                            Przeciągnij i upuść zdjęcia tutaj
                           </span>
                           <span className="text-xs text-gray-500">
-                            lub kliknij, aby wybrać z dysku
+                            lub kliknij, aby wybrać z dysku (można wybrać wiele)
                           </span>
                           <input
                             type="file"
                             accept="image/*"
+                            multiple
                             className="hidden"
                             onChange={(e) => {
                               if (e.target.files) {
@@ -2021,7 +2005,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         </label>
                         {isUploadingMasterclassPhoto && (
                           <p className="text-xs text-gray-500">
-                            Przesyłanie zdjęcia...
+                            Przesyłanie zdjęć...
                           </p>
                         )}
                         {masterclassPhotoUploadError && (
@@ -2030,18 +2014,47 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                           </p>
                         )}
                       </div>
-                      {editingMasterclass.photo && (
-                        <div className="mt-3 w-full max-w-xs">
-                          <div className="relative aspect-video rounded-lg overflow-hidden border-2 border-gray-200 bg-gray-50">
-                            <Image
-                              src={editingMasterclass.photo}
-                              alt="Podgląd zdjęcia warsztatu"
-                              fill
-                              className="object-cover"
-                            />
+                      {(() => {
+                        const photos = editingMasterclass.photos || (editingMasterclass.photo ? [editingMasterclass.photo] : []);
+                        return photos.length > 0 && (
+                          <div className="mt-3">
+                            <p className="text-xs text-gray-600 mb-2">
+                              Załadowane zdjęcia ({photos.length}):
+                            </p>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                              {photos.map((photo, index) => (
+                                <div key={index} className="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 bg-gray-50">
+                                  <Image
+                                    src={photo}
+                                    alt={`Zdjęcie ${index + 1}`}
+                                    fill
+                                    className="object-cover"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const updatedPhotos = photos.filter((_, i) => i !== index);
+                                      setEditingMasterclass({
+                                        ...editingMasterclass,
+                                        photo: updatedPhotos[0] || "",
+                                        photos: updatedPhotos,
+                                      });
+                                    }}
+                                    className="absolute top-1 right-1 px-1.5 py-1 rounded-full bg-black/60 text-white hover:bg-black transition-colors"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                  {index === 0 && (
+                                    <div className="absolute bottom-1 left-1 px-2 py-0.5 rounded bg-[var(--brown-color)] text-white text-xs font-semibold">
+                                      Główne
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        );
+                      })()}
                     </div>
                     <div>
                       <label className="block text-black mb-1">

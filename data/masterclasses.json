@@ -19,7 +19,7 @@
       "en": "test"
     },
     "price": 100,
-    "availableSlots": 10,
+    "availableSlots": 0,
     "pickedSlots": 0,
     "faqs": {
       "pl": [],
@@ -47,7 +47,7 @@
       "en": "dsjfjkdsjkfjkdskjfjkdsjfjdsjk"
     },
     "price": 200,
-    "availableSlots": 200,
+    "availableSlots": 0,
     "pickedSlots": 0,
     "faqs": {
       "pl": [],
@@ -98,5 +98,41 @@
       "en": []
     },
     "id": "1766705612136"
+  },
+  {
+    "dateType": "single",
+    "date": "2025-12-29",
+    "dateEnd": "",
+    "startTime": "12:00",
+    "endTime": "",
+    "dateTimes": [],
+    "location": {
+      "pl": "Warszawa",
+      "en": "Warszawa"
+    },
+    "city": "Warszawa",
+    "title": {
+      "pl": "Test",
+      "en": "Test"
+    },
+    "photo": "/api/static/map-locations/1766924114426-ff8b834b5b7cdc6eb1e60880d48d9800.png",
+    "photos": [
+      "/api/static/map-locations/1766924114426-ff8b834b5b7cdc6eb1e60880d48d9800.png",
+      "/api/static/map-locations/1766924114668-119605e8360815a039f26ad46d15e461.jpg",
+      "/api/static/map-locations/1766924114907-2b49dd1a6477c6667f2ba28ed4103fcd.jpg",
+      "/api/static/map-locations/1766924115148-24512cfb6038195ad6d795e6632522dc.jpg"
+    ],
+    "description": {
+      "pl": "odjSAMJDMDSmdjk dksa fdskfmnjds fakjsdf sdkf jksd fks nfanf ljfn anld nfas jdfna fnlsa nfsl n\n\nfsaf akdfo fijaf",
+      "en": "odjSAMJDMDSmdjk dksa fdskfmnjds fakjsdf sdkf jksd fks nfanf ljfn anld nfas jdfna fnlsa nfsl n\n\nfsaf akdfo fijaf"
+    },
+    "price": 1000,
+    "availableSlots": 10,
+    "pickedSlots": 0,
+    "faqs": {
+      "pl": [],
+      "en": []
+    },
+    "id": "1766924122137"
   }
 ]

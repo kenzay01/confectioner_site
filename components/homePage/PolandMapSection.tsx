@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
-import { useItems } from "@/context/itemsContext";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import AnimatedSection from "@/components/AnimatedSection";
 import { X, MapPin, Calendar } from "lucide-react";
@@ -89,37 +88,11 @@ export default function PolandMapSection() {
   } | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
   const currentLocale = useCurrentLanguage();
-  const { masterclasses, loading } = useItems();
   const handleScrollToMap = useCallback(() => {
     if (mapRef.current) {
       mapRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, []);
-
-  // Список доступних фото з папки materials (PNG з прозорим фоном)
-  const materialImages = [
-    "/materials/Donut png без фона.png",
-    "/materials/Donut PNG.png",
-    "/materials/sweet1.png",
-    "/materials/sweet2.png",
-    "/materials/sweet3.png",
-    "/materials/sweet4.png",
-    "/materials/sweet5.png",
-    "/materials/sweet6.png"
-  ];
-
-  // Функція для отримання випадкового фото
-  const getRandomImage = (masterclassId: string, city?: string) => {
-    const combinedSeed = masterclassId + (city || '');
-    const seed = combinedSeed.split('').reduce((a, b) => {
-      a = ((a << 5) - a) + b.charCodeAt(0);
-      return a & a;
-    }, 0);
-    const index = Math.abs(seed) % materialImages.length;
-    const selectedImage = materialImages[index];
-    console.log(`Selected image for ${masterclassId} (${city}): ${selectedImage}`);
-    return selectedImage;
-  };
 
   // Ładowanie Leaflet, listy miast oraz punktów na mapie
   useEffect(() => {
@@ -193,16 +166,12 @@ export default function PolandMapSection() {
         maxZoom: 19,
       }).addTo(mapInstance);
 
-      const citiesWithMasterclasses = new Set(masterclasses.filter(mc => mc.city).map(mc => mc.city));
       const citiesWithLocations = new Set(mapLocations.filter(loc => loc.city).map(loc => loc.city));
-      const allCities = new Set([...citiesWithMasterclasses, ...citiesWithLocations]);
         
-      allCities.forEach((cityName) => {
+      citiesWithLocations.forEach((cityName) => {
         const cityData = polishCities.find(city => city.name === cityName);
         if (!cityData) return;
 
-        const hasMasterclasses = citiesWithMasterclasses.has(cityName);
-        const hasLocations = citiesWithLocations.has(cityName);
         const locationCount = mapLocations.filter(loc => loc.city === cityName).length;
 
         const translatedCityName = getCityName(cityName, currentLocale);
@@ -263,9 +232,7 @@ export default function PolandMapSection() {
           });
 
         let tooltipText = translatedCityName;
-        if (hasMasterclasses && hasLocations) {
-          tooltipText = `${translatedCityName} (${locationCount} ${currentLocale === 'pl' ? 'miejsc' : 'places'})`;
-        } else if (hasLocations) {
+        if (locationCount > 0) {
           tooltipText = `${translatedCityName} (${locationCount} ${currentLocale === 'pl' ? 'miejsc' : 'places'})`;
         }
 
@@ -356,35 +323,14 @@ export default function PolandMapSection() {
         delete window.selectCity;
       }
     };
-  }, [leafletLoaded, map, selectedCity, masterclasses, mapLocations, polishCities, currentLocale]);
-
-  const getSelectedMasterclasses = () => {
-    if (!selectedCity) return [];
-    return masterclasses.filter(mc => mc.city === selectedCity);
-  };
+  }, [leafletLoaded, map, selectedCity, mapLocations, polishCities, currentLocale]);
 
   const getSelectedMapLocations = () => {
     if (!selectedCity) return [];
     return mapLocations.filter(loc => loc.city === selectedCity);
   };
 
-  const selectedMasterclasses = getSelectedMasterclasses();
   const selectedMapLocations = getSelectedMapLocations();
-
-  if (loading) {
-    return (
-      <AnimatedSection className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">
-              {currentLocale === "pl" ? "Ładowanie..." : "Loading..."}
-            </p>
-          </div>
-        </div>
-      </AnimatedSection>
-    );
-  }
 
   return (
     <AnimatedSection className="py-16 px-4 sm:px-6 lg:px-8 bg-white mt-20">
@@ -459,7 +405,7 @@ export default function PolandMapSection() {
         </div>
 
         {/* Modal for City Details */}
-        {selectedCity && (selectedMasterclasses.length > 0 || selectedMapLocations.length > 0) && (
+        {selectedCity && selectedMapLocations.length > 0 && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
             <AnimatedSection 
               className="bg-white rounded-3xl p-6 max-w-6xl w-full max-h-[90vh] overflow-y-auto relative border-l-4 border-[var(--brown-color)] shadow-2xl"
@@ -477,69 +423,16 @@ export default function PolandMapSection() {
                 {getCityName(selectedCity, currentLocale)}
               </h2>
 
-              {selectedMasterclasses.length > 0 && (
-                <div className="mb-8">
-                  <h3 className="text-2xl sm:text-3xl font-semibold text-gray-800 mb-6">
-                    {currentLocale === "pl" ? "Warsztaty" : "Masterclasses"}
-                  </h3>
-                  <div className="space-y-5">
-                    {selectedMasterclasses.map((masterclass) => (
-                      <div key={masterclass.id} className="bg-gray-50 p-5 sm:p-6 rounded-xl border border-gray-200">
-                        <div className="flex flex-col lg:flex-row gap-6">
-                          <div className="lg:w-1/3">
-                            <Image
-                              src={getRandomImage(masterclass.id, masterclass.city)}
-                              alt={masterclass.title[currentLocale as keyof typeof masterclass.title]}
-                              width={200}
-                              height={200}
-                              className="object-contain w-full max-h-48 rounded-lg"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.src = "/materials/Donut png без фона.png";
-                              }}
-                            />
-                          </div>
-                          <div className="lg:w-2/3">
-                            <span className="inline-block px-3 py-1.5 rounded-full text-sm font-bold bg-[var(--brown-color)]/10 text-[var(--brown-color)] mb-3">
-                              {currentLocale === "pl" ? "Masterclass" : "Masterclass"}
-                            </span>
-                            <h4 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4">
-                              {masterclass.title[currentLocale as keyof typeof masterclass.title]}
-                            </h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                              <div className="flex items-center gap-2">
-                                <MapPin className="w-5 h-5 text-gray-600" />
-                                <span className="text-base text-gray-700">{masterclass.location[currentLocale as keyof typeof masterclass.location]}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Calendar className="w-5 h-5 text-gray-600" />
-                                <span className="text-base text-gray-700">
-                                  {new Date(masterclass.date).toLocaleDateString(currentLocale)}
-                                  {masterclass.dateEnd && ` - ${new Date(masterclass.dateEnd).toLocaleDateString(currentLocale)}`}
-                                </span>
-                              </div>
-                            </div>
-                            <p className="text-base text-gray-600 leading-relaxed line-clamp-2">
-                              {masterclass.description[currentLocale as keyof typeof masterclass.description].split('\\n')[0]}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {selectedMapLocations.length > 0 && (
                 <div>
                   <h3 className="text-xl font-semibold text-[var(--accent-color)] mb-6">
-                    {currentLocale === "pl" ? "Miejsca, w których byłem" : "Places I've been"}
+                    {currentLocale === "pl" ? "Miejsca, w których będą moje warsztaty" : "Places where my masterclasses will be"}
                   </h3>
                   <div className="space-y-5">
                     {selectedMapLocations.map((location) => {
                       const photos = location.photos || [];
                       const hasPhotos = photos.length > 0;
-                      const mainPhoto = hasPhotos ? photos[0] : "/materials/Donut png без фона.png";
+                      const mainPhoto = hasPhotos ? photos[0] : null;
                       const extraPhotos = hasPhotos ? photos.slice(1, 5) : [];
 
                       return (
@@ -581,7 +474,7 @@ export default function PolandMapSection() {
                           </div>
 
                           {/* Gallery section */}
-                          {hasPhotos && (
+                          {hasPhotos && mainPhoto && (
                             <div className="px-5 sm:px-6 pb-5 sm:pb-6 bg-gray-50/50">
                               <div className="grid gap-3 grid-cols-1 sm:grid-cols-[2fr,1fr]">
                                 {/* Main photo */}
@@ -601,10 +494,6 @@ export default function PolandMapSection() {
                                     alt={`${location.name[currentLocale as keyof typeof location.name]} - główne zdjęcie`}
                                     fill
                                     className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                    onError={(e) => {
-                                      const target = e.target as HTMLImageElement;
-                                      target.src = "/materials/Donut png без фона.png";
-                                    }}
                                   />
                                   {photos.length > 1 && (
                                     <div className="absolute right-2 bottom-2 px-2.5 py-1 rounded-md bg-black/70 text-[10px] font-semibold text-white backdrop-blur-sm">

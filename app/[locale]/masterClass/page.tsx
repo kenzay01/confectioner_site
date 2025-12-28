@@ -175,18 +175,80 @@ const SliderSection = ({ masterclasses }: { masterclasses: Masterclass[] }) => {
                     : `calc(80% - 16px)`, // 80% ширини для основного слайду
                 }}
               >
-                {masterclass.photo ? (
-                  <div className="relative min-h-[55vh] sm:min-h-[65vh] rounded-2xl overflow-hidden shadow-lg border border-gray-200/60">
-                    {/* Background Photo */}
-                    <div className="absolute inset-0 z-0">
-                      <div className="absolute inset-0 bg-black/50 z-10"></div>
-                      <Image
-                        src={masterclass.photo}
-                        alt={masterclass.title[currentLocale]}
-                        fill
-                        className="object-cover"
-                        quality={90}
-                      />
+                {(() => {
+                  const photos = masterclass.photos || (masterclass.photo ? [masterclass.photo] : []);
+                  const mainPhoto = photos[0];
+                  if (!mainPhoto) {
+                    return (
+                      <div className="min-h-[55vh] sm:min-h-[65vh] bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-200/60">
+                        <div className="h-full flex items-center justify-center p-6 sm:p-8">
+                          <div className="text-center max-w-lg w-full">
+                            <h3 className="text-2xl sm:text-3xl font-bold mb-5 text-[var(--accent-color)]">
+                              {masterclass.title[currentLocale]}
+                            </h3>
+                            
+                            <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-5">
+                              <div className="flex items-center gap-1.5 text-[var(--accent-color)] bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200/50">
+                                <Calendar className="w-4 h-4" />
+                                <span className="font-medium text-xs sm:text-sm">{formatDate(masterclass, currentLocale)}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 text-[var(--accent-color)] bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200/50">
+                                <MapPin className="w-4 h-4" />
+                                <span className="font-medium text-xs sm:text-sm">{masterclass.location[currentLocale]}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 text-[var(--accent-color)] bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200/50">
+                                <Users className="w-4 h-4" />
+                                <span className="font-medium text-xs sm:text-sm">
+                                  {(masterclass.availableSlots || 0) -
+                                    (masterclass.pickedSlots || 0)}{" "}
+                                  {currentLocale === "pl"
+                                    ? "wolnych miejsc"
+                                    : "slots available"}
+                                </span>
+                              </div>
+                            </div>
+                            
+                            <div className="text-3xl sm:text-4xl font-bold text-[var(--brown-color)] mb-5">
+                              {masterclass.price} zł
+                            </div>
+                            
+                            <Link
+                              href={`/${currentLocale}/masterClass/masterclass-${masterclass.id}`}
+                              className={`btn-unified px-6 py-3 text-base sm:text-lg inline-block ${
+                                (masterclass.availableSlots || 0) -
+                                  (masterclass.pickedSlots || 0) >
+                                0
+                                  ? ""
+                                  : "opacity-50 cursor-not-allowed"
+                              }`}
+                            >
+                              {(masterclass.availableSlots || 0) -
+                                (masterclass.pickedSlots || 0) >
+                              0
+                                ? currentLocale === "pl"
+                                  ? "Weź udział"
+                                  : "Book Now"
+                                : currentLocale === "pl"
+                                ? "Dołącz do listy oczekujących"
+                                : "Join Waitlist"}
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div className="relative min-h-[55vh] sm:min-h-[65vh] rounded-2xl overflow-hidden shadow-lg border border-gray-200/60">
+                      {/* Background Photo */}
+                      <div className="absolute inset-0 z-0">
+                        <div className="absolute inset-0 bg-black/50 z-10"></div>
+                        <Image
+                          src={mainPhoto}
+                          alt={masterclass.title[currentLocale]}
+                          fill
+                          className="object-cover"
+                          quality={90}
+                        />
                     </div>
                     
                     {/* Content */}
@@ -244,63 +306,8 @@ const SliderSection = ({ masterclasses }: { masterclasses: Masterclass[] }) => {
                       </div>
                     </div>
                   </div>
-                ) : (
-                  <div className="min-h-[55vh] sm:min-h-[65vh] bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-200/60">
-                    <div className="h-full flex items-center justify-center p-6 sm:p-8">
-                      <div className="text-center max-w-lg w-full">
-                        <h3 className="text-2xl sm:text-3xl font-bold mb-5 text-[var(--accent-color)]">
-                          {masterclass.title[currentLocale]}
-                        </h3>
-                        
-                        <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-5">
-                          <div className="flex items-center gap-1.5 text-[var(--accent-color)] bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200/50">
-                            <Calendar className="w-4 h-4" />
-                            <span className="font-medium text-xs sm:text-sm">{formatDate(masterclass, currentLocale)}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5 text-[var(--accent-color)] bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200/50">
-                            <MapPin className="w-4 h-4" />
-                            <span className="font-medium text-xs sm:text-sm">{masterclass.location[currentLocale]}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5 text-[var(--accent-color)] bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200/50">
-                            <Users className="w-4 h-4" />
-                            <span className="font-medium text-xs sm:text-sm">
-                              {(masterclass.availableSlots || 0) -
-                                (masterclass.pickedSlots || 0)}{" "}
-                              {currentLocale === "pl"
-                                ? "wolnych miejsc"
-                                : "slots available"}
-                            </span>
-                          </div>
-                        </div>
-                        
-                        <div className="text-3xl sm:text-4xl font-bold text-[var(--brown-color)] mb-5">
-                          {masterclass.price} zł
-                        </div>
-                        
-                        <Link
-                          href={`/${currentLocale}/masterClass/masterclass-${masterclass.id}`}
-                          className={`btn-unified px-6 py-3 text-base sm:text-lg inline-block ${
-                            (masterclass.availableSlots || 0) -
-                              (masterclass.pickedSlots || 0) >
-                            0
-                              ? ""
-                              : "opacity-50 cursor-not-allowed"
-                          }`}
-                        >
-                          {(masterclass.availableSlots || 0) -
-                            (masterclass.pickedSlots || 0) >
-                          0
-                            ? currentLocale === "pl"
-                              ? "Weź udział"
-                              : "Book Now"
-                            : currentLocale === "pl"
-                            ? "Dołącz do listy oczekujących"
-                            : "Join Waitlist"}
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                  );
+                })()}
               </div>
             );
           })}

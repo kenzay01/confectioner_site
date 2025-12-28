@@ -15,7 +15,8 @@ export interface Masterclass {
     pl: string;
     en: string;
   };
-  photo: string;
+  photo?: string; // Залишаємо для зворотної сумісності
+  photos?: string[]; // Масив фото для галереї
   description: {
     pl: string;
     en: string;
