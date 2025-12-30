@@ -238,77 +238,81 @@ const SliderSection = ({ masterclasses }: { masterclasses: Masterclass[] }) => {
                     );
                   }
                   return (
-                    <div className="relative min-h-[55vh] sm:min-h-[65vh] rounded-2xl overflow-hidden shadow-lg border border-gray-200/60">
-                      {/* Background Photo */}
-                      <div className="absolute inset-0 z-0">
-                        <div className="absolute inset-0 bg-black/50 z-10"></div>
-                        <Image
-                          src={mainPhoto}
-                          alt={masterclass.title[currentLocale]}
-                          fill
-                          className="object-cover"
-                          quality={90}
-                        />
-                    </div>
-                    
-                    {/* Content */}
-                    <div className="relative z-20 h-full flex items-end justify-center p-3 sm:p-6 md:p-8 pb-16 sm:pb-20 md:pb-24">
-                      <div className="bg-white/95 backdrop-blur-sm p-3 sm:p-6 md:p-8 rounded-2xl text-center max-w-lg w-full shadow-lg border border-gray-200/50 overflow-hidden">
-                        <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-5 text-[var(--accent-color)] line-clamp-2 break-words">
-                          {masterclass.title[currentLocale]}
-                        </h3>
-                        
-                        <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2 md:gap-3 mb-3 sm:mb-5">
-                          <div className="flex items-center gap-1 text-[var(--accent-color)] bg-white/90 backdrop-blur-sm px-2 py-1 sm:px-3 sm:py-1.5 rounded-full shadow-sm border border-gray-200/50">
-                            <Calendar className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 flex-shrink-0" />
-                            <span className="font-medium text-[10px] sm:text-xs md:text-sm lg:text-base whitespace-nowrap">{formatDate(masterclass, currentLocale)}</span>
-                          </div>
-                          <div className="flex items-center gap-1 text-[var(--accent-color)] bg-white/90 backdrop-blur-sm px-2 py-1 sm:px-3 sm:py-1.5 rounded-full shadow-sm border border-gray-200/50">
-                            <MapPin className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 flex-shrink-0" />
-                            <span className="font-medium text-[10px] sm:text-xs md:text-sm lg:text-base line-clamp-1 break-words">{masterclass.location[currentLocale]}</span>
-                          </div>
-                          <div className="flex items-center gap-1 text-[var(--accent-color)] bg-white/90 backdrop-blur-sm px-2 py-1 sm:px-3 sm:py-1.5 rounded-full shadow-sm border border-gray-200/50">
-                            <Users className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 flex-shrink-0" />
-                            <span className="font-medium text-[10px] sm:text-xs md:text-sm lg:text-base whitespace-nowrap">
-                              {(masterclass.availableSlots || 0) -
-                                (masterclass.pickedSlots || 0)}{" "}
-                              {currentLocale === "pl"
-                                ? "wolnych miejsc"
-                                : "slots available"}
-                            </span>
-                          </div>
+                    <div className="space-y-4">
+                      {/* Photo Section - First Block */}
+                      <div className="relative min-h-[55vh] sm:min-h-[65vh] rounded-2xl overflow-hidden shadow-lg border border-gray-200/60">
+                        {/* Background Photo */}
+                        <div className="absolute inset-0 z-0">
+                          <div className="absolute inset-0 bg-black/50 z-10"></div>
+                          <Image
+                            src={mainPhoto}
+                            alt={masterclass.title[currentLocale]}
+                            fill
+                            className="object-cover"
+                            quality={90}
+                          />
                         </div>
                         
-                        <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--brown-color)]">
-                          {masterclass.price} zł
+                        {/* Content on Photo - white text: title, date, location */}
+                        <div className="relative z-20 text-center p-6 sm:p-10 h-full flex flex-col justify-center">
+                          <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 sm:mb-8 drop-shadow-lg line-clamp-2 break-words">
+                            {masterclass.title[currentLocale]}
+                          </h3>
+                          
+                          <div className="flex flex-wrap justify-center gap-3 sm:gap-4 md:gap-5">
+                            <div className="flex items-center gap-2.5 text-white bg-white/20 backdrop-blur-sm px-4 py-2 sm:px-5 sm:py-2.5 rounded-full border border-white/30">
+                              <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />
+                              <span className="font-medium text-base sm:text-lg md:text-xl">{formatDate(masterclass, currentLocale)}</span>
+                            </div>
+                            <div className="flex items-center gap-2.5 text-white bg-white/20 backdrop-blur-sm px-4 py-2 sm:px-5 sm:py-2.5 rounded-full border border-white/30">
+                              <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />
+                              <span className="font-medium text-base sm:text-lg md:text-xl">{masterclass.location[currentLocale]}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* White block below photo with price, slots and button - Second Block */}
+                      <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg border border-gray-200/60">
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 max-w-4xl mx-auto">
+                          <div className="flex flex-col sm:flex-row items-center gap-4">
+                            <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--brown-color)]">
+                              {masterclass.price} zł
+                            </div>
+                            <div className="flex items-center gap-2 text-[var(--accent-color)] bg-gray-50 px-4 py-2 rounded-full border border-gray-200/50">
+                              <Users className="w-5 h-5 sm:w-6 sm:h-6" />
+                              <span className="font-medium text-base sm:text-lg">
+                                {(masterclass.availableSlots || 0) -
+                                  (masterclass.pickedSlots || 0)}{" "}
+                                {currentLocale === "pl"
+                                  ? "wolnych miejsc"
+                                  : "slots available"}
+                              </span>
+                            </div>
+                          </div>
+                          <Link
+                            href={`/${currentLocale}/masterClass/masterclass-${masterclass.id}`}
+                            className={`btn-unified px-6 py-3 sm:px-8 sm:py-4 text-base sm:text-lg md:text-xl inline-block ${
+                              (masterclass.availableSlots || 0) -
+                                (masterclass.pickedSlots || 0) >
+                              0
+                                ? ""
+                                : "opacity-50 cursor-not-allowed"
+                            }`}
+                          >
+                            {(masterclass.availableSlots || 0) -
+                              (masterclass.pickedSlots || 0) >
+                            0
+                              ? currentLocale === "pl"
+                                ? "Weź udział"
+                                : "Book Now"
+                              : currentLocale === "pl"
+                              ? "Dołącz do listy oczekujących"
+                              : "Join Waitlist"}
+                          </Link>
                         </div>
                       </div>
                     </div>
-                    
-                    {/* Button at the very bottom */}
-                    <div className="absolute bottom-0 left-0 right-0 z-20 flex justify-center pb-3 sm:pb-4 md:pb-6">
-                      <Link
-                        href={`/${currentLocale}/masterClass/masterclass-${masterclass.id}`}
-                        className={`btn-unified px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base md:text-lg inline-block ${
-                          (masterclass.availableSlots || 0) -
-                            (masterclass.pickedSlots || 0) >
-                          0
-                            ? ""
-                            : "opacity-50 cursor-not-allowed"
-                        }`}
-                      >
-                        {(masterclass.availableSlots || 0) -
-                          (masterclass.pickedSlots || 0) >
-                        0
-                          ? currentLocale === "pl"
-                            ? "Weź udział"
-                            : "Book Now"
-                          : currentLocale === "pl"
-                          ? "Dołącz do listy oczekujących"
-                          : "Join Waitlist"}
-                      </Link>
-                    </div>
-                  </div>
                   );
                 })()}
               </div>
