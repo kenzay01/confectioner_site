@@ -215,18 +215,18 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
         faqs: newMasterclass.faqs || { pl: [], en: [] },
         photo: photos[0] || newMasterclass.photo || "",
         photos: photos.length > 0 ? photos : undefined,
-        title: {
-          pl: newMasterclass.title?.pl || "",
-          en: usePolishForEnglish ? newMasterclass.title?.pl || "" : newMasterclass.title?.en || ""
-        },
-        description: {
-          pl: newMasterclass.description?.pl || "",
-          en: usePolishForEnglish ? newMasterclass.description?.pl || "" : newMasterclass.description?.en || ""
-        },
-        location: {
-          pl: newMasterclass.location?.pl || "",
-          en: usePolishForEnglish ? newMasterclass.location?.pl || "" : newMasterclass.location?.en || ""
-        },
+      title: {
+        pl: newMasterclass.title?.pl || "",
+        en: usePolishForEnglish ? newMasterclass.title?.pl || "" : newMasterclass.title?.en || ""
+      },
+      description: {
+        pl: newMasterclass.description?.pl || "",
+        en: usePolishForEnglish ? newMasterclass.description?.pl || "" : newMasterclass.description?.en || ""
+      },
+      location: {
+        pl: newMasterclass.location?.pl || "",
+        en: usePolishForEnglish ? newMasterclass.location?.pl || "" : newMasterclass.location?.en || ""
+      },
         city: ""
       } as Masterclass;
 
@@ -652,20 +652,20 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
       const uploadedUrls: string[] = [];
       
       for (const file of fileArray) {
-        const formData = new FormData();
-        formData.append("file", file);
+      const formData = new FormData();
+      formData.append("file", file);
 
-        const res = await fetch("/api/upload-map-photo", {
-          method: "POST",
-          body: formData,
-        });
+      const res = await fetch("/api/upload-map-photo", {
+        method: "POST",
+        body: formData,
+      });
 
-        if (!res.ok) {
-          throw new Error("Upload failed");
-        }
+      if (!res.ok) {
+        throw new Error("Upload failed");
+      }
 
-        const data = await res.json();
-        if (data.url) {
+      const data = await res.json();
+      if (data.url) {
           uploadedUrls.push(data.url);
         }
       }
@@ -677,7 +677,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
             const existingPhoto = prev.photo ? [prev.photo] : [];
             const allPhotos = [...existingPhoto, ...existingPhotos, ...uploadedUrls];
             return {
-              ...prev,
+            ...prev,
               photo: allPhotos[0] || prev.photo, // Перше фото для зворотної сумісності
               photos: allPhotos,
             };
@@ -1524,12 +1524,12 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                           {photos.map((photo, index) => (
                             <div key={index} className="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 bg-gray-50">
-                              <Image
+                        <Image
                                 src={photo}
                                 alt={`Zdjęcie ${index + 1}`}
-                                fill
-                                className="object-cover"
-                              />
+                          fill
+                          className="object-cover"
+                        />
                               <button
                                 type="button"
                                 onClick={() => {
@@ -1547,8 +1547,8 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                               {index === 0 && (
                                 <div className="absolute bottom-1 left-1 px-2 py-0.5 rounded bg-[var(--brown-color)] text-white text-xs font-semibold">
                                   Główne
-                                </div>
-                              )}
+                    </div>
+                  )}
                             </div>
                           ))}
                         </div>
@@ -1663,13 +1663,13 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     <div className="flex items-center gap-4">
                       <div className="flex-shrink-0">
                         {masterclass.photo ? (
-                          <Image
-                            src={masterclass.photo}
-                            alt="Masterclass"
-                            width={64}
-                            height={64}
-                            className="w-16 h-16 object-cover rounded"
-                          />
+                        <Image
+                          src={masterclass.photo}
+                          alt="Masterclass"
+                          width={64}
+                          height={64}
+                          className="w-16 h-16 object-cover rounded"
+                        />
                         ) : (
                           <div className="w-16 h-16 bg-gray-300 rounded flex items-center justify-center text-gray-500 text-xs">
                             Brak
@@ -2024,12 +2024,12 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                               {photos.map((photo, index) => (
                                 <div key={index} className="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 bg-gray-50">
-                                  <Image
+                            <Image
                                     src={photo}
                                     alt={`Zdjęcie ${index + 1}`}
-                                    fill
-                                    className="object-cover"
-                                  />
+                              fill
+                              className="object-cover"
+                            />
                                   <button
                                     type="button"
                                     onClick={() => {
@@ -2047,8 +2047,8 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                                   {index === 0 && (
                                     <div className="absolute bottom-1 left-1 px-2 py-0.5 rounded bg-[var(--brown-color)] text-white text-xs font-semibold">
                                       Główne
-                                    </div>
-                                  )}
+                        </div>
+                      )}
                                 </div>
                               ))}
                             </div>

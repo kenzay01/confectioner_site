@@ -494,11 +494,11 @@ export default function MasterClassPage() {
               <button
                 type="button"
                 onClick={() => setPhotoGallery(null)}
-                className="absolute top-3 right-3 sm:top-4 sm:right-4 p-2 rounded-full bg-black/50 hover:bg-black/70 transition-colors z-10"
+                className="absolute top-3 right-3 sm:top-4 sm:right-4 p-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors z-10"
               >
-                <X className="w-6 h-6 text-white" />
+                <X className="w-6 h-6 text-gray-700" />
               </button>
-              <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-gray-900 mb-4">
+              <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-white mb-4">
                 <Image
                   src={photoGallery.photos[photoGallery.index]}
                   alt={`${photoGallery.title} - ${photoGallery.index + 1}`}
@@ -510,7 +510,7 @@ export default function MasterClassPage() {
                   <>
                     <button
                       type="button"
-                      className="absolute left-2 top-1/2 -translate-y-1/2 px-3 py-2 rounded-full bg-black/55 text-white hover:bg-black/80 transition-colors"
+                      className="absolute left-2 top-1/2 -translate-y-1/2 px-3 py-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors"
                       onClick={() =>
                         setPhotoGallery({
                           ...photoGallery,
@@ -518,11 +518,11 @@ export default function MasterClassPage() {
                         })
                       }
                     >
-                      <ChevronLeft className="w-6 h-6" />
+                      <ChevronLeft className="w-6 h-6 text-gray-700" />
                     </button>
                     <button
                       type="button"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-2 rounded-full bg-black/55 text-white hover:bg-black/80 transition-colors"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors"
                       onClick={() =>
                         setPhotoGallery({
                           ...photoGallery,
@@ -530,7 +530,7 @@ export default function MasterClassPage() {
                         })
                       }
                     >
-                      <ChevronRight className="w-6 h-6" />
+                      <ChevronRight className="w-6 h-6 text-gray-700" />
                     </button>
                   </>
                 )}
@@ -545,8 +545,8 @@ export default function MasterClassPage() {
                       className={`relative aspect-square rounded-lg overflow-hidden border-2 ${
                         index === photoGallery.index
                           ? "border-[var(--brown-color)]"
-                          : "border-gray-600"
-                      } bg-gray-800`}
+                          : "border-gray-300"
+                      } bg-gray-100`}
                     >
                       <Image
                         src={photo}
