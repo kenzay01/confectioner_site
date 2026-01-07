@@ -128,7 +128,7 @@ export async function POST(req: NextRequest) {
       // Дані для аркуша "Контакти"
       const { name, email, question } = data;
       values = [[timestamp, name || "", email || "", question || ""]];
-      range = "Контакти!A:D"; // Оновлено до A-D, видалено колонку для Telegram
+      range = "Контакти!A:D";
     } else if (type === "payment") {
       // Дані для аркуша "Оплати"
       const {
@@ -156,7 +156,7 @@ export async function POST(req: NextRequest) {
           companyAddress || "",
         ],
       ];
-      range = "Оплати!A:J"; // Без змін, оскільки Telegram тут не використовується
+      range = "Оплати!A:J";
     } else {
       return new Response(JSON.stringify({ message: "Invalid type" }), {
         status: 400,

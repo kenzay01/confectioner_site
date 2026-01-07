@@ -1,7 +1,7 @@
 [
   {
     "dateType": "single",
-    "date": "2025-12-17",
+    "date": "2026-01-22",
     "dateEnd": "",
     "dateTimes": [],
     "location": {
@@ -19,7 +19,7 @@
       "en": "test"
     },
     "price": 100,
-    "availableSlots": 0,
+    "availableSlots": 10,
     "pickedSlots": 0,
     "faqs": {
       "pl": [],

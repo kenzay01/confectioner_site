@@ -135,62 +135,62 @@ export default function MasterClassPage() {
           const mainPhoto = photos[0];
           if (mainPhoto) {
             return (
-              <div className="relative rounded-2xl overflow-hidden mb-8 shadow-lg border border-gray-200/60 min-h-[50vh] sm:min-h-[60vh]">
-              {/* Background Photo */}
-              <div className="absolute inset-0 z-0">
-                <div className="absolute inset-0 bg-black/50 z-10"></div>
-                <Image
+          <div className="relative rounded-2xl overflow-hidden mb-8 shadow-lg border border-gray-200/60 min-h-[50vh] sm:min-h-[60vh]">
+            {/* Background Photo */}
+            <div className="absolute inset-0 z-0">
+              <div className="absolute inset-0 bg-black/50 z-10"></div>
+              <Image
                   src={mainPhoto}
-                  alt={
-                    currentLocale === "pl"
-                      ? `Zdjęcie z warsztatu ${masterclass.title[currentLocale]}`
+                alt={
+                  currentLocale === "pl"
+                    ? `Zdjęcie z warsztatu ${masterclass.title[currentLocale]}`
                       : `Photo from workshop ${masterclass.title[currentLocale]}`
-                  }
-                  fill
+                }
+                fill
                   className="object-cover cursor-pointer"
-                  priority
-                  quality={90}
+                priority
+                quality={90}
                   onClick={() => photos.length > 0 && setPhotoGallery({ photos, index: 0, title: masterclass.title[currentLocale] })}
-                />
-              </div>
-              
-              {/* Content on Photo - only title, date, location */}
-              <div className="relative z-20 text-center p-6 sm:p-10 h-full flex flex-col justify-center">
-                <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6 sm:mb-8 drop-shadow-lg">
-                  {masterclass.title[currentLocale]}
-                </h1>
-                
-                <div className="flex flex-wrap justify-center gap-4 sm:gap-5">
-                  <div className="flex items-center gap-2.5 text-white bg-white/20 backdrop-blur-sm px-4 py-2 sm:px-5 sm:py-2.5 rounded-full border border-white/30">
-                    <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />
-                    <span className="font-medium text-base sm:text-lg md:text-xl">{formatDate(masterclass)}</span>
-                  </div>
-                  <div className="flex items-center gap-2.5 text-white bg-white/20 backdrop-blur-sm px-4 py-2 sm:px-5 sm:py-2.5 rounded-full border border-white/30">
-                    <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />
-                    <span className="font-medium text-base sm:text-lg md:text-xl">{masterclass.location[currentLocale]}</span>
-                  </div>
-                </div>
-              </div>
+              />
             </div>
-            );
-          }
-          return (
-            <div className="text-center mb-8">
-              <h1 className="text-3xl sm:text-4xl font-bold text-[var(--accent-color)] mb-5">
+            
+            {/* Content on Photo - only title, date, location */}
+            <div className="relative z-20 text-center p-6 sm:p-10 h-full flex flex-col justify-center">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6 sm:mb-8 drop-shadow-lg">
                 {masterclass.title[currentLocale]}
               </h1>
               
-              <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
-                <div className="flex items-center gap-2 text-[var(--accent-color)] bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm border border-gray-200/50">
-                  <Calendar className="w-4 h-4" />
-                  <span className="font-medium text-sm sm:text-base">{formatDate(masterclass)}</span>
+              <div className="flex flex-wrap justify-center gap-4 sm:gap-5">
+                <div className="flex items-center gap-2.5 text-white bg-white/20 backdrop-blur-sm px-4 py-2 sm:px-5 sm:py-2.5 rounded-full border border-white/30">
+                  <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />
+                  <span className="font-medium text-base sm:text-lg md:text-xl">{formatDate(masterclass)}</span>
                 </div>
-                <div className="flex items-center gap-2 text-[var(--accent-color)] bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm border border-gray-200/50">
-                  <MapPin className="w-4 h-4" />
-                  <span className="font-medium text-sm sm:text-base">{masterclass.location[currentLocale]}</span>
+                <div className="flex items-center gap-2.5 text-white bg-white/20 backdrop-blur-sm px-4 py-2 sm:px-5 sm:py-2.5 rounded-full border border-white/30">
+                  <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />
+                  <span className="font-medium text-base sm:text-lg md:text-xl">{masterclass.location[currentLocale]}</span>
                 </div>
               </div>
             </div>
+          </div>
+            );
+          }
+          return (
+          <div className="text-center mb-8">
+            <h1 className="text-3xl sm:text-4xl font-bold text-[var(--accent-color)] mb-5">
+              {masterclass.title[currentLocale]}
+            </h1>
+            
+            <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
+              <div className="flex items-center gap-2 text-[var(--accent-color)] bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm border border-gray-200/50">
+                <Calendar className="w-4 h-4" />
+                <span className="font-medium text-sm sm:text-base">{formatDate(masterclass)}</span>
+              </div>
+              <div className="flex items-center gap-2 text-[var(--accent-color)] bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm border border-gray-200/50">
+                <MapPin className="w-4 h-4" />
+                <span className="font-medium text-sm sm:text-base">{masterclass.location[currentLocale]}</span>
+              </div>
+            </div>
+          </div>
           );
         })()}
 
@@ -215,7 +215,7 @@ export default function MasterClassPage() {
                   setIsModalOpen(true);
                 } else {
                   setIsWaitlistOpen(true);
-                }
+              }
               }}
               className="btn-unified px-8 py-3 text-base sm:text-lg"
             >
@@ -498,7 +498,7 @@ export default function MasterClassPage() {
               >
                 <X className="w-6 h-6 text-gray-700" />
               </button>
-              <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-white mb-4">
+              <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden mb-4">
                 <Image
                   src={photoGallery.photos[photoGallery.index]}
                   alt={`${photoGallery.title} - ${photoGallery.index + 1}`}
@@ -536,7 +536,7 @@ export default function MasterClassPage() {
                 )}
               </div>
               {photoGallery.photos.length > 1 && (
-                <div className="grid grid-cols-5 sm:grid-cols-8 gap-2 max-h-32 overflow-y-auto">
+                <div className="grid grid-cols-6 sm:grid-cols-10 gap-1.5 max-h-20 overflow-y-auto">
                   {photoGallery.photos.map((photo, index) => (
                     <button
                       key={index}

@@ -2984,13 +2984,15 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                       onChange={(e) =>
                         setNewMapLocation({
                           ...newMapLocation,
-                          type: e.target.value as "school" | "bakery" | "private_client" | "other",
+                          type: e.target.value as "school" | "bakery" | "private_client" | "cukiernia" | "kawiarnia" | "other",
                         })
                       }
                       className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                     >
                       <option value="school">Szkoła</option>
                       <option value="bakery">Piekarnia</option>
+                      <option value="cukiernia">Cukiernia</option>
+                      <option value="kawiarnia">Kawiarnia</option>
                       <option value="private_client">Klient prywatny</option>
                       <option value="other">Inne</option>
                     </select>
@@ -3242,13 +3244,15 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         onChange={(e) =>
                           setEditingMapLocation({
                             ...editingMapLocation,
-                            type: e.target.value as "school" | "bakery" | "private_client" | "other",
+                            type: e.target.value as "school" | "bakery" | "private_client" | "cukiernia" | "kawiarnia" | "other",
                           })
                         }
                         className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
                       >
                         <option value="school">Szkoła</option>
                         <option value="bakery">Piekarnia</option>
+                        <option value="cukiernia">Cukiernia</option>
+                        <option value="kawiarnia">Kawiarnia</option>
                         <option value="private_client">Klient prywatny</option>
                         <option value="other">Inne</option>
                       </select>

@@ -289,7 +289,7 @@ function PaymentStatusContent() {
     try {
       console.log('Processing successful payment:', data.sessionId);
       
-      // 1. Обробляємо успішний платіж (відправляємо в Telegram і записуємо в таблицю)
+      // 1. Обробляємо успішний платіж (відправляємо на пошту і записуємо в таблицю)
       const processResponse = await fetch('/api/process-payment', {
         method: 'POST',
         headers: {

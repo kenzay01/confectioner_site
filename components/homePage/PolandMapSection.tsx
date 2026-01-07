@@ -415,11 +415,11 @@ export default function PolandMapSection() {
             }}
           >
             <div onClick={(e) => e.stopPropagation()}>
-              <AnimatedSection 
-                className="bg-white rounded-3xl p-6 max-w-6xl w-full max-h-[90vh] overflow-y-auto relative border-l-4 border-[var(--brown-color)] shadow-2xl"
-                direction="up"
-                duration={0.3}
-              >
+            <AnimatedSection 
+              className="bg-white rounded-3xl p-6 max-w-6xl w-full max-h-[90vh] overflow-y-auto relative border-l-4 border-[var(--brown-color)] shadow-2xl"
+              direction="up"
+              duration={0.3}
+            >
               <button
                 onClick={() => setSelectedCity(null)}
                 className="absolute top-4 right-4 btn-unified p-2 rounded-full z-10"
@@ -437,15 +437,13 @@ export default function PolandMapSection() {
                     {currentLocale === "pl" ? "Miejsca w których odbyły się moje warsztaty" : "Places where my masterclasses took place"}
                   </h3>
                   <div className="space-y-5">
-                    {selectedMapLocations.map((location) => {
+                    {selectedMapLocations.map((location, locationIndex) => {
                       const photos = location.photos || [];
                       const hasPhotos = photos.length > 0;
-                      const mainPhoto = hasPhotos ? photos[0] : null;
-                      const extraPhotos = hasPhotos ? photos.slice(1, 5) : [];
 
                       return (
                         <article
-                          key={location.id}
+                          key={`${location.id}-${locationIndex}`}
                           className="bg-white rounded-2xl border border-gray-200/80 hover:border-[var(--brown-color)]/30 hover:shadow-md transition-all duration-300 overflow-hidden"
                         >
                           {/* Info section */}
@@ -457,6 +455,10 @@ export default function PolandMapSection() {
                                     ? currentLocale === "pl" ? "Szkoła" : "School"
                                     : location.type === "bakery"
                                     ? currentLocale === "pl" ? "Piekarnia" : "Bakery"
+                                    : location.type === "cukiernia"
+                                    ? currentLocale === "pl" ? "Cukiernia" : "Confectionery"
+                                    : location.type === "kawiarnia"
+                                    ? currentLocale === "pl" ? "Kawiarnia" : "Cafe"
                                     : location.type === "private_client"
                                     ? currentLocale === "pl" ? "Klient prywatny" : "Private client"
                                     : currentLocale === "pl" ? "Inne" : "Other"}
@@ -482,33 +484,33 @@ export default function PolandMapSection() {
                           </div>
 
                           {/* Gallery section */}
-                          {hasPhotos && mainPhoto && photos.length > 1 && (
+                          {hasPhotos && photos.length > 0 && (
                             <div className="px-5 sm:px-6 pb-5 sm:pb-6">
                               <h3 className="text-lg sm:text-xl font-semibold text-[var(--accent-color)] mb-4">
                                 {currentLocale === "pl" ? "Galeria zdjęć" : "Photo Gallery"}
                               </h3>
                               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                                 {photos.map((photo, index) => (
-                                  <button
-                                    key={index}
-                                    type="button"
-                                    onClick={() =>
-                                      setPhotoGallery({
-                                        photos,
+                                      <button
+                                        key={`${location.id}-photo-${index}`}
+                                        type="button"
+                                        onClick={() =>
+                                          setPhotoGallery({
+                                            photos,
                                         index: index,
-                                        title: location.name[currentLocale as keyof typeof location.name],
-                                      })
-                                    }
+                                            title: location.name[currentLocale as keyof typeof location.name],
+                                          })
+                                        }
                                     className="relative aspect-square rounded-xl overflow-hidden border-2 border-gray-200 hover:border-[var(--brown-color)] transition-colors group"
-                                  >
-                                    <Image
-                                      src={photo}
+                                      >
+                                        <Image
+                                          src={photo}
                                       alt={`${location.name[currentLocale as keyof typeof location.name]} - ${index + 1}`}
-                                      fill
+                                          fill
                                       className="object-cover transition-transform duration-300 group-hover:scale-110"
-                                    />
-                                  </button>
-                                ))}
+                                        />
+                                      </button>
+                                    ))}
                               </div>
                             </div>
                           )}
@@ -518,7 +520,7 @@ export default function PolandMapSection() {
                   </div>
                 </div>
               )}
-              </AnimatedSection>
+            </AnimatedSection>
             </div>
           </div>
         )}
@@ -544,66 +546,66 @@ export default function PolandMapSection() {
             >
               <X className="w-6 h-6 text-gray-700" />
             </button>
-            <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-white mb-4">
-              <Image
-                src={photoGallery.photos[photoGallery.index]}
-                alt={`${photoGallery.title} - ${photoGallery.index + 1}`}
-                fill
+            <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden mb-4">
+                <Image
+                  src={photoGallery.photos[photoGallery.index]}
+                  alt={`${photoGallery.title} - ${photoGallery.index + 1}`}
+                  fill
                 className="object-contain"
                 priority
-              />
-              {photoGallery.photos.length > 1 && (
-                <>
-                  <button
-                    type="button"
+                />
+                {photoGallery.photos.length > 1 && (
+                  <>
+                    <button
+                      type="button"
                     className="absolute left-2 top-1/2 -translate-y-1/2 px-3 py-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors"
-                    onClick={() =>
+                      onClick={() =>
                       setPhotoGallery({
                         ...photoGallery,
                         index: (photoGallery.index - 1 + photoGallery.photos.length) % photoGallery.photos.length,
                       })
-                    }
-                  >
+                      }
+                    >
                     <ChevronLeft className="w-6 h-6 text-gray-700" />
-                  </button>
-                  <button
-                    type="button"
+                    </button>
+                    <button
+                      type="button"
                     className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors"
-                    onClick={() =>
+                      onClick={() =>
                       setPhotoGallery({
                         ...photoGallery,
                         index: (photoGallery.index + 1) % photoGallery.photos.length,
                       })
-                    }
-                  >
+                      }
+                    >
                     <ChevronRight className="w-6 h-6 text-gray-700" />
-                  </button>
-                </>
-              )}
-            </div>
-            {photoGallery.photos.length > 1 && (
-              <div className="grid grid-cols-5 sm:grid-cols-8 gap-2 max-h-32 overflow-y-auto">
-                {photoGallery.photos.map((photo, index) => (
-                  <button
-                    key={index}
-                    type="button"
+                    </button>
+                  </>
+                )}
+              </div>
+              {photoGallery.photos.length > 1 && (
+              <div className="grid grid-cols-6 sm:grid-cols-10 gap-1.5 max-h-20 overflow-y-auto">
+                  {photoGallery.photos.map((photo, index) => (
+                    <button
+                      key={index}
+                      type="button"
                     onClick={() => setPhotoGallery({ ...photoGallery, index })}
                     className={`relative aspect-square rounded-lg overflow-hidden border-2 ${
-                      index === photoGallery.index
-                        ? "border-[var(--brown-color)]"
+                        index === photoGallery.index
+                          ? "border-[var(--brown-color)]"
                         : "border-gray-300"
-                    } bg-gray-100`}
-                  >
-                    <Image
-                      src={photo}
-                      alt={`${photoGallery.title} miniatura ${index + 1}`}
-                      fill
-                      className="object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
+                      } bg-gray-100`}
+                    >
+                      <Image
+                        src={photo}
+                        alt={`${photoGallery.title} miniatura ${index + 1}`}
+                        fill
+                        className="object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
           </div>
         </div>
       )}
