@@ -53,27 +53,18 @@ export async function POST(req: NextRequest) {
     const currencyStr = "PLN";
     const crcKeyStr = String(crcKey);
 
-    // Формат hash string для Przelewy24: sessionId|merchantId|amount|currency|crcKey
-    // Очищаємо всі значення від пробілів та перевіряємо кодування
+    // Формат hash string для Przelewy24 transaction/register: sessionId|merchantId|amount|currency|crcKey
+    // Очищаємо всі значення від пробілів
     const cleanSessionId = sessionIdStr.trim();
     const cleanMerchantId = merchantIdStr.trim();
     const cleanAmount = amountStr.trim();
     const cleanCurrency = currencyStr.trim();
     const cleanCrcKey = crcKeyStr.trim();
     
-    // Правильний CRC розрахунок згідно з документацією Przelewy24
-    // Використовуємо SHA-384 та JSON формат
-    const params = {
-      sessionId: cleanSessionId,
-      merchantId: parseInt(cleanMerchantId),
-      amount: parseInt(cleanAmount),
-      currency: cleanCurrency,
-      crc: cleanCrcKey
-    };
-    
-    // Створюємо JSON рядок з правильними параметрами
-    const combinedString = JSON.stringify(params, null, 0);
-    const sign = crypto.createHash('sha384').update(combinedString, 'utf8').digest('hex');
+    // Правильний CRC розрахунок згідно з документацією Przelewy24 API v1
+    // Використовуємо SHA-384 з рядком, розділеним символом |
+    const hashString = `${cleanSessionId}|${parseInt(cleanMerchantId)}|${parseInt(cleanAmount)}|${cleanCurrency}|${cleanCrcKey}`;
+    const sign = crypto.createHash('sha384').update(hashString, 'utf8').digest('hex');
 
 
     // Дані для створення транзакції

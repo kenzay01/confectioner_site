@@ -1,6 +1,6 @@
 import Header from "@/components/Header";
 import { locales } from "@/i18n/config";
-import { Metadata } from "next";
+import { Metadata, Viewport } from "next";
 import "../globals.css";
 import { Montserrat } from "next/font/google";
 import { ItemsProvider } from "@/context/itemsContext";
@@ -34,16 +34,6 @@ export async function generateMetadata(): Promise<Metadata> {
     generator: "Next.js",
     referrer: "origin-when-cross-origin",
     colorScheme: "light",
-    themeColor: [
-      { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-      { media: "(prefers-color-scheme: dark)", color: "#000000" }
-    ],
-    viewport: {
-      width: "device-width",
-      initialScale: 1,
-      maximumScale: 1,
-      userScalable: false,
-    },
     formatDetection: {
       email: false,
       address: false,
@@ -125,6 +115,19 @@ export async function generateMetadata(): Promise<Metadata> {
       'msapplication-TileColor': '#000000',
       'msapplication-config': '/browserconfig.xml',
     },
+  };
+}
+
+export function generateViewport(): Viewport {
+  return {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    themeColor: [
+      { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+      { media: "(prefers-color-scheme: dark)", color: "#000000" }
+    ],
   };
 }
 
