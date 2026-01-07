@@ -69,7 +69,7 @@ async function verifyTransaction(sessionId: string, amount: number, orderId: num
     const posId = process.env.PRZELEWY24_POS_ID;
     const apiKey = process.env.PRZELEWY24_API_KEY;
     const crcKey = process.env.PRZELEWY24_CRC_KEY;
-    const isSandbox = process.env.NODE_ENV !== "production";
+    const isSandbox = false; // production mode
 
     if (!merchantId || !posId || !apiKey || !crcKey) {
       return false;

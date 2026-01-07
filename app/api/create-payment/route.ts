@@ -8,8 +8,8 @@ export async function POST(req: NextRequest) {
     const { amount, itemType, sessionId } = body;
 
     // Конфігурація Przelewy24
-    // Для sandbox використовуємо тестові дані
-    const isSandbox = true; // завжди true для тестування
+    // Production mode - використовуємо справжні дані
+    const isSandbox = false; // production mode
     
     let merchantId, posId, crcKey, apiKey;
     
@@ -38,8 +38,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Базовий URL для Przelewy24 - спробуємо sandbox для тестування
-    const baseUrl = "https://sandbox.przelewy24.pl/api/v1"
+    // Базовий URL для Przelewy24 - production
+    const baseUrl = "https://secure.przelewy24.pl/api/v1"
 
     // Створюємо hash для автентифікації
     
@@ -140,7 +140,7 @@ export async function POST(req: NextRequest) {
     }
 
     // URL do przekierowania на стронę płатності - sandbox
-    const paymentUrl = `https://sandbox.przelewy24.pl/trnRequest/${result.data.token}`;
+    const paymentUrl = `https://secure.przelewy24.pl/trnRequest/${result.data.token}`;
 
     return NextResponse.json({
       success: true,

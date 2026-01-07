@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Конфігурація Przelewy24 - використовуємо ту ж логіку, що і в create-payment
-    const isSandbox = true; // завжди true для тестування
+    const isSandbox = false; // production mode
     
     let merchantId, posId, apiKey;
     
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const baseUrl = "https://sandbox.przelewy24.pl/api/v1"
+    const baseUrl = "https://secure.przelewy24.pl/api/v1"
 
     // Автентифікація для Przelewy24 - використовуємо ті ж дані
     const authString = `${posId}:${apiKey}`;
