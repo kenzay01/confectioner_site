@@ -32,6 +32,13 @@ export async function POST(req: NextRequest) {
       console.error('PosId:', posId ? 'Set' : 'Missing');
       console.error('CRC Key:', crcKey ? 'Set' : 'Missing');
       console.error('API Key:', apiKey ? 'Set' : 'Missing');
+      console.error('isSandbox:', isSandbox);
+      console.error('Environment variables check:', {
+        PRZELEWY24_MERCHANT_ID: process.env.PRZELEWY24_MERCHANT_ID ? 'exists' : 'missing',
+        PRZELEWY24_POS_ID: process.env.PRZELEWY24_POS_ID ? 'exists' : 'missing',
+        PRZELEWY24_CRC_KEY: process.env.PRZELEWY24_CRC_KEY ? 'exists' : 'missing',
+        PRZELEWY24_API_KEY: process.env.PRZELEWY24_API_KEY ? 'exists' : 'missing'
+      });
       return NextResponse.json(
         { error: "Missing Przelewy24 configuration" },
         { status: 500 }
@@ -53,18 +60,28 @@ export async function POST(req: NextRequest) {
     const currencyStr = "PLN";
     const crcKeyStr = String(crcKey);
 
-    // Формат hash string для Przelewy24 transaction/register: sessionId|merchantId|amount|currency|crcKey
-    // Очищаємо всі значення від пробілів
-    const cleanSessionId = sessionIdStr.trim();
-    const cleanMerchantId = merchantIdStr.trim();
-    const cleanAmount = amountStr.trim();
-    const cleanCurrency = currencyStr.trim();
-    const cleanCrcKey = crcKeyStr.trim();
+    // Формат hash string для Przelewy24 transaction/register
+    // Згідно з документацією Przelewy24 API v1, використовується JSON формат
+    const signObject = {
+      "sessionId": sessionId,
+      "merchantId": parseInt(merchantId),
+      "amount": amountInGrosz,
+      "currency": "PLN",
+      "crc": crcKey
+    };
     
-    // Правильний CRC розрахунок згідно з документацією Przelewy24 API v1
-    // Використовуємо SHA-384 з рядком, розділеним символом |
-    const hashString = `${cleanSessionId}|${parseInt(cleanMerchantId)}|${parseInt(cleanAmount)}|${cleanCurrency}|${cleanCrcKey}`;
-    const sign = crypto.createHash('sha384').update(hashString, 'utf8').digest('hex');
+    // Створюємо JSON рядок БЕЗ пробілів та переносів рядків
+    const signString = JSON.stringify(signObject);
+    const sign = crypto.createHash('sha384').update(signString, 'utf8').digest('hex');
+    
+    console.log('CRC Debug:', {
+      signObject,
+      signString,
+      sign: sign.substring(0, 20) + '...',
+      isSandbox: isSandbox,
+      merchantId: merchantId,
+      posId: posId
+    });
 
 
     // Дані для створення транзакції
