@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import AnimatedSection from "@/components/AnimatedSection";
-import { X, MapPin, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import { MapLocation } from "@/types/mapLocation";
 import { getCityName } from "@/utils/cityTranslations";
 

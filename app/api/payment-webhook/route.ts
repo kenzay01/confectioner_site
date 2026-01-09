@@ -1,6 +1,20 @@
 // app/api/payment-webhook/route.ts
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import crypto from 'crypto';
+
+interface WebhookBody {
+  merchantId?: number | string;
+  posId?: number | string;
+  sessionId?: string;
+  amount?: number | string;
+  originAmount?: number | string;
+  currency?: string;
+  orderId?: number | string;
+  methodId?: number | string;
+  statement?: string;
+  sign?: string;
+  [key: string]: unknown;
+}
 
 // Обробка OPTIONS запиту (CORS preflight)
 export async function OPTIONS() {
@@ -17,7 +31,7 @@ export async function OPTIONS() {
 export async function POST(req: NextRequest) {
   try {
     // Przelewy24 може надсилати дані як JSON або як form-data
-    let body: any;
+    let body: WebhookBody;
     const contentType = req.headers.get('content-type');
     
     console.log('=== WEBHOOK RECEIVED ===');
@@ -25,11 +39,11 @@ export async function POST(req: NextRequest) {
     console.log('Headers:', Object.fromEntries(req.headers.entries()));
     
     if (contentType?.includes('application/json')) {
-      body = await req.json();
+      body = await req.json() as WebhookBody;
     } else {
       // Якщо це form-data, парсимо вручну
       const formData = await req.formData();
-      const formEntries: Record<string, any> = {};
+      const formEntries: WebhookBody = {};
       for (const [key, value] of formData.entries()) {
         formEntries[key] = value;
       }
