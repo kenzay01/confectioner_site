@@ -17,7 +17,7 @@ export async function OPTIONS() {
 export async function POST(req: NextRequest) {
   try {
     // Przelewy24 може надсилати дані як JSON або як form-data
-    let body;
+    let body: any;
     const contentType = req.headers.get('content-type');
     
     console.log('=== WEBHOOK RECEIVED ===');
@@ -29,14 +29,18 @@ export async function POST(req: NextRequest) {
     } else {
       // Якщо це form-data, парсимо вручну
       const formData = await req.formData();
-      body = Object.fromEntries(formData.entries());
+      const formEntries: Record<string, any> = {};
+      for (const [key, value] of formData.entries()) {
+        formEntries[key] = value;
+      }
+      body = formEntries;
       // Конвертуємо числові значення
-      if (body.amount) body.amount = parseInt(body.amount as string);
-      if (body.originAmount) body.originAmount = parseInt(body.originAmount as string);
-      if (body.orderId) body.orderId = parseInt(body.orderId as string);
-      if (body.methodId) body.methodId = parseInt(body.methodId as string);
-      if (body.merchantId) body.merchantId = parseInt(body.merchantId as string);
-      if (body.posId) body.posId = parseInt(body.posId as string);
+      if (body.amount) body.amount = parseInt(String(body.amount));
+      if (body.originAmount) body.originAmount = parseInt(String(body.originAmount));
+      if (body.orderId) body.orderId = parseInt(String(body.orderId));
+      if (body.methodId) body.methodId = parseInt(String(body.methodId));
+      if (body.merchantId) body.merchantId = parseInt(String(body.merchantId));
+      if (body.posId) body.posId = parseInt(String(body.posId));
     }
     
     console.log('Webhook body:', JSON.stringify(body, null, 2));

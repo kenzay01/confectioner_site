@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# data files (dynamic content managed through admin panel)
+data/masterclasses.json
+data/onlineProducts.json
+data/partners.json
+data/mapLocations.json
