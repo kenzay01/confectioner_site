@@ -1,11 +1,22 @@
 // app/api/create-payment/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import crypto from 'crypto';
+import fs from "fs/promises";
+import path from "path";
+import { Masterclass } from "@/types/masterclass";
+import { format } from "date-fns";
+import { pl } from "date-fns/locale";
+
+const masterclassesFile = path.join(
+  process.cwd(),
+  "data",
+  "masterclasses.json"
+);
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { amount, itemType, sessionId } = body;
+    const { amount, itemType, sessionId, itemId } = body;
 
     // Production configuration
     const merchantId = process.env.PRZELEWY24_MERCHANT_ID;
@@ -32,6 +43,25 @@ export async function POST(req: NextRequest) {
 
     // Convert amount to grosz (1 zł = 100 gr)
     const amountInGrosz = Math.round(amount * 100);
+
+    // Get masterclass details if it's a masterclass payment
+    let paymentDescription = `${itemType === 'masterclass' ? 'Warsztat' : 'Produkt'}`;
+    if (itemType === 'masterclass' && itemId) {
+      try {
+        const fileContents = await fs.readFile(masterclassesFile, "utf-8");
+        const masterclasses = JSON.parse(fileContents) as Masterclass[];
+        const masterclass = masterclasses.find(m => m.id === itemId);
+        
+        if (masterclass) {
+          const formattedDate = format(new Date(masterclass.date), "d MMMM yyyy", { locale: pl });
+          const location = masterclass.location.pl || masterclass.location.en;
+          paymentDescription = `Warsztat: ${masterclass.title.pl} - ${formattedDate}, ${location}`;
+        }
+      } catch (error) {
+        console.error('Error reading masterclass details:', error);
+        // Fallback to default description
+      }
+    }
 
     // Create sign according to Przelewy24 documentation
     const signObject = {
@@ -61,7 +91,7 @@ export async function POST(req: NextRequest) {
       sessionId: sessionId,
       amount: amountInGrosz,
       currency: "PLN",
-      description: `${itemType === 'masterclass' ? 'Masterclass' : 'Product'} purchase`,
+      description: paymentDescription,
       email: body.email || "customer@example.com",
       client: body.fullName || "Customer",
       address: body.address || "",

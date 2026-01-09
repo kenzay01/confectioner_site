@@ -33,7 +33,6 @@ export async function generateMetadata(): Promise<Metadata> {
     applicationName: "Confectioner Masterclasses",
     generator: "Next.js",
     referrer: "origin-when-cross-origin",
-    colorScheme: "light",
     formatDetection: {
       email: false,
       address: false,
@@ -124,6 +123,7 @@ export function generateViewport(): Viewport {
     initialScale: 1,
     maximumScale: 1,
     userScalable: false,
+    colorScheme: "light",
     themeColor: [
       { media: "(prefers-color-scheme: light)", color: "#ffffff" },
       { media: "(prefers-color-scheme: dark)", color: "#000000" }

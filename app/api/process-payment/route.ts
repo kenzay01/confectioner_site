@@ -1,5 +1,16 @@
 // app/api/process-payment/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import fs from "fs/promises";
+import path from "path";
+import { Masterclass } from "@/types/masterclass";
+import { format } from "date-fns";
+import { pl } from "date-fns/locale";
+
+const masterclassesFile = path.join(
+  process.cwd(),
+  "data",
+  "masterclasses.json"
+);
 
 export async function POST(req: NextRequest) {
   try {
@@ -34,6 +45,33 @@ export async function POST(req: NextRequest) {
       console.error('Failed to add data to Google Sheets');
     }
 
+    // Get masterclass details if it's a masterclass payment
+    let masterclassDetails = '';
+    if (itemType === 'masterclass' && itemId) {
+      try {
+        const fileContents = await fs.readFile(masterclassesFile, "utf-8");
+        const masterclasses = JSON.parse(fileContents) as Masterclass[];
+        const masterclass = masterclasses.find(m => m.id === itemId);
+        
+        if (masterclass) {
+          const formattedDate = format(new Date(masterclass.date), "d MMMM yyyy", { locale: pl });
+          const location = masterclass.location.pl || masterclass.location.en;
+          const city = masterclass.city || '';
+          masterclassDetails = `
+            <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+            <h3>📚 SZCZEGÓŁY WARSZTATU:</h3>
+            <p><strong>📖 Nazwa:</strong> ${masterclass.title.pl}</p>
+            <p><strong>📅 Data:</strong> ${formattedDate}</p>
+            <p><strong>📍 Lokalizacja:</strong> ${location}</p>
+            <p><strong>🏙️ Miasto:</strong> ${city}</p>
+            <p><strong>💰 Cena:</strong> ${masterclass.price} PLN</p>
+          `;
+        }
+      } catch (error) {
+        console.error('Error reading masterclass details:', error);
+      }
+    }
+
     // Підготовка email повідомлення
     const isPaid = status === 'success';
     const statusEmoji = isPaid ? '✅' : '❌';
@@ -46,6 +84,9 @@ export async function POST(req: NextRequest) {
       <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
       <p><strong>📝 Typ:</strong> ${itemType === 'masterclass' ? 'Warsztat' : 'Produkt'}</p>
       <p><strong>🆔 ID:</strong> ${itemId}</p>
+      ${masterclassDetails}
+      <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+      <h3>👤 DANE KLIENTA:</h3>
       <p><strong>👤 Imię i nazwisko:</strong> ${formData.fullName || 'Nie podano'}</p>
       <p><strong>📧 Email:</strong> ${formData.email || 'Nie podano'}</p>
       <p><strong>📱 Telefon:</strong> ${formData.phone || 'Nie podano'}</p>
