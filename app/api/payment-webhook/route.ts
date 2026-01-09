@@ -104,7 +104,14 @@ export async function POST(req: NextRequest) {
 
     // Верифікація транзакції через API Przelewy24
     console.log('=== VERIFYING TRANSACTION ===');
-    const isVerified = await verifyTransaction(sessionId, amount, orderId);
+    let isVerified = false;
+    if (sessionId && amount !== undefined && orderId !== undefined) {
+      const amountNum = typeof amount === 'string' ? parseInt(amount) : amount;
+      const orderIdNum = typeof orderId === 'string' ? parseInt(String(orderId)) : orderId;
+      isVerified = await verifyTransaction(sessionId, amountNum, orderIdNum);
+    } else {
+      console.warn('Missing required fields for verification:', { sessionId, amount, orderId });
+    }
     
     console.log('Transaction verified:', isVerified);
 
