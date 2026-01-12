@@ -139,7 +139,7 @@ export async function POST(req: NextRequest) {
             console.log('Slot reduced successfully:', reduceSlotResult);
           } else {
             console.error('Failed to reduce slot:', await reduceSlotResponse.text());
-          }
+    }
         }
       } catch (error) {
         console.error('Error reducing masterclass slot in webhook:', error);

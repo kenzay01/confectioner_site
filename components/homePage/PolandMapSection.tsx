@@ -508,6 +508,9 @@ export default function PolandMapSection() {
                                       alt={`${location.name[currentLocale as keyof typeof location.name]} - ${index + 1}`}
                                           fill
                                       className="object-cover transition-transform duration-300 group-hover:scale-110"
+                                          sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                                          loading={index < 4 ? "eager" : "lazy"}
+                                          quality={75}
                                         />
                                       </button>
                                     ))}
@@ -553,6 +556,8 @@ export default function PolandMapSection() {
                   fill
                 className="object-contain"
                 priority
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
+                quality={85}
                 />
                 {photoGallery.photos.length > 1 && (
                   <>
@@ -601,6 +606,9 @@ export default function PolandMapSection() {
                         alt={`${photoGallery.title} miniatura ${index + 1}`}
                         fill
                         className="object-cover"
+                        sizes="(max-width: 640px) 16vw, 10vw"
+                        loading="lazy"
+                        quality={60}
                       />
                     </button>
                   ))}

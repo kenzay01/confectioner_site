@@ -24,54 +24,54 @@ console.log('  Amount:', amount, 'zł =', amountInGrosz, 'grosz');
 console.log('  Currency: PLN\n');
 
 // Create sign object
-const signObject = {
+    const signObject = {
   sessionId: sessionId,
   merchantId: parseInt(merchantId),
   amount: amountInGrosz,
   currency: "PLN",
   crc: crcKey
-};
+    };
 
 // Create JSON string
-const signString = JSON.stringify(signObject);
-const sign = crypto.createHash('sha384').update(signString, 'utf8').digest('hex');
+    const signString = JSON.stringify(signObject);
+    const sign = crypto.createHash('sha384').update(signString, 'utf8').digest('hex');
 
 console.log('=== Sign Calculation ===');
 console.log('Sign Object:', JSON.stringify(signObject, null, 2));
-console.log('Sign String:', signString);
+    console.log('Sign String:', signString);
 console.log('Calculated Sign (SHA-384):', sign);
 console.log('Sign (first 30 chars):', sign.substring(0, 30) + '...\n');
 
 // Transaction data that would be sent
-const transactionData = {
-  merchantId: parseInt(merchantId),
-  posId: parseInt(posId),
-  sessionId: sessionId,
-  amount: amountInGrosz,
-  currency: "PLN",
+    const transactionData = {
+      merchantId: parseInt(merchantId),
+      posId: parseInt(posId),
+      sessionId: sessionId,
+      amount: amountInGrosz,
+      currency: "PLN",
   description: "Test purchase",
   email: "test@example.com",
   client: "Test Customer",
   address: "",
   zip: "",
   city: "",
-  country: "PL",
+      country: "PL",
   phone: "",
-  language: "pl",
-  method: 0,
-  urlReturn: `https://nieznanypiekarz.com/payment-status?sessionId=${sessionId}&status=return`,
-  urlStatus: `https://nieznanypiekarz.com/api/payment-webhook?sessionId=${sessionId}`,
-  timeLimit: 15,
-  waitForResult: false,
-  regulationAccept: true,
-  sign: sign
-};
+      language: "pl",
+      method: 0,
+      urlReturn: `https://nieznanypiekarz.com/payment-status?sessionId=${sessionId}&status=return`,
+      urlStatus: `https://nieznanypiekarz.com/api/payment-webhook?sessionId=${sessionId}`,
+      timeLimit: 15,
+      waitForResult: false,
+      regulationAccept: true,
+      sign: sign
+    };
 
 console.log('=== Transaction Data (to be sent) ===');
 console.log(JSON.stringify(transactionData, null, 2));
 console.log('\n=== Authentication ===');
-const authString = `${posId}:${apiKey}`;
-const encodedAuth = Buffer.from(authString).toString('base64');
+    const authString = `${posId}:${apiKey}`;
+    const encodedAuth = Buffer.from(authString).toString('base64');
 console.log('Auth String:', `${posId}:${apiKey ? apiKey.substring(0, 10) + '...' : 'missing'}`);
 console.log('Encoded (Base64):', encodedAuth.substring(0, 20) + '...\n');
 

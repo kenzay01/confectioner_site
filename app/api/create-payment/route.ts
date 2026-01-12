@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
 
     // Convert amount to grosz (1 zł = 100 gr)
     const amountInGrosz = Math.round(amount * 100);
-
+    
     // Get masterclass details if it's a masterclass payment
     let paymentDescription = `${itemType === 'masterclass' ? 'Warsztat' : 'Produkt'}`;
     if (itemType === 'masterclass' && itemId) {
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
       "currency": "PLN",
       "crc": crcKey
     };
-
+    
     // Create JSON string WITHOUT spaces and line breaks
     const signString = JSON.stringify(signObject);
     const sign = crypto.createHash('sha384').update(signString, 'utf8').digest('hex');
@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
     // Authentication for Przelewy24
     const authString = `${posId}:${apiKey}`;
     const encodedAuth = Buffer.from(authString).toString('base64');
-
+    
     console.log('Sending request to Przelewy24...');
 
     // Send request to Przelewy24
@@ -139,7 +139,7 @@ export async function POST(req: NextRequest) {
     }
 
     const result = JSON.parse(responseText);
-
+    
     if (result.error) {
       console.error('Przelewy24 registration error:', result);
       return NextResponse.json(

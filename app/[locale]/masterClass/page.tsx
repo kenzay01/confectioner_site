@@ -249,7 +249,10 @@ const SliderSection = ({ masterclasses }: { masterclasses: Masterclass[] }) => {
                             alt={masterclass.title[currentLocale]}
                             fill
                             className="object-cover"
-                            quality={90}
+                            quality={85}
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            priority={index < 2}
+                            loading={index < 2 ? "eager" : "lazy"}
                           />
                         </div>
                         
