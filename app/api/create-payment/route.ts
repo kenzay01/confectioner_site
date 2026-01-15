@@ -63,18 +63,26 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Create sign according to Przelewy24 documentation
+    // Create sign according to Przelewy24 API v1 documentation
+    // Format: JSON object with SHA-384 hash
     const signObject = {
-      "sessionId": sessionId,
-      "merchantId": parseInt(merchantId),
-      "amount": amountInGrosz,
-      "currency": "PLN",
-      "crc": crcKey
+      sessionId: sessionId,
+      merchantId: parseInt(merchantId),
+      amount: amountInGrosz,
+      currency: "PLN",
+      crc: crcKey
     };
     
-    // Create JSON string WITHOUT spaces and line breaks
+    // Create JSON string WITHOUT any spaces or formatting
+    // Important: must be compact JSON, no extra spaces
     const signString = JSON.stringify(signObject);
     const sign = crypto.createHash('sha384').update(signString, 'utf8').digest('hex');
+    
+    console.log('=== SIGN CALCULATION ===');
+    console.log('Sign object:', signObject);
+    console.log('Sign string (JSON):', signString);
+    console.log('Sign (SHA-384):', sign);
+    console.log('CRC Key used:', crcKey ? `${crcKey.substring(0, 4)}...${crcKey.substring(crcKey.length - 4)}` : 'MISSING');
 
     console.log('Payment request:', {
       sessionId,
