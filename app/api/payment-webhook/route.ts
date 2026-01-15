@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
       sign 
     } = body;
 
-    // Верифікація підпису
+    // Верифікація підпису - ПРАВИЛЬНИЙ формат: JSON + SHA384
     const crcKey = process.env.PRZELEWY24_CRC_KEY;
     if (!crcKey) {
       console.error('Missing CRC key configuration');
@@ -83,23 +83,42 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const hashString = `${merchantId}|${posId}|${sessionId}|${amount}|${originAmount}|${currency}|${orderId}|${methodId}|${statement}|${crcKey}`;
-    const calculatedSign = crypto.createHash('md5').update(hashString).digest('hex');
+    // ПРАВИЛЬНИЙ формат для webhook: JSON об'єкт + SHA384
+    const signObject = {
+      merchantId: typeof merchantId === 'string' ? parseInt(merchantId) : merchantId,
+      posId: typeof posId === 'string' ? parseInt(String(posId)) : posId,
+      sessionId: sessionId,
+      amount: typeof amount === 'string' ? parseInt(amount) : amount,
+      originAmount: typeof originAmount === 'string' ? parseInt(String(originAmount)) : originAmount,
+      currency: currency || "PLN",
+      orderId: typeof orderId === 'string' ? parseInt(String(orderId)) : orderId,
+      methodId: typeof methodId === 'string' ? parseInt(String(methodId)) : methodId,
+      statement: statement || "",
+      crc: crcKey
+    };
+
+    // Створюємо JSON string БЕЗ пробілів
+    const signString = JSON.stringify(signObject);
+    const calculatedSign = crypto.createHash('sha384').update(signString, 'utf8').digest('hex');
 
     console.log('=== SIGNATURE VERIFICATION ===');
-    console.log('Hash string:', hashString);
+    console.log('Sign object:', signObject);
+    console.log('Sign string (JSON):', signString);
     console.log('Received sign:', sign);
     console.log('Calculated sign:', calculatedSign);
     console.log('Match:', calculatedSign === sign);
 
-    // ТИМЧАСОВО: завжди приймаємо webhook для діагностики
-    // Після виправлення можна включити перевірку підпису
+    // Перевірка підпису
     const skipVerification = process.env.SKIP_WEBHOOK_VERIFICATION === 'true';
     
     if (!skipVerification && calculatedSign !== sign) {
-      console.error('Invalid signature in webhook');
+      console.error('❌ Invalid signature in webhook!');
+      console.error('Expected:', calculatedSign);
+      console.error('Received:', sign);
       // Все одно повертаємо 200 OK, щоб не блокувати платежі
       // але логуємо помилку
+    } else {
+      console.log('✅ Signature verified successfully!');
     }
 
     // Верифікація транзакції через API Przelewy24
@@ -176,20 +195,26 @@ async function verifyTransaction(sessionId: string, amount: number, orderId: num
     const posId = process.env.PRZELEWY24_POS_ID;
     const apiKey = process.env.PRZELEWY24_API_KEY;
     const crcKey = process.env.PRZELEWY24_CRC_KEY;
-    const isSandbox = false; // production mode
 
     if (!merchantId || !posId || !apiKey || !crcKey) {
       console.error('Missing credentials for verification');
       return false;
     }
 
-    const baseUrl = isSandbox 
-      ? "https://sandbox.przelewy24.pl/api/v1" 
-      : "https://secure.przelewy24.pl/api/v1";
+    const baseUrl = "https://secure.przelewy24.pl/api/v1";
 
-    // Створюємо hash для верифікації
-    const hashString = `${sessionId}|${orderId}|${amount}|${crcKey}`;
-    const sign = crypto.createHash('md5').update(hashString).digest('hex');
+    // ПРАВИЛЬНИЙ формат для verify: JSON об'єкт + SHA384
+    const signObject = {
+      sessionId: sessionId,
+      orderId: orderId,
+      amount: amount,
+      currency: "PLN",
+      crc: crcKey
+    };
+
+    // Створюємо JSON string БЕЗ пробілів
+    const signString = JSON.stringify(signObject);
+    const sign = crypto.createHash('sha384').update(signString, 'utf8').digest('hex');
 
     const verifyData = {
       merchantId: parseInt(merchantId),
@@ -201,10 +226,11 @@ async function verifyTransaction(sessionId: string, amount: number, orderId: num
       sign: sign
     };
 
-    console.log('Verify request:', {
-      url: `${baseUrl}/transaction/verify`,
-      data: { ...verifyData, sign: sign.substring(0, 20) + '...' }
-    });
+    console.log('=== VERIFY REQUEST ===');
+    console.log('Sign object:', signObject);
+    console.log('Sign string (JSON):', signString);
+    console.log('Sign (SHA-384):', sign);
+    console.log('Verify URL:', `${baseUrl}/transaction/verify`);
 
     const authString = `${posId}:${apiKey}`;
     const encodedAuth = Buffer.from(authString).toString('base64');
@@ -213,19 +239,27 @@ async function verifyTransaction(sessionId: string, amount: number, orderId: num
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Basic ${encodedAuth}`
+        'Authorization': `Basic ${encodedAuth}`,
+        'Accept': 'application/json'
       },
       body: JSON.stringify(verifyData)
     });
 
     const responseText = await response.text();
-    console.log('Verify response:', {
-      status: response.status,
-      ok: response.ok,
-      body: responseText
-    });
+    console.log('=== VERIFY RESPONSE ===');
+    console.log('Status:', response.status);
+    console.log('OK:', response.ok);
+    console.log('Body:', responseText);
 
-    return response.ok;
+    if (!response.ok) {
+      console.error('Verify failed:', responseText);
+      return false;
+    }
+
+    const result = responseText ? JSON.parse(responseText) : {};
+    console.log('Verify result:', result);
+
+    return response.ok && result.data?.status === 'SUCCESS';
 
   } catch (error) {
     console.error('Error verifying transaction:', error);
