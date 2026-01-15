@@ -1,5 +1,6 @@
 // app/api/payment-status/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import crypto from 'crypto';
 
 export async function GET(req: NextRequest) {
   try {
@@ -150,6 +151,36 @@ export async function GET(req: NextRequest) {
 
     console.log('Mapped status:', status);
 
+    // Якщо статус ще processing або created, але є orderId, перевіряємо через verify API
+    // Це потрібно, бо Przelewy24 може ще не оновити статус в transaction/by/sessionId,
+    // але verify API вже підтвердить успішний платіж
+    if ((status === 'processing' || status === 'created') && transaction?.orderId) {
+      console.log('Status is processing/created, checking via verify API...');
+      const crcKey = process.env.PRZELEWY24_CRC_KEY;
+      
+      if (crcKey) {
+        try {
+          const verifyStatus = await verifyTransactionStatus(
+            sessionId,
+            transaction.orderId,
+            transaction.amount,
+            merchantId,
+            posId,
+            apiKey,
+            crcKey
+          );
+          
+          if (verifyStatus === 'success') {
+            console.log('✅ Verify API confirms success, overriding status');
+            status = 'success';
+          }
+        } catch (error) {
+          console.error('Error verifying transaction status:', error);
+          // Продовжуємо з поточним статусом
+        }
+      }
+    }
+
     return NextResponse.json({
       success: true,
       status: status,
@@ -162,5 +193,72 @@ export async function GET(req: NextRequest) {
       { error: "Internal server error" },
       { status: 500 }
     );
+  }
+}
+
+async function verifyTransactionStatus(
+  sessionId: string,
+  orderId: number,
+  amount: number,
+  merchantId: string,
+  posId: string,
+  apiKey: string,
+  crcKey: string
+): Promise<string> {
+  try {
+    const baseUrl = "https://secure.przelewy24.pl/api/v1";
+
+    // ПРАВИЛЬНИЙ формат для verify: JSON об'єкт + SHA384
+    const signObject = {
+      sessionId: sessionId,
+      orderId: orderId,
+      amount: amount,
+      currency: "PLN",
+      crc: crcKey
+    };
+
+    // Створюємо JSON string БЕЗ пробілів
+    const signString = JSON.stringify(signObject);
+    const sign = crypto.createHash('sha384').update(signString, 'utf8').digest('hex');
+
+    const verifyData = {
+      merchantId: parseInt(merchantId),
+      posId: parseInt(posId),
+      sessionId: sessionId,
+      amount: amount,
+      currency: "PLN",
+      orderId: orderId,
+      sign: sign
+    };
+
+    const authString = `${posId}:${apiKey}`;
+    const encodedAuth = Buffer.from(authString).toString('base64');
+
+    const response = await fetch(`${baseUrl}/transaction/verify`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${encodedAuth}`,
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(verifyData)
+    });
+
+    if (!response.ok) {
+      return 'unknown';
+    }
+
+    const responseText = await response.text();
+    const result = responseText ? JSON.parse(responseText) : {};
+
+    // Przelewy24 повертає 'success' (lowercase)
+    const isSuccess = (result.data?.status === 'success' || result.data?.status === 'SUCCESS') && 
+                      result.responseCode === 0;
+
+    return isSuccess ? 'success' : 'unknown';
+
+  } catch (error) {
+    console.error('Error in verifyTransactionStatus:', error);
+    return 'unknown';
   }
 }

@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
     
     console.log('Transaction verified:', isVerified);
 
-    // Обробляємо успішний платіж: зменшуємо кількість місць для masterclass
+    // Обробляємо успішний платіж: зменшуємо кількість місць для masterclass та відправляємо email
     if (isVerified && sessionId) {
       try {
         // Витягуємо itemType та itemId з sessionId (формат: "masterclass_masterclass-123_timestamp")
@@ -143,7 +143,45 @@ export async function POST(req: NextRequest) {
           const itemId = sessionParts[1]; // "masterclass-123"
           const masterclassId = itemId.replace('masterclass-', ''); // "123"
           
-          console.log('Reducing slot for masterclass:', masterclassId);
+          console.log('Processing successful payment in webhook for masterclass:', masterclassId);
+          
+          // Отримуємо дані транзакції з Przelewy24 для email
+          const merchantId = process.env.PRZELEWY24_MERCHANT_ID;
+          const posId = process.env.PRZELEWY24_POS_ID;
+          const apiKey = process.env.PRZELEWY24_API_KEY;
+          
+          let clientEmail = '';
+          let clientName = '';
+          
+          if (merchantId && posId && apiKey) {
+            try {
+              const baseUrl = "https://secure.przelewy24.pl/api/v1";
+              const authString = `${posId}:${apiKey}`;
+              const encodedAuth = Buffer.from(authString).toString('base64');
+              
+              const transactionResponse = await fetch(`${baseUrl}/transaction/by/sessionId/${sessionId}`, {
+                method: 'GET',
+                headers: {
+                  'Authorization': `Basic ${encodedAuth}`,
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json'
+                }
+              });
+              
+              if (transactionResponse.ok) {
+                const transactionResult = await transactionResponse.json();
+                if (transactionResult.data) {
+                  const transaction = Array.isArray(transactionResult.data) 
+                    ? transactionResult.data[0] 
+                    : transactionResult.data;
+                  clientEmail = transaction.clientEmail || '';
+                  clientName = transaction.clientName || '';
+                }
+              }
+            } catch (error) {
+              console.error('Error fetching transaction details:', error);
+            }
+          }
           
           // Зменшуємо кількість місць
           const reduceSlotResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://nieznanypiekarz.com'}/api/masterclasses/${masterclassId}/reduce-slot`, {
@@ -158,10 +196,60 @@ export async function POST(req: NextRequest) {
             console.log('Slot reduced successfully:', reduceSlotResult);
           } else {
             console.error('Failed to reduce slot:', await reduceSlotResponse.text());
-    }
+          }
+          
+          // Відправляємо email адміну через process-payment API
+          // Використовуємо дані з Przelewy24 та мінімальний formData
+          // Email відправиться з webhook для гарантії, навіть якщо користувач закриє сторінку
+          if (clientEmail && clientName) {
+            try {
+              console.log('Sending email notification from webhook...');
+              const processPaymentResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://nieznanypiekarz.com'}/api/process-payment`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  sessionId: sessionId,
+                  itemType: 'masterclass',
+                  itemId: masterclassId,
+                  formData: {
+                    fullName: clientName,
+                    email: clientEmail,
+                    whatsapp: '',
+                    phone: '',
+                    workplace: '',
+                    profession: '',
+                    invoiceNeeded: false,
+                    companyName: '',
+                    nip: '',
+                    companyAddress: '',
+                    city: '',
+                    imageConsent: '',
+                  },
+                  amount: amount, // вже в grosz
+                  status: 'success',
+                  fromWebhook: true, // Позначка, що email відправлено з webhook
+                }),
+              });
+              
+              if (processPaymentResponse.ok) {
+                const processResult = await processPaymentResponse.json();
+                console.log('✅ Email sent to admin from webhook:', processResult);
+              } else {
+                const errorText = await processPaymentResponse.text();
+                console.error('Failed to send email from webhook:', errorText);
+              }
+            } catch (error) {
+              console.error('Error sending email from webhook:', error);
+              // Не блокуємо webhook при помилці відправки email
+            }
+          } else {
+            console.warn('Cannot send email from webhook - missing client data:', { clientEmail, clientName });
+          }
         }
       } catch (error) {
-        console.error('Error reducing masterclass slot in webhook:', error);
+        console.error('Error processing payment in webhook:', error);
         // Не блокуємо webhook при помилці
       }
     }

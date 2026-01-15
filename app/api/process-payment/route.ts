@@ -23,6 +23,11 @@ export async function POST(req: NextRequest) {
     console.log('ItemId:', itemId);
     console.log('Amount:', amount);
     console.log('Status:', status);
+    console.log('FormData received:', {
+      fullName: formData?.fullName,
+      email: formData?.email,
+      hasFullData: !!(formData?.fullName && formData?.email)
+    });
 
     if (!sessionId || !itemType || !itemId || !formData) {
       console.error('Missing required fields:', { sessionId, itemType, itemId, hasFormData: !!formData });

@@ -4,7 +4,7 @@ import { locales, defaultLocale } from './i18n/config';
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  
+
   // Перевіряємо, чи шлях починається з локалі
   const pathnameHasLocale = locales.some(
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
