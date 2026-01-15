@@ -259,7 +259,15 @@ async function verifyTransaction(sessionId: string, amount: number, orderId: num
     const result = responseText ? JSON.parse(responseText) : {};
     console.log('Verify result:', result);
 
-    return response.ok && result.data?.status === 'SUCCESS';
+    // Przelewy24 повертає 'success' (lowercase), не 'SUCCESS'
+    // Також перевіряємо responseCode === 0 (успіх)
+    const isSuccess = (result.data?.status === 'success' || result.data?.status === 'SUCCESS') && 
+                      result.responseCode === 0;
+    console.log('Is verified:', isSuccess);
+    console.log('Status:', result.data?.status);
+    console.log('ResponseCode:', result.responseCode);
+
+    return response.ok && isSuccess;
 
   } catch (error) {
     console.error('Error verifying transaction:', error);

@@ -119,6 +119,9 @@ export async function GET(req: NextRequest) {
       console.log('Transaction status code:', transactionStatus);
       
       switch (transactionStatus) {
+        case 0: // нова транзакція (pending/created)
+          status = "created";
+          break;
         case 1: // початок
           status = "created";
           break;
