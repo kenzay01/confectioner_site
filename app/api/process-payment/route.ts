@@ -64,9 +64,15 @@ export async function POST(req: NextRequest) {
       try {
         const fileContents = await fs.readFile(masterclassesFile, "utf-8");
         const masterclasses = JSON.parse(fileContents) as Masterclass[];
-        const masterclass = masterclasses.find(m => m.id === itemId);
+        
+        // itemId може бути в форматі "masterclass-123" або просто "123"
+        const cleanItemId = itemId.replace('masterclass-', '');
+        const masterclass = masterclasses.find(m => m.id === cleanItemId || m.id === itemId);
+        
+        console.log('Looking for masterclass with itemId:', itemId, 'cleanItemId:', cleanItemId);
         
         if (masterclass) {
+          console.log('Masterclass found:', masterclass.title.pl);
           const formattedDate = format(new Date(masterclass.date), "d MMMM yyyy", { locale: pl });
           const location = masterclass.location.pl || masterclass.location.en;
           const city = masterclass.city || '';
@@ -79,6 +85,8 @@ export async function POST(req: NextRequest) {
             <p><strong>🏙️ Miasto:</strong> ${city}</p>
             <p><strong>💰 Cena:</strong> ${masterclass.price} PLN</p>
           `;
+        } else {
+          console.warn('Masterclass not found for itemId:', itemId, 'Available IDs:', masterclasses.map(m => m.id));
         }
       } catch (error) {
         console.error('Error reading masterclass details:', error);
@@ -89,8 +97,9 @@ export async function POST(req: NextRequest) {
     const isPaid = status === 'success';
     const statusEmoji = isPaid ? '✅' : '❌';
     const statusText = isPaid ? 'ОПЛАЧЕНО' : 'НЕ ОПЛАЧЕНО';
+    const fromWebhook = body.fromWebhook ? ' [Webhook]' : '';
     
-    const subject = `${statusEmoji} Nowe zamówienie - ${statusText}`;
+    const subject = `${statusEmoji} Nowe zamówienie - ${statusText}${fromWebhook}`;
     
     let emailHtml = `
       <h2>${statusEmoji} <strong>NOWE ZAMÓWIENIE</strong> (${statusText})</h2>

@@ -209,11 +209,11 @@ export async function POST(req: NextRequest) {
                 headers: {
                   'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                  sessionId: sessionId,
-                  itemType: 'masterclass',
-                  itemId: masterclassId,
-                  formData: {
+              body: JSON.stringify({
+                sessionId: sessionId,
+                itemType: 'masterclass',
+                itemId: masterclassId, // ID без префіксу "masterclass-"
+                formData: {
                     fullName: clientName,
                     email: clientEmail,
                     whatsapp: '',
