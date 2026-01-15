@@ -38,7 +38,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Відправляємо дані в Google Sheets
-    const sheetsResponse = await fetch(`${req.nextUrl.origin}/api/google-sheets`, {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || req.nextUrl.origin;
+    const sheetsResponse = await fetch(`${baseUrl}/api/google-sheets`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -55,7 +56,10 @@ export async function POST(req: NextRequest) {
     });
 
     if (!sheetsResponse.ok) {
-      console.error('Failed to add data to Google Sheets');
+      const errorText = await sheetsResponse.text();
+      console.error('Failed to add data to Google Sheets:', errorText);
+    } else {
+      console.log('✅ Data added to Google Sheets successfully');
     }
 
     // Get masterclass details if it's a masterclass payment
@@ -132,7 +136,8 @@ export async function POST(req: NextRequest) {
 
     // Відправляємо email
     console.log('Sending email notification to admin...');
-    const emailResponse = await fetch(`${req.nextUrl.origin}/api/send-email`, {
+    console.log('Using base URL:', baseUrl);
+    const emailResponse = await fetch(`${baseUrl}/api/send-email`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -144,9 +149,11 @@ export async function POST(req: NextRequest) {
 
     if (!emailResponse.ok) {
       const errorText = await emailResponse.text();
-      console.error('Failed to send email notification:', errorText);
+      console.error('❌ Failed to send email notification:', errorText);
+      console.error('Email response status:', emailResponse.status);
     } else {
-      console.log('✅ Email notification sent successfully');
+      const emailResult = await emailResponse.json();
+      console.log('✅ Email notification sent successfully:', emailResult);
     }
 
     // Якщо це мастеркласс і платіж успішний, зменшуємо кількість доступних місць
