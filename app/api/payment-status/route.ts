@@ -77,18 +77,48 @@ export async function GET(req: NextRequest) {
 
     const result = await response.json();
     
+    console.log('=== PAYMENT STATUS CHECK ===');
+    console.log('SessionId:', sessionId);
+    console.log('Przelewy24 response:', JSON.stringify(result, null, 2));
+    
     if (result.error) {
+      console.error('Przelewy24 returned error:', result.error);
       return NextResponse.json({
         success: false,
+        status: "unknown",
         error: result.error
       });
     }
 
     // Мапим статус з Przelewy24 на наші статуси
     let status = "unknown";
-    if (result.data && result.data.length > 0) {
-      const transaction = result.data[0];
-      switch (transaction.status) {
+    
+    // Przelewy24 може повертати дані в різних форматах
+    let transaction = null;
+    
+    if (result.data) {
+      // Якщо це масив
+      if (Array.isArray(result.data) && result.data.length > 0) {
+        transaction = result.data[0];
+      } 
+      // Якщо це об'єкт
+      else if (typeof result.data === 'object' && result.data.status !== undefined) {
+        transaction = result.data;
+      }
+    }
+    
+    // Якщо дані на верхньому рівні
+    if (!transaction && result.status !== undefined) {
+      transaction = result;
+    }
+    
+    console.log('Transaction found:', transaction);
+    
+    if (transaction) {
+      const transactionStatus = transaction.status;
+      console.log('Transaction status code:', transactionStatus);
+      
+      switch (transactionStatus) {
         case 1: // початок
           status = "created";
           break;
@@ -108,14 +138,19 @@ export async function GET(req: NextRequest) {
           status = "reversed";
           break;
         default:
+          console.warn('Unknown transaction status:', transactionStatus);
           status = "unknown";
       }
+    } else {
+      console.warn('No transaction data found in response');
     }
+
+    console.log('Mapped status:', status);
 
     return NextResponse.json({
       success: true,
       status: status,
-      data: result.data || []
+      data: transaction || result.data || []
     });
 
   } catch (error) {

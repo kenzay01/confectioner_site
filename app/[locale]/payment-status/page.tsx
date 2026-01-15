@@ -183,11 +183,13 @@ function PaymentStatusContent() {
       
       console.log('Payment status result:', result);
       
-      if (result.success) {
+      // Встановлюємо статус навіть якщо success === false, якщо є поле status
+      if (result.status) {
         setPaymentStatus(result.status);
         
         // Якщо платіж успішний і ще не оброблено, обробляємо його
         if (result.status === 'success' && !processed && paymentData) {
+          console.log('Processing successful payment...');
           await handleSuccessfulPayment(paymentData);
           setProcessed(true);
           localStorage.removeItem("paymentData");
@@ -204,10 +206,13 @@ function PaymentStatusContent() {
               const secondResponse = await fetch(`/api/payment-status?sessionId=${sessionIdToCheck}`);
               const secondResult = await secondResponse.json();
               
-              if (secondResult.success) {
+              console.log('Second status check result:', secondResult);
+              
+              if (secondResult.status) {
                 setPaymentStatus(secondResult.status);
                 
                 if (secondResult.status === 'success' && !processed && paymentData) {
+                  console.log('Processing successful payment from second check...');
                   await handleSuccessfulPayment(paymentData);
                   setProcessed(true);
                   localStorage.removeItem("paymentData");
@@ -219,8 +224,15 @@ function PaymentStatusContent() {
             retryTimeoutRef.current = null;
           }, 5000);
         }
+      } else if (!result.success) {
+        // Якщо немає статусу і є помилка
+        console.error('Payment status check failed:', result.error);
+        setError(`${t.errors.processing}: ${result.error || 'Unknown error'}`);
+        setPaymentStatus("unknown");
       } else {
-        setError(`${t.errors.processing}: ${result.error}`);
+        // Якщо немає статусу взагалі
+        console.warn('No status in response:', result);
+        setPaymentStatus("unknown");
       }
     } catch (error) {
       console.error('Error checking payment status:', error);

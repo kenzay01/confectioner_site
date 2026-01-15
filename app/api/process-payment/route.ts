@@ -17,7 +17,15 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { sessionId, itemType, itemId, formData, amount, status } = body;
 
+    console.log('=== PROCESS PAYMENT ===');
+    console.log('SessionId:', sessionId);
+    console.log('ItemType:', itemType);
+    console.log('ItemId:', itemId);
+    console.log('Amount:', amount);
+    console.log('Status:', status);
+
     if (!sessionId || !itemType || !itemId || !formData) {
+      console.error('Missing required fields:', { sessionId, itemType, itemId, hasFormData: !!formData });
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -89,10 +97,10 @@ export async function POST(req: NextRequest) {
       <h3>👤 DANE KLIENTA:</h3>
       <p><strong>👤 Imię i nazwisko:</strong> ${formData.fullName || 'Nie podano'}</p>
       <p><strong>📧 Email:</strong> ${formData.email || 'Nie podano'}</p>
-      <p><strong>📱 Telefon:</strong> ${formData.phone || 'Nie podano'}</p>
+      <p><strong>📱 Telefon:</strong> ${formData.whatsapp || formData.phone || 'Nie podano'}</p>
       <p><strong>🏙️ Miasto:</strong> ${formData.city || 'Nie podano'}</p>
       <p><strong>📝 Zgoda na wizerunek:</strong> ${formData.imageConsent || 'Nie podano'}</p>
-      <p><strong>💰 Suma:</strong> ${amount / 100} PLN</p>
+      <p><strong>💰 Suma:</strong> ${typeof amount === 'number' ? (amount / 100).toFixed(2) : amount} PLN</p>
       <p><strong>🆔 Session ID:</strong> ${sessionId}</p>
     `;
     
@@ -109,6 +117,7 @@ export async function POST(req: NextRequest) {
     const emailText = emailHtml.replace(/<[^>]*>/g, '').replace(/\n\s*\n/g, '\n');
 
     // Відправляємо email
+    console.log('Sending email notification to admin...');
     const emailResponse = await fetch(`${req.nextUrl.origin}/api/send-email`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -120,7 +129,10 @@ export async function POST(req: NextRequest) {
     });
 
     if (!emailResponse.ok) {
-      console.error('Failed to send email notification');
+      const errorText = await emailResponse.text();
+      console.error('Failed to send email notification:', errorText);
+    } else {
+      console.log('✅ Email notification sent successfully');
     }
 
     // Якщо це мастеркласс і платіж успішний, зменшуємо кількість доступних місць
