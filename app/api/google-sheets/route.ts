@@ -14,6 +14,8 @@ const auth = new google.auth.GoogleAuth({
 });
 
 export async function POST(req: NextRequest) {
+  let requestType: string | undefined;
+  
   try {
     // Перевірка наявності необхідних змінних оточення
     if (!spreadsheetId) {
@@ -63,6 +65,9 @@ export async function POST(req: NextRequest) {
         headers: { "Content-Type": "application/json" },
       });
     }
+
+    // Зберігаємо type для використання в обробці помилок
+    requestType = type;
 
     // Валідація типу
     if (type !== "contact" && type !== "payment") {
@@ -139,7 +144,7 @@ export async function POST(req: NextRequest) {
     });
 
     let values: string[][];
-    let range: string;
+    let range: string | undefined;
 
     if (type === "contact") {
       // Дані для аркуша "Контакти"
@@ -186,8 +191,8 @@ export async function POST(req: NextRequest) {
       await sheets.spreadsheets.get({
         spreadsheetId,
       });
-    } catch (getError: any) {
-      if (getError.code === 404) {
+    } catch (getError: unknown) {
+      if (getError && typeof getError === 'object' && 'code' in getError && getError.code === 404) {
         console.error(`Spreadsheet not found. ID: ${spreadsheetId}`);
         return new Response(
           JSON.stringify({
@@ -222,32 +227,40 @@ export async function POST(req: NextRequest) {
         headers: { "Content-Type": "application/json" },
       }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error adding data to Google Sheets:", error);
     
     // Більш детальна обробка помилок
     let errorMessage = "Error adding data to Google Sheets";
     let statusCode = 500;
+    let errorCode: unknown = undefined;
 
-    if (error.code === 404) {
-      errorMessage = `Google Spreadsheet not found. Please verify:
+    if (error && typeof error === 'object') {
+      if ('code' in error) {
+        errorCode = error.code;
+        if (error.code === 404) {
+          const sheetName = requestType === 'contact' ? 'Контакти' : requestType === 'payment' ? 'Оплати' : 'unknown';
+          errorMessage = `Google Spreadsheet not found. Please verify:
 1. GOOGLE_SPREADSHEET_ID is correct
 2. The spreadsheet exists
 3. The service account (${process.env.GOOGLE_CLIENT_EMAIL}) has access to the spreadsheet
-4. The sheet "${range.split('!')[0]}" exists in the spreadsheet`;
-      statusCode = 404;
-    } else if (error.code === 403) {
-      errorMessage = `Access denied. Please ensure the service account (${process.env.GOOGLE_CLIENT_EMAIL}) has edit access to the spreadsheet.`;
-      statusCode = 403;
-    } else if (error.message) {
-      errorMessage = error.message;
+4. The sheet "${sheetName}" exists in the spreadsheet`;
+          statusCode = 404;
+        } else if (error.code === 403) {
+          errorMessage = `Access denied. Please ensure the service account (${process.env.GOOGLE_CLIENT_EMAIL}) has edit access to the spreadsheet.`;
+          statusCode = 403;
+        }
+      }
+      if ('message' in error && typeof error.message === 'string') {
+        errorMessage = error.message;
+      }
     }
 
     return new Response(
       JSON.stringify({
         message: errorMessage,
         error: error instanceof Error ? error.message : "Unknown error",
-        code: error.code,
+        code: errorCode,
       }),
       {
         status: statusCode,
