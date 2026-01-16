@@ -37,30 +37,30 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Відправляємо дані в Google Sheets
+    // Відправляємо дані в Google Sheets - вимкнено
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || req.nextUrl.origin;
-    const sheetsResponse = await fetch(`${baseUrl}/api/google-sheets`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type: 'payment',
-        data: {
-          ...formData,
-          itemType,
-          itemId,
-          amount,
-          sessionId,
-          paymentStatus: status,
-        }
-      })
-    });
+    // const sheetsResponse = await fetch(`${baseUrl}/api/google-sheets`, {
+    //     method: "POST",
+    //     headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify({
+    //     type: 'payment',
+    //     data: {
+    //       ...formData,
+    //       itemType,
+    //       itemId,
+    //       amount,
+    //       sessionId,
+    //       paymentStatus: status,
+    //     }
+    //   })
+    // });
 
-    if (!sheetsResponse.ok) {
-      const errorText = await sheetsResponse.text();
-      console.error('Failed to add data to Google Sheets:', errorText);
-    } else {
-      console.log('✅ Data added to Google Sheets successfully');
-    }
+    // if (!sheetsResponse.ok) {
+    //   const errorText = await sheetsResponse.text();
+    //   console.error('Failed to add data to Google Sheets:', errorText);
+    // } else {
+    //   console.log('✅ Data added to Google Sheets successfully');
+    // }
 
     // Get masterclass details if it's a masterclass payment
     let masterclassDetails = '';
@@ -166,7 +166,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Payment processed successfully',
-      sheetsSuccess: sheetsResponse.ok,
       emailSuccess: emailResponse.ok
     });
 

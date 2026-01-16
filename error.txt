@@ -1,0 +1,14 @@
+0|confectioner  | Error processing payment: TypeError: fetch failed
+0|confectioner  |     at async C (.next/server/app/api/process-payment/route.js:1:1590)
+0|confectioner  |     at async k (.next/server/app/api/process-payment/route.js:30:3479)
+0|confectioner  |     at async g (.next/server/app/api/process-payment/route.js:30:4482)
+0|confectioner  |     at async I (.next/server/app/api/process-payment/route.js:30:5604) {
+0|confectioner  |   [cause]: [Error: 40CCAB85937D0000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:355:
+0|confectioner  |   ] {
+0|confectioner  |     library: 'SSL routines',
+0|confectioner  |     reason: 'wrong version number',
+0|confectioner  |     code: 'ERR_SSL_WRONG_VERSION_NUMBER'
+0|confectioner  |   }
+0|confectioner  | }
+0|confectioner  | Failed to send email from webhook: {"error":"Internal server error"}
+0|confectioner  | === WEBHOOK PROCESSED: session=masterclass_masterclass-1768516609596_1768518617310, order=4215417555 ===

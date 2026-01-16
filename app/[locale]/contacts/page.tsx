@@ -67,23 +67,23 @@ ${formData.question}
         throw new Error(errorData.details || "Failed to send email");
       }
 
-      // Відправка в Google Sheets
-      const sheetsResponse = await fetch("/api/google-sheets", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "contact",
-          data: {
-            name: formData.name,
-            email: formData.email,
-            question: formData.question,
-          },
-        }),
-      });
+      // Відправка в Google Sheets - вимкнено
+      // const sheetsResponse = await fetch("/api/google-sheets", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({
+      //     type: "contact",
+      //     data: {
+      //       name: formData.name,
+      //       email: formData.email,
+      //       question: formData.question,
+      //     },
+      //   }),
+      // });
 
-      if (!sheetsResponse.ok) {
-        throw new Error("Failed to add data to Google Sheets");
-      }
+      // if (!sheetsResponse.ok) {
+      //   throw new Error("Failed to add data to Google Sheets");
+      // }
 
       setStatus("success");
       setFormData({ name: "", email: "", question: "" });
