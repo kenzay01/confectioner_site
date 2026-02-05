@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
       language: "pl",
       method: 0,
       urlReturn: `https://nieznanypiekarz.com/payment-status?sessionId=${sessionId}&status=return`,
-      urlStatus: `https://nieznanypiekarz.com/api/payment-webhook?sessionId=${sessionId}`,
+      urlStatus: `https://nieznanypiekarz.com/api/payment-webhook-email`,
       timeLimit: 15,
       waitForResult: false,
       regulationAccept: true,
