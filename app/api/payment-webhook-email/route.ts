@@ -277,50 +277,86 @@ export async function POST(req: NextRequest) {
           .replace(/<[^>]*>/g, "")
           .replace(/\n\s*\n/g, "\n");
 
-        // Відправляємо email
+        // Відправляємо email через EmailJS напряму
         console.log("Sending email notification to admin...");
-        const baseUrl =
-          process.env.NEXT_PUBLIC_SITE_URL || req.nextUrl.origin;
-        const emailResponse = await fetch(`${baseUrl}/api/send-email`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            subject,
-            html: emailHtml,
-            text: emailText,
-          }),
-        });
+        
+        const EMAILJS_SERVICE_ID = process.env.EMAILJS_SERVICE_ID;
+        const EMAILJS_TEMPLATE_ID = process.env.EMAILJS_TEMPLATE_ID;
+        const EMAILJS_PUBLIC_KEY = process.env.EMAILJS_PUBLIC_KEY;
+        const EMAILJS_PRIVATE_KEY = process.env.EMAILJS_PRIVATE_KEY;
+        const RECIPIENT_EMAIL = "Nieznanypiekarz@gmail.com";
 
-        if (!emailResponse.ok) {
-          const errorText = await emailResponse.text();
-          console.error("❌ Failed to send email notification:", errorText);
+        if (EMAILJS_SERVICE_ID && EMAILJS_TEMPLATE_ID && EMAILJS_PUBLIC_KEY && EMAILJS_PRIVATE_KEY) {
+          try {
+            const emailContent = emailHtml;
+            const emailResponse = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                service_id: EMAILJS_SERVICE_ID,
+                template_id: EMAILJS_TEMPLATE_ID,
+                user_id: EMAILJS_PUBLIC_KEY,
+                accessToken: EMAILJS_PRIVATE_KEY,
+                template_params: {
+                  to_email: RECIPIENT_EMAIL,
+                  subject: subject,
+                  message: emailContent,
+                  reply_to: RECIPIENT_EMAIL,
+                },
+              }),
+            });
+
+            const responseData = await emailResponse.text();
+
+            if (!emailResponse.ok) {
+              console.error("❌ EmailJS API error:", responseData);
+            } else {
+              console.log("✅ Email notification sent successfully");
+            }
+          } catch (emailError) {
+            console.error("❌ Error sending email:", emailError);
+          }
         } else {
-          const emailResult = await emailResponse.json();
-          console.log("✅ Email notification sent successfully:", emailResult);
+          console.error("❌ EmailJS configuration is not set");
         }
 
         // Якщо це майстер-клас, зменшуємо кількість місць
         if (itemType === "masterclass" && itemId) {
           const masterclassId = itemId.replace("masterclass-", "");
           try {
-            const reduceSlotResponse = await fetch(
-              `${baseUrl}/api/masterclasses/${masterclassId}/reduce-slot`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              }
+            // Читаємо файл з майстер-класами
+            const fileContents = await fs.readFile(masterclassesFile, "utf-8");
+            const masterclasses = JSON.parse(fileContents) as Masterclass[];
+            
+            // Знаходимо потрібний майстер-клас
+            const masterclassIndex = masterclasses.findIndex(
+              (m) => m.id === masterclassId
             );
-
-            if (reduceSlotResponse.ok) {
-              const reduceSlotResult = await reduceSlotResponse.json();
-              console.log("✅ Slot reduced successfully:", reduceSlotResult);
+            
+            if (masterclassIndex !== -1) {
+              const masterclass = masterclasses[masterclassIndex];
+              
+              // Зменшуємо кількість місць
+              if (masterclass.availableSlots > 0) {
+                masterclasses[masterclassIndex] = {
+                  ...masterclass,
+                  availableSlots: masterclass.availableSlots - 1,
+                };
+                
+                // Зберігаємо оновлений файл
+                await fs.writeFile(
+                  masterclassesFile,
+                  JSON.stringify(masterclasses, null, 2)
+                );
+                
+                console.log("✅ Slot reduced successfully for masterclass:", masterclassId);
+              } else {
+                console.warn("⚠️ No available slots to reduce for masterclass:", masterclassId);
+              }
             } else {
-              console.error(
-                "❌ Failed to reduce slot:",
-                await reduceSlotResponse.text()
-              );
+              console.error("❌ Masterclass not found:", masterclassId);
             }
           } catch (error) {
             console.error("Error reducing masterclass slot:", error);
