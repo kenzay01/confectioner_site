@@ -12,11 +12,59 @@ const masterclassesFile = path.join(
   "data",
   "masterclasses.json"
 );
+const paymentSessionsFile = path.join(
+  process.cwd(),
+  "data",
+  "payment-sessions.json"
+);
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { amount, itemType, sessionId, itemId } = body;
+    const {
+      amount,
+      itemType,
+      sessionId,
+      itemId,
+      imageConsent,
+      invoiceNeeded,
+      companyName,
+      nip,
+      companyAddress,
+      fullName,
+      email,
+      phone,
+      city,
+    } = body;
+
+    // Зберігаємо дані форми для листа адміну в webhook
+    try {
+      let sessions: Record<string, Record<string, unknown>> = {};
+      try {
+        const raw = await fs.readFile(paymentSessionsFile, "utf-8");
+        sessions = JSON.parse(raw) || {};
+      } catch {
+        // файл не існує або порожній
+      }
+      sessions[sessionId] = {
+        imageConsent: imageConsent ?? "",
+        invoiceNeeded: !!invoiceNeeded,
+        companyName: companyName ?? "",
+        nip: nip ?? "",
+        companyAddress: companyAddress ?? "",
+        fullName: fullName ?? "",
+        email: email ?? "",
+        phone: phone ?? "",
+        city: city ?? "",
+      };
+      await fs.writeFile(
+        paymentSessionsFile,
+        JSON.stringify(sessions, null, 2),
+        "utf-8"
+      );
+    } catch (err) {
+      console.warn("Could not save payment session form data:", err);
+    }
 
     // Production configuration
     const merchantId = process.env.PRZELEWY24_MERCHANT_ID;

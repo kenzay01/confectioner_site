@@ -176,6 +176,11 @@ export default function PaymentModal({
           fullName: formData.fullName,
           phone: formData.phone,
           city: formData.city,
+          imageConsent: formData.imageConsent,
+          invoiceNeeded: formData.invoiceNeeded,
+          companyName: formData.companyName || "",
+          nip: formData.nip || "",
+          companyAddress: formData.companyAddress || "",
         }),
       });
 
@@ -236,7 +241,7 @@ export default function PaymentModal({
 
   return (
     <div 
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[300] p-4"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onClose();

@@ -27,6 +27,11 @@ const masterclassesFile = path.join(
   "data",
   "masterclasses.json"
 );
+const paymentSessionsFile = path.join(
+  process.cwd(),
+  "data",
+  "payment-sessions.json"
+);
 
 // Обробка OPTIONS запиту (CORS preflight)
 export async function OPTIONS() {
@@ -256,6 +261,47 @@ export async function POST(req: NextRequest) {
             : String(amount);
         const subject = `✅ Nowe zamówienie - OPŁACONE [Webhook]`;
 
+        // Дані форми (згода на вizerunek, фактура, місто) — збережені при створенні платежу
+        let sessionForm: Record<string, string | boolean> = {};
+        try {
+          const raw = await fs.readFile(paymentSessionsFile, "utf-8");
+          const sessions = JSON.parse(raw) as Record<string, Record<string, unknown>>;
+          if (sessionId && sessions[sessionId]) {
+            const s = sessions[sessionId];
+            sessionForm = {
+              imageConsent: String(s.imageConsent ?? ""),
+              invoiceNeeded: !!(s.invoiceNeeded ?? false),
+              companyName: String(s.companyName ?? ""),
+              nip: String(s.nip ?? ""),
+              companyAddress: String(s.companyAddress ?? ""),
+              city: String(s.city ?? ""),
+            };
+            delete sessions[sessionId];
+            await fs.writeFile(paymentSessionsFile, JSON.stringify(sessions, null, 2), "utf-8");
+          }
+        } catch {
+          // файл не існує або помилка читання
+        }
+
+        const imageConsentText =
+          sessionForm.imageConsent === "agree"
+            ? "Wyrażam zgodę na ud. wizerunku"
+            : sessionForm.imageConsent === "disagree"
+              ? "Nie wyrażam zgody na ud. wizerunku"
+              : "Nie podano";
+        const cityDisplay = sessionForm.city || "Nie podano";
+        const invoiceBlock =
+          sessionForm.invoiceNeeded === true
+            ? `
+          <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+          <h3>📋 DANE DO FAKTURY:</h3>
+          <p><strong>Chcę otrzymać fakturę VAT:</strong> Tak</p>
+          <p><strong>🏢 Nazwa firmy:</strong> ${String(sessionForm.companyName) || "Nie podano"}</p>
+          <p><strong>🔢 NIP:</strong> ${String(sessionForm.nip) || "Nie podano"}</p>
+          <p><strong>📍 Adres:</strong> ${String(sessionForm.companyAddress) || "Nie podano"}</p>`
+            : `
+          <p><strong>Chcę otrzymać fakturę VAT:</strong> Nie</p>`;
+
         const emailHtml = `
           <h2>✅ <strong>NOWE ZAMÓWIENIE</strong> (OPŁACONE)</h2>
           <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
@@ -267,6 +313,10 @@ export async function POST(req: NextRequest) {
           <p><strong>👤 Imię i nazwisko:</strong> ${clientName || "Nie podano"}</p>
           <p><strong>📧 Email:</strong> ${clientEmail || "Nie podano"}</p>
           <p><strong>📱 Telefon:</strong> ${clientPhone || "Nie podano"}</p>
+          <p><strong>🏙️ Miasto (lub kod pocztowy):</strong> ${cityDisplay}</p>
+          <p><strong>Udostępnienie wizerunku:</strong> ${imageConsentText}</p>
+          ${invoiceBlock}
+          <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
           <p><strong>💰 Suma:</strong> ${amountInPLN} PLN</p>
           <p><strong>🆔 Session ID:</strong> ${sessionId}</p>
           <p><strong>🆔 Order ID:</strong> ${orderId}</p>
