@@ -261,7 +261,7 @@ export async function POST(req: NextRequest) {
             : String(amount);
         const subject = `✅ Nowe zamówienie - OPŁACONE [Webhook]`;
 
-        // Дані форми (згода на вizerunek, фактура, місто) — збережені при створенні платежу
+        // Дані форми (згода на wizerunek, faktura, kontakt) — збережені при створенні платежу
         let sessionForm: Record<string, string | boolean> = {};
         try {
           const raw = await fs.readFile(paymentSessionsFile, "utf-8");
@@ -275,7 +275,10 @@ export async function POST(req: NextRequest) {
               nip: String(s.nip ?? ""),
               companyAddress: String(s.companyAddress ?? ""),
               city: String(s.city ?? ""),
-            };
+              fullName: String(s.fullName ?? ""),
+              email: String(s.email ?? ""),
+              phone: String(s.phone ?? ""),
+            } as Record<string, string | boolean>;
             delete sessions[sessionId];
             await fs.writeFile(paymentSessionsFile, JSON.stringify(sessions, null, 2), "utf-8");
           }
@@ -289,7 +292,34 @@ export async function POST(req: NextRequest) {
             : sessionForm.imageConsent === "disagree"
               ? "Nie wyrażam zgody na ud. wizerunku"
               : "Nie podano";
-        const cityDisplay = sessionForm.city || "Nie podano";
+        const cityDisplay =
+          (sessionForm.city as string | undefined) && sessionForm.city !== ""
+            ? (sessionForm.city as string)
+            : "Nie podano";
+        const phoneDisplay =
+          ((sessionForm.phone as string | undefined) &&
+            (sessionForm.phone as string) !== "") ||
+          clientPhone
+            ? ((sessionForm.phone as string) ||
+                (clientPhone as string) ||
+                "Nie podano")
+            : "Nie podano";
+        const fullNameDisplay =
+          ((sessionForm.fullName as string | undefined) &&
+            (sessionForm.fullName as string) !== "") ||
+          clientName
+            ? ((sessionForm.fullName as string) ||
+                (clientName as string) ||
+                "Nie podano")
+            : "Nie podano";
+        const emailDisplay =
+          ((sessionForm.email as string | undefined) &&
+            (sessionForm.email as string) !== "") ||
+          clientEmail
+            ? ((sessionForm.email as string) ||
+                (clientEmail as string) ||
+                "Nie podano")
+            : "Nie podano";
         const invoiceBlock =
           sessionForm.invoiceNeeded === true
             ? `
@@ -310,9 +340,9 @@ export async function POST(req: NextRequest) {
           ${itemDetails}
           <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
           <h3>👤 DANE KLIENTA:</h3>
-          <p><strong>👤 Imię i nazwisko:</strong> ${clientName || "Nie podano"}</p>
-          <p><strong>📧 Email:</strong> ${clientEmail || "Nie podano"}</p>
-          <p><strong>📱 Telefon:</strong> ${clientPhone || "Nie podano"}</p>
+          <p><strong>👤 Imię i nazwisko:</strong> ${fullNameDisplay}</p>
+          <p><strong>📧 Email:</strong> ${emailDisplay}</p>
+          <p><strong>📱 Telefon:</strong> ${phoneDisplay}</p>
           <p><strong>🏙️ Miasto (lub kod pocztowy):</strong> ${cityDisplay}</p>
           <p><strong>Udostępnienie wizerunku:</strong> ${imageConsentText}</p>
           ${invoiceBlock}
