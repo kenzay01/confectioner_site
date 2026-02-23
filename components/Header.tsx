@@ -49,31 +49,33 @@ const Header = () => {
   ];
 
   return (
-    <header className="md:relative fixed top-0 left-0 right-0 z-[250] bg-[var(--main-color)] shadow-lg md:shadow-none">
-      <div className="max-w-7xl mx-auto overflow-hidden">
+    <header className="fixed top-0 left-0 right-0 z-[250] bg-[var(--main-color)] shadow-md overflow-visible">
+      <div className="max-w-7xl mx-auto overflow-visible">
         <div className="flex justify-between items-center h-14 sm:h-24 mx-3 sm:mx-6 lg:mx-8">
-          {/* Left side - Logo */}
-          <div
-            onClick={() => router.push(`/${currentLocale}`)}
-            className="cursor-pointer"
-          >
-            <div className="hidden sm:flex">
-              <Image
-                src={LogoFinal}
-                alt="Logo"
-                width={120}
-                height={120}
-                className="flex-shrink-0 mt-2"
-              />
-            </div>
-            <div className="flex sm:hidden">
-              <Image
-                src={LogoFinal}
-                alt="Logo"
-                width={70}
-                height={70}
-                className="flex-shrink-0"
-              />
+          {/* Left side - Logo (clipped to header height) */}
+          <div className="h-14 sm:h-24 overflow-hidden flex items-center">
+            <div
+              onClick={() => router.push(`/${currentLocale}`)}
+              className="cursor-pointer"
+            >
+              <div className="hidden sm:flex">
+                <Image
+                  src={LogoFinal}
+                  alt="Logo"
+                  width={120}
+                  height={120}
+                  className="flex-shrink-0 mt-2"
+                />
+              </div>
+              <div className="flex sm:hidden">
+                <Image
+                  src={LogoFinal}
+                  alt="Logo"
+                  width={70}
+                  height={70}
+                  className="flex-shrink-0"
+                />
+              </div>
             </div>
           </div>
 

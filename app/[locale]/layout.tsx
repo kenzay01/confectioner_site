@@ -4,7 +4,9 @@ import { Metadata, Viewport } from "next";
 import "../globals.css";
 import { Montserrat } from "next/font/google";
 import { ItemsProvider } from "@/context/itemsContext";
+import { SiteContentProvider } from "@/context/siteContentContext";
 import Footer from "@/components/homePage/Footer";
+import { readSiteContent } from "@/lib/siteContent";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -131,23 +133,26 @@ export function generateViewport(): Viewport {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const initialContent = await readSiteContent();
   return (
     <html lang="pl" className={`${montserrat.variable} font-sans`}>
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/logo.png" type="image/png" />
+        <link rel="icon" href="/logo.png" type="image/png" sizes="32x32" />
+        <link rel="icon" href="/logo.png" type="image/png" sizes="16x16" />
         <link rel="apple-touch-icon" href="/logo.png" />
       </head>
       <body>
         <Header />
-        <ItemsProvider>
-          <main>{children}</main>
-        </ItemsProvider>
+        <SiteContentProvider initialContent={initialContent}>
+          <ItemsProvider>
+            <main className="pt-14 sm:pt-24">{children}</main>
+          </ItemsProvider>
+        </SiteContentProvider>
         <div className="overflow-hidden">
           <Footer />
         </div>

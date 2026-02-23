@@ -6,6 +6,7 @@ import AnimatedSection from "@/components/AnimatedSection";
 import { X, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import { MapLocation } from "@/types/mapLocation";
 import { getCityName } from "@/utils/cityTranslations";
+import { useSiteContent } from "@/context/siteContentContext";
 
 // Leaflet types
 interface LeafletMap {
@@ -87,7 +88,13 @@ export default function PolandMapSection() {
     title: string;
   } | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
-  const currentLocale = useCurrentLanguage();
+  const currentLocale = useCurrentLanguage() as "pl" | "en";
+  const { content } = useSiteContent();
+  const introRaw = currentLocale === "pl" ? content.home.introPl : content.home.introEn;
+  const pointerIdx = introRaw.indexOf("👉");
+  const bodyText = pointerIdx >= 0 ? introRaw.slice(0, pointerIdx).trim() : introRaw.trim();
+  const buttonText = pointerIdx >= 0 ? introRaw.slice(pointerIdx).replace(/^👉\s*\n?\n?/, "").trim() : "";
+  const bodyParagraphs = bodyText.split("\n\n").filter((p) => p.trim() !== "");
   const handleScrollToMap = useCallback(() => {
     if (mapRef.current) {
       mapRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -338,44 +345,27 @@ export default function PolandMapSection() {
         <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr] items-center mb-16">
           <div className="order-2 lg:order-1 text-center lg:text-left flex flex-col items-center lg:items-start">
             <div className="space-y-4 text-base sm:text-lg text-gray-700 leading-relaxed">
-              <p>
-                {currentLocale === "pl"
-                  ? "Mam na imię Jarek i pomagam piekarzom oraz pasjonatom odkrywać prawdziwe rzemiosło piekarnicze."
-                  : "My name is Jarek and I help bakers and enthusiasts discover true artisan baking."}
-              </p>
-              <p>
-                {currentLocale === "pl"
-                  ? "Podczas moich szkoleń uczę, jak pracować z naturalnym zakwasem, jak prowadzić fermentację w czasie i jak tworzyć ciasta francuskie i półfrancuskie, które zachwycają strukturą i aromatem."
-                  : "During my trainings I teach how to work with natural sourdough, manage fermentation over time and craft laminated doughs that impress with structure and aroma."}
-              </p>
-              <p>
-                {currentLocale === "pl" 
-                  ? "Moje warsztaty to nie tylko wiedza technologiczna – to praktyka, doświadczenie i pasja do prostych, naturalnych składników."
-                  : "My workshops are more than technical knowledge – they are practice, experience and passion for simple, natural ingredients."}
-              </p>
-              <p>
-                {currentLocale === "pl" 
-                  ? "Dołącz do grona piekarzy, którzy wprowadzili do swoich pracowni naturalne, długo fermentowane pieczywo."
-                  : "Join the bakers who have introduced naturally long-fermented breads into their bakeries."}
-              </p>
+              {bodyParagraphs.map((paragraph, i) => (
+                <p key={i} className="whitespace-pre-line">
+                  {paragraph.trim()}
+                </p>
+              ))}
             </div>
-            <button
-              type="button"
-              onClick={handleScrollToMap}
-              className="inline-flex items-center gap-2 text-base sm:text-lg font-semibold text-[var(--brown-color)] hover:text-[var(--accent-color)] transition-colors mt-6"
-            >
-              <span role="img" aria-hidden="true">👉</span>
-              <span className="text-center lg:text-left">
-                {currentLocale === "pl"
-                  ? "Sprawdź, w jakich miastach odbyły się już moje szkolenia."
-                  : "See which cities have already hosted my trainings."}
-              </span>
-            </button>
+            {buttonText && (
+              <button
+                type="button"
+                onClick={handleScrollToMap}
+                className="inline-flex items-center gap-2 text-base sm:text-lg font-semibold text-[var(--brown-color)] hover:text-[var(--accent-color)] transition-colors mt-6"
+              >
+                <span role="img" aria-hidden="true">👉</span>
+                <span className="text-center lg:text-left">{buttonText}</span>
+              </button>
+            )}
           </div>
           <div className="order-1 lg:order-2 relative w-full aspect-[4/5] overflow-hidden rounded-3xl shadow-xl border border-gray-200">
             <Image
-              src="/materials/yarek.jpg"
-              alt="Jarek prowadzący szkolenia piekarnicze"
+              src={content.home.introImage || "/materials/yarek.jpg"}
+              alt={currentLocale === "pl" ? "Jarek prowadzący szkolenia piekarnicze" : "Jarek leading baking workshops"}
               fill
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 480px"

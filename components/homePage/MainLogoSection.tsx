@@ -2,19 +2,21 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import AnimatedSection from "../AnimatedSection";
+import { useSiteContent } from "@/context/siteContentContext";
 
 export default function MainLogoSection() {
+  const { content } = useSiteContent();
   const [showStaticLogo, setShowStaticLogo] = useState(false);
   const gifRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
-    // Чекаємо 7 секунд (тривалість GIF анімації) перед заміною на статичне фото
     const timer = setTimeout(() => {
       setShowStaticLogo(true);
-    }, 7000); // 7 секунд - тривалість анімації GIF
-
+    }, 7000);
     return () => clearTimeout(timer);
   }, []);
+
+  const heroLines = content.home.heroText.split("\n");
 
   return (
     <AnimatedSection className="flex flex-col min-h-140 items-center pt-8">
@@ -27,12 +29,11 @@ export default function MainLogoSection() {
             width={400}
             height={400}
             className="w-full h-full object-contain"
-            style={{ display: 'block' }}
+            style={{ display: "block" }}
             onLoad={() => {
-              // Після завантаження GIF чекаємо 7 секунд (тривалість анімації), потім замінюємо на статичне фото
               setTimeout(() => {
                 setShowStaticLogo(true);
-              }, 7000); // 7 секунд - тривалість анімації GIF
+              }, 7000);
             }}
           />
         ) : (
@@ -47,7 +48,12 @@ export default function MainLogoSection() {
         )}
       </div>
       <h1 className="text-2xl sm:text-4xl text-center ">
-        Szkolenia <br /> z <br /> nowoczesnego piekarnictwa
+        {heroLines.map((line: string, i: number) => (
+          <span key={i}>
+            {line}
+            {i < heroLines.length - 1 && <br />}
+          </span>
+        ))}
       </h1>
     </AnimatedSection>
   );

@@ -16,12 +16,15 @@ import {
   Clock,
   Users,
   DollarSign,
+  Type,
 } from "lucide-react";
 import { Masterclass } from "@/types/masterclass";
 import { OnlineProduct } from "@/types/products";
 import { Partner } from "@/types/partner";
 import { MapLocation } from "@/types/mapLocation";
+import { SiteContent } from "@/types/siteContent";
 import { useItems } from "@/context/itemsContext";
+import { useSiteContent } from "@/context/siteContentContext";
 import Image from "next/image";
 
 interface FAQ {
@@ -38,6 +41,7 @@ interface DateTimeSlot {
 
 const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
   const { refreshMasterclasses, refreshOnlineProducts } = useItems();
+  const { refresh: refreshSiteContent } = useSiteContent();
   const [masterclasses, setMasterclasses] = useState<Masterclass[]>([]);
   const [onlineProducts, setOnlineProducts] = useState<OnlineProduct[]>([]);
   const [newMasterclass, setNewMasterclass] = useState<Partial<Masterclass>>({
@@ -80,9 +84,12 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
   );
   const [language, setLanguage] = useState<"pl" | "en">("pl");
   const [usePolishForEnglish, setUsePolishForEnglish] = useState<boolean>(false);
-  const [currentTab, setCurrentTab] = useState<"dashboard" | "masterclasses" | "products" | "partners" | "mapLocations">(
+  const [currentTab, setCurrentTab] = useState<"dashboard" | "masterclasses" | "products" | "partners" | "mapLocations" | "siteContent">(
     "dashboard"
   );
+  const [siteContent, setSiteContent] = useState<SiteContent | null>(null);
+  const [siteContentLoading, setSiteContentLoading] = useState(false);
+  const [siteContentSaving, setSiteContentSaving] = useState(false);
   const [partners, setPartners] = useState<Partner[]>([]);
   const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
   const [mapLocations, setMapLocations] = useState<MapLocation[]>([]);
@@ -108,6 +115,8 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     useState("");
   const [isUploadingPartnerLogo, setIsUploadingPartnerLogo] = useState(false);
   const [partnerLogoUploadError, setPartnerLogoUploadError] = useState("");
+  const [isUploadingIntroImage, setIsUploadingIntroImage] = useState(false);
+  const [isUploadingAboutImage, setIsUploadingAboutImage] = useState(false);
 
   // Fetch masterclasses and products on mount
   useEffect(() => {
@@ -750,6 +759,45 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     }
   };
 
+  const uploadSiteContentIntroImage = async (files: FileList | File[]) => {
+    const file = Array.from(files)[0];
+    if (!file || !siteContent) return;
+    setIsUploadingIntroImage(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload-map-photo", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Upload failed");
+      const data = await res.json();
+      if (data.url) {
+        setSiteContent({
+          ...siteContent,
+          home: { ...siteContent.home, introImage: data.url as string },
+        });
+      }
+    } finally {
+      setIsUploadingIntroImage(false);
+    }
+  };
+
+  const uploadSiteContentAboutImage = async (files: FileList | File[]) => {
+    const file = Array.from(files)[0];
+    if (!file || !siteContent) return;
+    setIsUploadingAboutImage(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload-map-photo", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Upload failed");
+      const data = await res.json();
+      if (data.url) {
+        setSiteContent({ ...siteContent, aboutImage: data.url as string });
+      }
+    } finally {
+      setIsUploadingAboutImage(false);
+    }
+  };
+
   const addFaq = (
     setState:
       | React.Dispatch<React.SetStateAction<Partial<Masterclass>>>
@@ -873,6 +921,19 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     }
   }, [editingMasterclass, editingProduct]);
 
+  useEffect(() => {
+    if (currentTab === "siteContent") {
+      setSiteContentLoading(true);
+      fetch("/api/site-content")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          setSiteContent(data);
+        })
+        .catch(() => setSiteContent(null))
+        .finally(() => setSiteContentLoading(false));
+    }
+  }, [currentTab]);
+
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-lg border-2 border-black">
@@ -956,6 +1017,17 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
           >
             <MapPin className="w-4 h-4" />
             Punkty na mapie
+          </button>
+          <button
+            onClick={() => setCurrentTab("siteContent")}
+            className={`flex items-center gap-2 px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
+              currentTab === "siteContent" 
+                ? "bg-black text-white border-black shadow-lg" 
+                : "bg-transparent text-black border-gray-300 hover:bg-gray-50 hover:border-black"
+            }`}
+          >
+            <Type className="w-4 h-4" />
+            Treść strony
           </button>
         </div>
 
@@ -3420,6 +3492,364 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                   </div>
                 </div>
               </div>
+            )}
+          </div>
+        )}
+
+        {currentTab === "siteContent" && (
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-6">
+              <Type className="w-5 h-5 text-gray-600" />
+              <h2 className="text-xl font-semibold text-black">Treść strony</h2>
+            </div>
+            {siteContentLoading ? (
+              <p className="text-gray-600">Ładowanie...</p>
+            ) : siteContent ? (
+              <div className="space-y-8 bg-white p-6 rounded-xl border-2 border-gray-200">
+                <div>
+                  <label className="block text-black font-medium mb-2">Czcionka strony</label>
+                  <select
+                    value={siteContent.fontFamily}
+                    onChange={(e) =>
+                      setSiteContent({
+                        ...siteContent,
+                        fontFamily: e.target.value as SiteContent["fontFamily"],
+                      })
+                    }
+                    className="w-full max-w-xs px-3 py-2 border-2 border-black rounded bg-white text-black"
+                  >
+                    <option value="montserrat">Montserrat</option>
+                    <option value="lato">Lato</option>
+                    <option value="openSans">Open Sans</option>
+                    <option value="roboto">Roboto</option>
+                  </select>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-black mb-3">Strona główna (hero)</h3>
+                  <label className="block text-black mb-1">Tekst (Enter = nowy wiersz na stronie)</label>
+                  <textarea
+                    value={siteContent.home.heroText ?? ""}
+                    onChange={(e) =>
+                      setSiteContent({
+                        ...siteContent,
+                        home: { ...siteContent.home, heroText: e.target.value },
+                      })
+                    }
+                    rows={4}
+                    className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                    placeholder={"Szkolenia\nz nowoczesnego\npiekarnictwa"}
+                  />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-black mb-3">Tekst nad mapą (blok nad mapą miast)</h3>
+                  <p className="text-gray-600 text-sm mb-2">Wyświetlany na stronie głównej w bloku nad mapą – obok zdjęcia. Pusta linia = nowy akapit. Wpisz „👉” w nowej linii, a tekst po nim będzie przyciskiem do przewinięcia do mapy.</p>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-black mb-1">Wersja PL</label>
+                      <textarea
+                        value={siteContent.home.introPl ?? ""}
+                        onChange={(e) =>
+                          setSiteContent({
+                            ...siteContent,
+                            home: { ...siteContent.home, introPl: e.target.value },
+                          })
+                        }
+                        rows={10}
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-black mb-1">Wersja EN</label>
+                      <textarea
+                        value={siteContent.home.introEn ?? ""}
+                        onChange={(e) =>
+                          setSiteContent({
+                            ...siteContent,
+                            home: { ...siteContent.home, introEn: e.target.value },
+                          })
+                        }
+                        rows={10}
+                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <label className="block text-black mb-1">Zdjęcie pod hero</label>
+                    <div
+                      className="mt-1 flex flex-col sm:flex-row gap-4 items-start"
+                      onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (e.dataTransfer.files?.length) uploadSiteContentIntroImage(e.dataTransfer.files);
+                      }}
+                    >
+                      {(siteContent.home.introImage ?? "").trim() && (
+                        <div className="relative w-40 h-40 rounded-lg overflow-hidden border-2 border-black bg-gray-100 shrink-0">
+                          <Image
+                            src={siteContent.home.introImage}
+                            alt="Podgląd zdjęcia pod hero"
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <label className="flex flex-col items-center justify-center gap-2 px-4 py-6 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 text-center cursor-pointer hover:border-black hover:bg-gray-100 transition-colors">
+                          <span className="text-sm font-medium text-black">
+                            Przeciągnij i upuść zdjęcie tutaj
+                          </span>
+                          <span className="text-xs text-gray-500">lub kliknij, aby wybrać</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              if (e.target.files?.length) uploadSiteContentIntroImage(e.target.files);
+                            }}
+                          />
+                        </label>
+                        {isUploadingIntroImage && (
+                          <p className="text-xs text-gray-500 mt-1">Przesyłanie...</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-black mb-1">Tekst strony „O mnie”</h3>
+                  <p className="text-gray-600 text-sm mb-3">Te pola wyświetlają się na stronie /aboutMe (O mnie).</p>
+                  <div className="mb-4">
+                    <label className="block text-black mb-1">Zdjęcie na stronie O mnie</label>
+                    <div
+                      className="mt-1 flex flex-col sm:flex-row gap-4 items-start"
+                      onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (e.dataTransfer.files?.length) uploadSiteContentAboutImage(e.dataTransfer.files);
+                      }}
+                    >
+                      {(siteContent.aboutImage ?? "").trim() && (
+                        <div className="relative w-40 h-40 rounded-lg overflow-hidden border-2 border-black bg-gray-100 shrink-0">
+                          <Image
+                            src={siteContent.aboutImage}
+                            alt="Podgląd zdjęcia O mnie"
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <label className="flex flex-col items-center justify-center gap-2 px-4 py-6 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 text-center cursor-pointer hover:border-black hover:bg-gray-100 transition-colors">
+                          <span className="text-sm font-medium text-black">
+                            Przeciągnij i upuść zdjęcie tutaj
+                          </span>
+                          <span className="text-xs text-gray-500">lub kliknij, aby wybrać</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              if (e.target.files?.length) uploadSiteContentAboutImage(e.target.files);
+                            }}
+                          />
+                        </label>
+                        {isUploadingAboutImage && (
+                          <p className="text-xs text-gray-500 mt-1">Przesyłanie...</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <div>
+                    <h3 className="text-lg font-semibold text-black mb-3">O nas (PL)</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-black mb-1">Tytuł</label>
+                        <input
+                          type="text"
+                          value={siteContent.about.pl.title}
+                          onChange={(e) =>
+                            setSiteContent({
+                              ...siteContent,
+                              about: {
+                                ...siteContent.about,
+                                pl: { ...siteContent.about.pl, title: e.target.value },
+                              },
+                            })
+                          }
+                          className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-black mb-1">Powitanie</label>
+                        <input
+                          type="text"
+                          value={siteContent.about.pl.greeting}
+                          onChange={(e) =>
+                            setSiteContent({
+                              ...siteContent,
+                              about: {
+                                ...siteContent.about,
+                                pl: { ...siteContent.about.pl, greeting: e.target.value },
+                              },
+                            })
+                          }
+                          className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-black mb-1">Akapity (jeden na blok, oddzielone pustą linią)</label>
+                        <textarea
+                          value={siteContent.about.pl.paragraphs.join("\n\n")}
+                          onChange={(e) =>
+                            setSiteContent({
+                              ...siteContent,
+                              about: {
+                                ...siteContent.about,
+                                pl: {
+                                  ...siteContent.about.pl,
+                                  paragraphs: e.target.value.split("\n\n").filter(Boolean),
+                                },
+                              },
+                            })
+                          }
+                          rows={8}
+                          className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-black mb-1">Tekst z linkiem do kontaktu</label>
+                        <input
+                          type="text"
+                          value={siteContent.about.pl.contactText}
+                          onChange={(e) =>
+                            setSiteContent({
+                              ...siteContent,
+                              about: {
+                                ...siteContent.about,
+                                pl: { ...siteContent.about.pl, contactText: e.target.value },
+                              },
+                            })
+                          }
+                          className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-black mb-3">O nas (EN)</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-black mb-1">Tytuł</label>
+                        <input
+                          type="text"
+                          value={siteContent.about.en.title}
+                          onChange={(e) =>
+                            setSiteContent({
+                              ...siteContent,
+                              about: {
+                                ...siteContent.about,
+                                en: { ...siteContent.about.en, title: e.target.value },
+                              },
+                            })
+                          }
+                          className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-black mb-1">Powitanie</label>
+                        <input
+                          type="text"
+                          value={siteContent.about.en.greeting}
+                          onChange={(e) =>
+                            setSiteContent({
+                              ...siteContent,
+                              about: {
+                                ...siteContent.about,
+                                en: { ...siteContent.about.en, greeting: e.target.value },
+                              },
+                            })
+                          }
+                          className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-black mb-1">Akapity (jeden na blok, oddzielone pustą linią)</label>
+                        <textarea
+                          value={siteContent.about.en.paragraphs.join("\n\n")}
+                          onChange={(e) =>
+                            setSiteContent({
+                              ...siteContent,
+                              about: {
+                                ...siteContent.about,
+                                en: {
+                                  ...siteContent.about.en,
+                                  paragraphs: e.target.value.split("\n\n").filter(Boolean),
+                                },
+                              },
+                            })
+                          }
+                          rows={8}
+                          className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-black mb-1">Tekst z linkiem do kontaktu</label>
+                        <input
+                          type="text"
+                          value={siteContent.about.en.contactText}
+                          onChange={(e) =>
+                            setSiteContent({
+                              ...siteContent,
+                              about: {
+                                ...siteContent.about,
+                                en: { ...siteContent.about.en, contactText: e.target.value },
+                              },
+                            })
+                          }
+                          className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-end pt-4">
+                  <button
+                    type="button"
+                    disabled={siteContentSaving}
+                    onClick={async () => {
+                      if (!siteContent) return;
+                      setSiteContentSaving(true);
+                      try {
+                        const res = await fetch("/api/site-content", {
+                          method: "PUT",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify(siteContent),
+                        });
+                        if (res.ok) {
+                          await refreshSiteContent();
+                          setErrorMessage("");
+                        } else {
+                          setErrorMessage("Błąd zapisywania treści");
+                        }
+                      } catch {
+                        setErrorMessage("Błąd zapisywania treści");
+                      } finally {
+                        setSiteContentSaving(false);
+                      }
+                    }}
+                    className="flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium disabled:opacity-50"
+                  >
+                    <Save className="w-4 h-4" />
+                    {siteContentSaving ? "Zapisywanie..." : "Zapisz treść"}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-gray-600">Nie udało się załadować treści</p>
             )}
           </div>
         )}
