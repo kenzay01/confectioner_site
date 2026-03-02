@@ -560,7 +560,7 @@ function buildCustomerCoursePurchaseEmail(params: {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dziękujemy za zakup</title>
+  <title>Dziękujemy za zapis na szkolenie</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background-color: #f5f0eb;">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f5f0eb; padding: 40px 20px;">
@@ -581,8 +581,11 @@ function buildCustomerCoursePurchaseEmail(params: {
               <p style="margin: 0 0 20px; font-size: 18px; color: #1a1a1a; line-height: 1.5;">
                 Cześć <strong>${firstName}</strong>,
               </p>
-              <p style="margin: 0 0 24px; font-size: 16px; color: #333; line-height: 1.6;">
-                Dziękujemy za zakup! Płatność została pomyślnie zrealizowana.
+              <p style="margin: 0 0 20px; font-size: 16px; color: #333; line-height: 1.6;">
+                Dziękujemy za zapis na szkolenie.
+              </p>
+              <p style="margin: 0 0 24px; font-size: 15px; color: #4a321f; line-height: 1.6; background: #fdf5ec; border-radius: 12px; padding: 14px 16px;">
+                <strong>Twoje zgłoszenie zostało pomyślnie przyjęte — miejsce na szkoleniu jest już dla Ciebie zarezerwowane.</strong>
               </p>
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background: #f9f6f3; border-radius: 12px; border: 1px solid #e8e0d8;">
                 <tr>
@@ -594,12 +597,26 @@ function buildCustomerCoursePurchaseEmail(params: {
                 </tr>
               </table>
               ${whenWhereBlock}
-              <p style="margin: 16px 0 0; font-size: 15px; color: #444; line-height: 1.6;">
-                ${followUpText}
+              <p style="margin: 24px 0 12px; font-size: 15px; color: #444; line-height: 1.7;">
+                W najbliższym czasie prześlę Ci wszystkie niezbędne informacje organizacyjne, w tym:
               </p>
-              <p style="margin: 28px 0 0; font-size: 16px; color: #1a1a1a;">
-                ${closing}<br>
-                <strong>Zespół Nieznany Piekarz</strong>
+              <ul style="margin: 0 0 20px 20px; padding: 0; font-size: 15px; color: #444; line-height: 1.7;">
+                <li style="margin-bottom: 6px;">szczegółowy harmonogram szkolenia,</li>
+                <li style="margin-bottom: 6px;">informacje dotyczące lokalizacji,</li>
+                <li style="margin-bottom: 0;">wskazówki przygotowawcze (jeśli będą wymagane).</li>
+              </ul>
+              <p style="margin: 0 0 16px; font-size: 15px; color: #444; line-height: 1.7;">
+                Na około <strong>7 dni przed rozpoczęciem szkolenia</strong> otrzymasz dodatkowe przypomnienie wraz z kompletem najważniejszych informacji.
+              </p>
+              <p style="margin: 0 0 16px; font-size: 15px; color: #444; line-height: 1.7;">
+                <strong>Masz pytania?</strong><br />
+                W razie pytań organizacyjnych lub potrzeby wystawienia faktury możesz odpowiedzieć bezpośrednio na tę wiadomość — pozostaję do Twojej dyspozycji.
+              </p>
+              <p style="margin: 24px 0 0; font-size: 16px; color: #1a1a1a; line-height: 1.6;">
+                Do zobaczenia na szkoleniu!<br />
+                <br />
+                <strong>Yaroslav Semkiv</strong><br />
+                Nieznany Piekarz
               </p>
             </td>
           </tr>

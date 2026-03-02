@@ -25,23 +25,19 @@ function buildCustomerMasterclassEmail(params: {
   startTime?: string;
   endTime?: string;
 }): string {
-  const {
-    clientName,
-    workshopTitle,
-    amountInPLN,
-    formattedDate,
-    location,
-    city,
-    startTime,
-    endTime,
-  } = params;
+  const { clientName, workshopTitle, formattedDate, location, city, startTime, endTime } =
+    params;
   const firstName = clientName.trim().split(/\s+/)[0] || "Kliencie";
-  const place = [location, city].filter(Boolean).join(", ");
+  const dateLine = formattedDate
+    ? `Data: <strong>${formattedDate}</strong>`
+    : "";
+  const placeLine =
+    location || city
+      ? `Miejsce: <strong>${[location, city].filter(Boolean).join(", ")}</strong>`
+      : "";
   const timeLine =
     startTime || endTime
-      ? `<br>🕐 <strong>Godziny:</strong> ${[startTime, endTime]
-          .filter(Boolean)
-          .join(" – ")}`
+      ? `Godziny: <strong>${[startTime, endTime].filter(Boolean).join(" – ")}</strong>`
       : "";
 
   return `
@@ -50,7 +46,7 @@ function buildCustomerMasterclassEmail(params: {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dziękujemy za zakup</title>
+  <title>Dziękujemy za zapis na szkolenie</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background-color: #f5f0eb;">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f5f0eb; padding: 40px 20px;">
@@ -67,33 +63,53 @@ function buildCustomerMasterclassEmail(params: {
             </td>
           </tr>
           <tr>
-            <td style="padding: 40px 40px 32px;">
-              <p style="margin: 0 0 20px; font-size: 18px; color: #1a1a1a; line-height: 1.5;">
+            <td style="padding: 24px 40px 32px;">
+              <p style="margin: 0 0 16px; font-size: 18px; color: #1a1a1a; line-height: 1.5;">
                 Cześć <strong>${firstName}</strong>,
               </p>
-              <p style="margin: 0 0 24px; font-size: 16px; color: #333; line-height: 1.6;">
-                Dziękujemy za zakup! Płatność została pomyślnie zrealizowana.
+              <p style="margin: 0 0 20px; font-size: 16px; color: #333; line-height: 1.6;">
+                Dziękujemy za zapis na szkolenie.
               </p>
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background: #f9f6f3; border-radius: 12px; border: 1px solid #e8e0d8;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin: 0 0 24px; background: #fdf5ec; border-radius: 12px;">
                 <tr>
-                  <td style="padding: 24px;">
-                    <p style="margin: 0 0 8px; font-size: 12px; color: #6b5344; text-transform: uppercase; letter-spacing: 0.05em;">Zakupiony warsztat</p>
-                    <p style="margin: 0 0 16px; font-size: 18px; font-weight: 600; color: #502d1c;">${workshopTitle}</p>
-                    <p style="margin: 0; font-size: 14px; color: #555;">Kwota: <strong>${amountInPLN} PLN</strong></p>
+                  <td style="padding: 16px 20px;">
+                    <p style="margin: 0; font-size: 15px; color: #4a321f; line-height: 1.6;">
+                      <strong>Twoje zgłoszenie zostało pomyślnie przyjęte — miejsce на szkoleniu jest już dla Ciebie zarezerwowane.</strong>
+                    </p>
                   </td>
                 </tr>
               </table>
-              <p style="margin: 24px 0 0; font-size: 15px; color: #444; line-height: 1.6;">
-                <strong>Kiedy i gdzie odbywa się warsztat?</strong><br>
-                📅 <strong>Data:</strong> ${formattedDate}${timeLine}<br>
-                📍 <strong>Miejsce:</strong> ${place}
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin: 0 0 24px; background: #f9f6f3; border-radius: 12px; border: 1px solid #e8e0d8;">
+                <tr>
+                  <td style="padding: 20px;">
+                    <p style="margin: 0 0 8px; font-size: 13px; color: #6b5344; text-transform: uppercase; letter-spacing: 0.08em;">Szczegóły szkolenia</p>
+                    <p style="margin: 0 0 4px; font-size: 15px; color: #1a1a1a;">Szkolenie: <strong>${workshopTitle}</strong></p>
+                    ${dateLine ? `<p style="margin: 0 0 4px; font-size: 15px; color: #1a1a1a;">${dateLine}</p>` : ""}
+                    ${timeLine ? `<p style="margin: 0 0 4px; font-size: 15px; color: #1a1a1a;">${timeLine}</p>` : ""}
+                    ${placeLine ? `<p style="margin: 0; font-size: 15px; color: #1a1a1a;">${placeLine}</p>` : ""}
+                  </td>
+                </tr>
+              </table>
+              <p style="margin: 24px 0 12px; font-size: 15px; color: #444; line-height: 1.7;">
+                W najbliższym czasie prześlę Ci wszystkie niezbędne informacje organizacyjne, w tym:
               </p>
-              <p style="margin: 16px 0 0; font-size: 15px; color: #444; line-height: 1.6;">
-                W razie pytań napisz do nas – chętnie pomożemy.
+              <ul style="margin: 0 0 20px 20px; padding: 0; font-size: 15px; color: #444; line-height: 1.7;">
+                <li style="margin-bottom: 6px;">szczegółowy harmonogram szkolenia,</li>
+                <li style="margin-bottom: 6px;">informacje dotyczące lokalizacji,</li>
+                <li style="margin-bottom: 0;">wskazówki przygotowawcze (jeśli będą wymagane).</li>
+              </ul>
+              <p style="margin: 0 0 16px; font-size: 15px; color: #444; line-height: 1.7;">
+                Na około <strong>7 dni przed rozpoczęciem szkolenia</strong> otrzymasz dodatkowe przypomnienie wraz z kompletem najważniejszych informacji.
               </p>
-              <p style="margin: 28px 0 0; font-size: 16px; color: #1a1a1a;">
-                Do zobaczenia na warsztacie!<br>
-                <strong>Zespół Nieznany Piekarz</strong>
+              <p style="margin: 0 0 16px; font-size: 15px; color: #444; line-height: 1.7;">
+                <strong>Masz pytania?</strong><br />
+                W razie pytań organizacyjnych lub potrzeby wystawienia faktury możesz odpowiedzieć bezpośrednio на tę wiadomość — pozostaję do Twojej dyspozycji.
+              </p>
+              <p style="margin: 24px 0 0; font-size: 16px; color: #1a1a1a; line-height: 1.6;">
+                Do zobaczenia на szkoleniu!<br />
+                <br />
+                <strong>Yaroslav Semkiv</strong><br />
+                Nieznany Piekarz
               </p>
             </td>
           </tr>
@@ -162,7 +178,7 @@ export async function GET() {
 
     const result = await sendEmail({
       to: TEST_RECIPIENT,
-      subject: "✅ Dziękujemy za zakup! Warsztat – Nieznany Piekarz",
+      subject: "✅ Dziękujemy za zapis na szkolenie – Nieznany Piekarz",
       html,
       text: `Dziękujemy za zakup! Warsztat: ${
         masterclass.title.pl
