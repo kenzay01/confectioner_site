@@ -1,7 +1,7 @@
 {
-  "fontFamily": "playfairDisplay",
+  "fontFamily": "roboto",
   "home": {
-    "heroText": "**Szkolenia**\n*z nowoczesnego\npiekarnictwa*\n",
+    "heroText": "Szkolenia z nowoczesnego piekarnictwa\n",
     "introPl": "Mam na imię Jarek i pomagam piekarzom oraz pasjonatom odkrywać prawdziwe rzemiosło piekarnicze.\n\nPodczas moich szkoleń uczę, jak pracować z naturalnym zakwasem, jak prowadzić fermentację w czasie i jak tworzyć ciasta francuskie i półfrancuskie, które zachwycają strukturą i aromatem.\n\nMoje warsztaty to nie tylko wiedza technologiczna – to praktyka, doświadczenie i pasja do prostych, naturalnych składników.\n\nDołącz do grona piekarzy, którzy wprowadzili do swoich pracowni naturalne, długo fermentowane pieczywo.\n\n👉\n\nSprawdź, w jakich miastach odbyły się już moje szkoleniaaa.",
     "introEn": "My name is Jarek and I help bakers and enthusiasts discover real baking craft.\n\nIn my workshops I teach how to work with natural leaven, how to manage fermentation in time, and how to create French and semi-French pastries that delight with structure and aroma.\n\nMy workshops are not only technical knowledge – they are practice, experience and passion for simple, natural ingredients.\n\nJoin the bakers who have introduced natural, long-fermented bread to their bakeries.\n\n👉\n\nCheck in which cities my workshops have already taken place.",
     "introImage": "/slavik.jpg"
