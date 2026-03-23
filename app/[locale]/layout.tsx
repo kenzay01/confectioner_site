@@ -2,18 +2,111 @@ import Header from "@/components/Header";
 import { locales } from "@/i18n/config";
 import { Metadata, Viewport } from "next";
 import "../globals.css";
-import { Montserrat } from "next/font/google";
+import {
+  DM_Sans,
+  Lato,
+  Literata,
+  Merriweather,
+  Montserrat,
+  Open_Sans,
+  Plus_Jakarta_Sans,
+  Nunito,
+  Playfair_Display,
+  Raleway,
+  Roboto,
+  Work_Sans,
+} from "next/font/google";
 import { ItemsProvider } from "@/context/itemsContext";
 import { SiteContentProvider } from "@/context/siteContentContext";
 import Footer from "@/components/homePage/Footer";
 import { readSiteContent } from "@/lib/siteContent";
 
 const montserrat = Montserrat({
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
   weight: ["300", "400", "500", "600", "700", "800", "900"],
   variable: "--font-montserrat",
 });
 
+const lato = Lato({
+  subsets: ["latin", "latin-ext"],
+  weight: ["300", "400", "700"],
+  variable: "--font-lato",
+});
+
+const openSans = Open_Sans({
+  subsets: ["latin", "latin-ext"],
+  weight: ["300", "400", "600", "700"],
+  variable: "--font-open-sans",
+});
+
+const roboto = Roboto({
+  subsets: ["latin", "latin-ext"],
+  weight: ["300", "400", "500", "700"],
+  variable: "--font-roboto",
+});
+
+const playfairDisplay = Playfair_Display({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-playfair-display",
+});
+
+const merriweather = Merriweather({
+  subsets: ["latin", "latin-ext"],
+  weight: ["300", "400", "700"],
+  variable: "--font-merriweather",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-dm-sans",
+});
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-plus-jakarta-sans",
+});
+
+const nunito = Nunito({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-nunito",
+});
+
+const raleway = Raleway({
+  subsets: ["latin", "latin-ext"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-raleway",
+});
+
+const literata = Literata({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-literata",
+});
+
+const workSans = Work_Sans({
+  subsets: ["latin", "latin-ext"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-work-sans",
+});
+
+const fontVariables = [
+  montserrat.variable,
+  lato.variable,
+  openSans.variable,
+  roboto.variable,
+  playfairDisplay.variable,
+  merriweather.variable,
+  dmSans.variable,
+  plusJakartaSans.variable,
+  nunito.variable,
+  raleway.variable,
+  literata.variable,
+  workSans.variable,
+].join(" ");
 
 export async function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -140,7 +233,10 @@ export default async function RootLayout({
 }) {
   const initialContent = await readSiteContent();
   return (
-    <html lang="pl" className={`${montserrat.variable} font-sans`}>
+    <html
+      lang="pl"
+      className={`${fontVariables} font-sans`}
+    >
       <head>
         <link rel="icon" href="/logo.png" type="image/png" sizes="32x32" />
         <link rel="icon" href="/logo.png" type="image/png" sizes="16x16" />

@@ -2,6 +2,7 @@ import fs from "fs/promises";
 import path from "path";
 import type { SiteContent } from "@/types/siteContent";
 import { defaultSiteContent } from "./siteContentDefaults";
+import { coerceSiteFontFamily } from "./siteFont";
 
 const SITE_CONTENT_FILENAME = "site-content.json";
 const SITE_CONTENT_DIR = "data";
@@ -40,7 +41,7 @@ export async function readSiteContent(): Promise<SiteContent> {
 
   // Доповнення відсутніх полів дефолтами
   data = {
-    fontFamily: data.fontFamily ?? defaultSiteContent.fontFamily,
+    fontFamily: coerceSiteFontFamily(data.fontFamily, defaultSiteContent.fontFamily),
     home: {
       heroText: data.home?.heroText ?? defaultSiteContent.home.heroText,
       introPl: data.home?.introPl ?? defaultSiteContent.home.introPl,

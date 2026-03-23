@@ -25,6 +25,8 @@ import { MapLocation } from "@/types/mapLocation";
 import { SiteContent } from "@/types/siteContent";
 import { useItems } from "@/context/itemsContext";
 import { useSiteContent } from "@/context/siteContentContext";
+import { getSiteFontStack } from "@/lib/siteFont";
+import { SiteContentTextEditor } from "@/components/admin/SiteContentTextEditor";
 import Image from "next/image";
 
 interface FAQ {
@@ -117,6 +119,14 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
   const [partnerLogoUploadError, setPartnerLogoUploadError] = useState("");
   const [isUploadingIntroImage, setIsUploadingIntroImage] = useState(false);
   const [isUploadingAboutImage, setIsUploadingAboutImage] = useState(false);
+
+  const siteContentEditorFontStack = useMemo(
+    () => (siteContent ? getSiteFontStack(siteContent.fontFamily) : undefined),
+    [siteContent]
+  );
+  const siteContentFieldStyle = siteContentEditorFontStack
+    ? { fontFamily: siteContentEditorFontStack }
+    : undefined;
 
   // Fetch masterclasses and products on mount
   useEffect(() => {
@@ -3516,28 +3526,87 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         fontFamily: e.target.value as SiteContent["fontFamily"],
                       })
                     }
+                    style={siteContentFieldStyle}
                     className="w-full max-w-xs px-3 py-2 border-2 border-black rounded bg-white text-black"
                   >
-                    <option value="montserrat">Montserrat</option>
-                    <option value="lato">Lato</option>
-                    <option value="openSans">Open Sans</option>
-                    <option value="roboto">Roboto</option>
+                    <optgroup label="Klasyczne bezszeryfowe">
+                      <option value="montserrat">Montserrat</option>
+                      <option value="lato">Lato</option>
+                      <option value="openSans">Open Sans</option>
+                      <option value="roboto">Roboto</option>
+                    </optgroup>
+                    <optgroup label="Nowoczesne bezszeryfowe">
+                      <option value="dmSans">DM Sans</option>
+                      <option value="plusJakartaSans">Plus Jakarta Sans</option>
+                      <option value="nunito">Nunito</option>
+                      <option value="raleway">Raleway</option>
+                      <option value="workSans">Work Sans</option>
+                    </optgroup>
+                    <optgroup label="Szeryfowe / eleganckie">
+                      <option value="playfairDisplay">Playfair Display</option>
+                      <option value="merriweather">Merriweather</option>
+                      <option value="literata">Literata</option>
+                    </optgroup>
                   </select>
+                </div>
+                <div className="rounded-lg border-2 border-gray-200 bg-gray-50 p-4 text-sm text-gray-800 space-y-2">
+                  <p className="font-semibold text-black">Edytor tekstu</p>
+                  <p className="text-gray-700">
+                    Użyj paska nad polem: pogrubienie, kursywa, link, lista. Skróty:{" "}
+                    <kbd className="px-1 bg-white border rounded text-xs">Ctrl+B</kbd> /{" "}
+                    <kbd className="px-1 bg-white border rounded text-xs">Ctrl+I</kbd> /{" "}
+                    <kbd className="px-1 bg-white border rounded text-xs">Ctrl+K</kbd>.
+                  </p>
+                  <ul className="list-disc list-inside space-y-1.5 text-gray-700">
+                    <li>
+                      <span className="font-semibold">Link:</span>{" "}
+                      <code className="bg-white border border-gray-200 px-1 rounded text-xs">[opis](https://…)</code> lub ścieżka wewnętrzna{" "}
+                      <code className="bg-white border border-gray-200 px-1 rounded text-xs">[/pl/contacts]</code>
+                    </li>
+                    <li>
+                      <span className="font-semibold">Lista:</span> co najmniej dwie linie zaczynające się od{" "}
+                      <code className="bg-white border border-gray-200 px-1 rounded text-xs">- </code> w jednym bloku (między pustymi liniami = osobne akapity)
+                    </li>
+                    <li>
+                      <span className="font-semibold">Nowy akapit</span> (tekst obok zdjęcia, „O mnie”): dwukrotnie Enter
+                    </li>
+                    <li>
+                      <span className="font-semibold">Hero:</span> każda linia = osobny wiersz nagłówka
+                    </li>
+                    <li>
+                      Tekst nad mapą:{" "}
+                      <code className="bg-white border border-gray-200 px-1 rounded text-xs">👉</code> w osobnej linii — linia pod spodem = przycisk do mapy
+                    </li>
+                    <li>
+                      <span className="font-semibold">Kontakt (O mnie):</span> zostaw słowo{" "}
+                      <code className="bg-white border border-gray-200 px-1 rounded text-xs">KONTAKT</code> /{" "}
+                      <code className="bg-white border border-gray-200 px-1 rounded text-xs">CONTACT</code> w tekście — z niego powstaje link
+                    </li>
+                  </ul>
+                  <p className="text-gray-600 text-xs pt-1 border-t border-gray-200 mt-3">
+                    Czcionka dotyczy tylko treści z tej zakładki: nagłówek hero, tekst nad mapą (PL/EN) oraz strona „O mnie” — nie zmienia menu, stopki ani reszty serwisu. Po zapisaniu odśwież stronę główną lub /aboutMe.
+                  </p>
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-black mb-3">Strona główna (hero)</h3>
                   <label className="block text-black mb-1">Tekst (Enter = nowy wiersz na stronie)</label>
-                  <textarea
+                  <p className="text-gray-600 text-sm mb-2">
+                    Podgląd formatowania jest poniżej pola — od razu widać efekt jak na stronie; przyciskiem możesz go ukryć.
+                  </p>
+                  <SiteContentTextEditor
                     value={siteContent.home.heroText ?? ""}
-                    onChange={(e) =>
+                    onChange={(v) =>
                       setSiteContent({
                         ...siteContent,
-                        home: { ...siteContent.home, heroText: e.target.value },
+                        home: { ...siteContent.home, heroText: v },
                       })
                     }
                     rows={4}
-                    className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                    style={siteContentFieldStyle}
                     placeholder={"Szkolenia\nz nowoczesnego\npiekarnictwa"}
+                    preview
+                    defaultPreviewOpen
+                    previewVariant="hero"
                   />
                 </div>
                 <div>
@@ -3546,30 +3615,30 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-black mb-1">Wersja PL</label>
-                      <textarea
+                      <SiteContentTextEditor
                         value={siteContent.home.introPl ?? ""}
-                        onChange={(e) =>
+                        onChange={(v) =>
                           setSiteContent({
                             ...siteContent,
-                            home: { ...siteContent.home, introPl: e.target.value },
+                            home: { ...siteContent.home, introPl: v },
                           })
                         }
                         rows={10}
-                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                        style={siteContentFieldStyle}
                       />
                     </div>
                     <div>
                       <label className="block text-black mb-1">Wersja EN</label>
-                      <textarea
+                      <SiteContentTextEditor
                         value={siteContent.home.introEn ?? ""}
-                        onChange={(e) =>
+                        onChange={(v) =>
                           setSiteContent({
                             ...siteContent,
-                            home: { ...siteContent.home, introEn: e.target.value },
+                            home: { ...siteContent.home, introEn: v },
                           })
                         }
                         rows={10}
-                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                        style={siteContentFieldStyle}
                       />
                     </div>
                   </div>
@@ -3668,73 +3737,73 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     <div className="space-y-3">
                       <div>
                         <label className="block text-black mb-1">Tytuł</label>
-                        <input
-                          type="text"
+                        <SiteContentTextEditor
                           value={siteContent.about.pl.title}
-                          onChange={(e) =>
+                          onChange={(v) =>
                             setSiteContent({
                               ...siteContent,
                               about: {
                                 ...siteContent.about,
-                                pl: { ...siteContent.about.pl, title: e.target.value },
+                                pl: { ...siteContent.about.pl, title: v },
                               },
                             })
                           }
-                          className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                          rows={2}
+                          style={siteContentFieldStyle}
                         />
                       </div>
                       <div>
                         <label className="block text-black mb-1">Powitanie</label>
-                        <input
-                          type="text"
+                        <SiteContentTextEditor
                           value={siteContent.about.pl.greeting}
-                          onChange={(e) =>
+                          onChange={(v) =>
                             setSiteContent({
                               ...siteContent,
                               about: {
                                 ...siteContent.about,
-                                pl: { ...siteContent.about.pl, greeting: e.target.value },
+                                pl: { ...siteContent.about.pl, greeting: v },
                               },
                             })
                           }
-                          className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                          rows={3}
+                          style={siteContentFieldStyle}
                         />
                       </div>
                       <div>
                         <label className="block text-black mb-1">Akapity (jeden na blok, oddzielone pustą linią)</label>
-                        <textarea
+                        <SiteContentTextEditor
                           value={siteContent.about.pl.paragraphs.join("\n\n")}
-                          onChange={(e) =>
+                          onChange={(v) =>
                             setSiteContent({
                               ...siteContent,
                               about: {
                                 ...siteContent.about,
                                 pl: {
                                   ...siteContent.about.pl,
-                                  paragraphs: e.target.value.split("\n\n").filter(Boolean),
+                                  paragraphs: v.split("\n\n").filter(Boolean),
                                 },
                               },
                             })
                           }
                           rows={8}
-                          className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                          style={siteContentFieldStyle}
                         />
                       </div>
                       <div>
                         <label className="block text-black mb-1">Tekst z linkiem do kontaktu</label>
-                        <input
-                          type="text"
+                        <SiteContentTextEditor
                           value={siteContent.about.pl.contactText}
-                          onChange={(e) =>
+                          onChange={(v) =>
                             setSiteContent({
                               ...siteContent,
                               about: {
                                 ...siteContent.about,
-                                pl: { ...siteContent.about.pl, contactText: e.target.value },
+                                pl: { ...siteContent.about.pl, contactText: v },
                               },
                             })
                           }
-                          className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                          rows={2}
+                          style={siteContentFieldStyle}
                         />
                       </div>
                     </div>
@@ -3744,73 +3813,73 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     <div className="space-y-3">
                       <div>
                         <label className="block text-black mb-1">Tytuł</label>
-                        <input
-                          type="text"
+                        <SiteContentTextEditor
                           value={siteContent.about.en.title}
-                          onChange={(e) =>
+                          onChange={(v) =>
                             setSiteContent({
                               ...siteContent,
                               about: {
                                 ...siteContent.about,
-                                en: { ...siteContent.about.en, title: e.target.value },
+                                en: { ...siteContent.about.en, title: v },
                               },
                             })
                           }
-                          className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                          rows={2}
+                          style={siteContentFieldStyle}
                         />
                       </div>
                       <div>
                         <label className="block text-black mb-1">Powitanie</label>
-                        <input
-                          type="text"
+                        <SiteContentTextEditor
                           value={siteContent.about.en.greeting}
-                          onChange={(e) =>
+                          onChange={(v) =>
                             setSiteContent({
                               ...siteContent,
                               about: {
                                 ...siteContent.about,
-                                en: { ...siteContent.about.en, greeting: e.target.value },
+                                en: { ...siteContent.about.en, greeting: v },
                               },
                             })
                           }
-                          className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                          rows={3}
+                          style={siteContentFieldStyle}
                         />
                       </div>
                       <div>
                         <label className="block text-black mb-1">Akapity (jeden na blok, oddzielone pustą linią)</label>
-                        <textarea
+                        <SiteContentTextEditor
                           value={siteContent.about.en.paragraphs.join("\n\n")}
-                          onChange={(e) =>
+                          onChange={(v) =>
                             setSiteContent({
                               ...siteContent,
                               about: {
                                 ...siteContent.about,
                                 en: {
                                   ...siteContent.about.en,
-                                  paragraphs: e.target.value.split("\n\n").filter(Boolean),
+                                  paragraphs: v.split("\n\n").filter(Boolean),
                                 },
                               },
                             })
                           }
                           rows={8}
-                          className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                          style={siteContentFieldStyle}
                         />
                       </div>
                       <div>
                         <label className="block text-black mb-1">Tekst z linkiem do kontaktu</label>
-                        <input
-                          type="text"
+                        <SiteContentTextEditor
                           value={siteContent.about.en.contactText}
-                          onChange={(e) =>
+                          onChange={(v) =>
                             setSiteContent({
                               ...siteContent,
                               about: {
                                 ...siteContent.about,
-                                en: { ...siteContent.about.en, contactText: e.target.value },
+                                en: { ...siteContent.about.en, contactText: v },
                               },
                             })
                           }
-                          className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
+                          rows={2}
+                          style={siteContentFieldStyle}
                         />
                       </div>
                     </div>
@@ -3830,6 +3899,8 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                           body: JSON.stringify(siteContent),
                         });
                         if (res.ok) {
+                          const saved = (await res.json()) as SiteContent;
+                          setSiteContent(saved);
                           await refreshSiteContent();
                           setErrorMessage("");
                         } else {

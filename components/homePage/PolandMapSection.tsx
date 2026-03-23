@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { Fragment, useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import AnimatedSection from "@/components/AnimatedSection";
@@ -7,6 +7,8 @@ import { X, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import { MapLocation } from "@/types/mapLocation";
 import { getCityName } from "@/utils/cityTranslations";
 import { useSiteContent } from "@/context/siteContentContext";
+import { renderSiteMarkdownParagraph } from "@/lib/renderSiteMarkdown";
+import { getSiteFontStack } from "@/lib/siteFont";
 
 // Leaflet types
 interface LeafletMap {
@@ -95,6 +97,7 @@ export default function PolandMapSection() {
   const bodyText = pointerIdx >= 0 ? introRaw.slice(0, pointerIdx).trim() : introRaw.trim();
   const buttonText = pointerIdx >= 0 ? introRaw.slice(pointerIdx).replace(/^👉\s*\n?\n?/, "").trim() : "";
   const bodyParagraphs = bodyText.split("\n\n").filter((p) => p.trim() !== "");
+  const cmsFont = { fontFamily: getSiteFontStack(content.fontFamily) };
   const handleScrollToMap = useCallback(() => {
     if (mapRef.current) {
       mapRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -343,12 +346,15 @@ export default function PolandMapSection() {
     <AnimatedSection className="py-16 px-4 sm:px-6 lg:px-8 bg-white mt-20">
       <div className="max-w-6xl mx-auto">
         <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr] items-center mb-16">
-          <div className="order-2 lg:order-1 text-center lg:text-left flex flex-col items-center lg:items-start">
+          <div
+            className="order-2 lg:order-1 text-center lg:text-left flex flex-col items-center lg:items-start"
+            style={cmsFont}
+          >
             <div className="space-y-4 text-base sm:text-lg text-gray-700 leading-relaxed">
               {bodyParagraphs.map((paragraph, i) => (
-                <p key={i} className="whitespace-pre-line">
-                  {paragraph.trim()}
-                </p>
+                <Fragment key={i}>
+                  {renderSiteMarkdownParagraph(paragraph.trim())}
+                </Fragment>
               ))}
             </div>
             {buttonText && (

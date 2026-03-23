@@ -2,6 +2,8 @@ import type { SiteContent } from "@/types/siteContent";
 import { NextResponse } from "next/server";
 import { readSiteContent, writeSiteContent } from "@/lib/siteContent";
 import { validateJsonInput } from "@/lib/security";
+import { coerceSiteFontFamily } from "@/lib/siteFont";
+import { defaultSiteContent } from "@/lib/siteContentDefaults";
 
 export async function GET() {
   try {
@@ -27,6 +29,10 @@ export async function PUT(request: Request) {
       );
     }
     const content = JSON.parse(body) as SiteContent;
+    content.fontFamily = coerceSiteFontFamily(
+      content.fontFamily,
+      defaultSiteContent.fontFamily
+    );
     if (
       content?.home?.heroText == null ||
       !content?.about?.pl?.title ||

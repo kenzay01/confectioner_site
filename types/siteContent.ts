@@ -1,4 +1,16 @@
-export type SiteContentFontFamily = "montserrat" | "lato" | "openSans" | "roboto";
+export type SiteContentFontFamily =
+  | "montserrat"
+  | "lato"
+  | "openSans"
+  | "roboto"
+  | "playfairDisplay"
+  | "merriweather"
+  | "dmSans"
+  | "plusJakartaSans"
+  | "nunito"
+  | "raleway"
+  | "literata"
+  | "workSans";
 
 export interface AboutLocaleBlock {
   title: string;

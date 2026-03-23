@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import AnimatedSection from "../AnimatedSection";
 import { useSiteContent } from "@/context/siteContentContext";
+import { renderSiteMarkdown } from "@/lib/renderSiteMarkdown";
+import { getSiteFontStack } from "@/lib/siteFont";
 
 export default function MainLogoSection() {
   const { content } = useSiteContent();
@@ -16,7 +18,8 @@ export default function MainLogoSection() {
     return () => clearTimeout(timer);
   }, []);
 
-  const heroLines = content.home.heroText.split("\n");
+  const cmsFont = { fontFamily: getSiteFontStack(content.fontFamily) };
+  const heroRaw = (content.home.heroText ?? "").replace(/\r\n/g, "\n").trimEnd();
 
   return (
     <AnimatedSection className="flex flex-col min-h-140 items-center pt-8">
@@ -47,13 +50,11 @@ export default function MainLogoSection() {
           />
         )}
       </div>
-      <h1 className="text-2xl sm:text-4xl text-center ">
-        {heroLines.map((line: string, i: number) => (
-          <span key={i}>
-            {line}
-            {i < heroLines.length - 1 && <br />}
-          </span>
-        ))}
+      <h1
+        className="text-2xl sm:text-4xl text-center font-normal whitespace-pre-line [&_a]:font-semibold"
+        style={cmsFont}
+      >
+        {renderSiteMarkdown(heroRaw)}
       </h1>
     </AnimatedSection>
   );
