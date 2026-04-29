@@ -544,33 +544,6 @@ export default function MasterClass() {
           <Image src={bread2} alt="bread" width={600} height={600} className="w-auto h-92"/>
         </div>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-24">
-          <AnimatedSection direction="up" className="mt-6 sm:mt-10 mb-8 sm:mb-12">
-            <div className="bg-white rounded-3xl shadow-lg overflow-hidden border border-gray-200/70">
-              <video
-                className="w-full h-auto max-h-[80vh] object-contain bg-white"
-                src="/ROLKA.mov"
-                autoPlay
-                muted
-                loop
-                playsInline
-                controls
-                preload="metadata"
-              />
-              <div className="px-5 sm:px-8 py-5 sm:py-6 text-center">
-                <h2 className="text-2xl sm:text-3xl font-bold text-[var(--accent-color)] mb-2">
-                  {currentLocale === "pl"
-                    ? "Zobacz atmosferę naszych warsztatów"
-                    : "Experience the atmosphere of our masterclasses"}
-                </h2>
-                <p className="text-sm sm:text-base text-gray-600">
-                  {currentLocale === "pl"
-                    ? "Krótka rolka z zajęć — praktyka, energia i rzemiosło piekarnicze w nowoczesnym wydaniu."
-                    : "A short reel from the classes — hands-on practice, energy, and modern artisan baking."}
-                </p>
-              </div>
-            </div>
-          </AnimatedSection>
-
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
             {/* Left Side: Masterclass List */}
             <div className="lg:col-span-3 space-y-8 md:order-1 order-2">
