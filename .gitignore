@@ -40,8 +40,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# data files (dynamic content managed through admin panel)
+# data files (dynamic content managed through admin panel / runtime)
 data/masterclasses.json
 data/onlineProducts.json
 data/partners.json
 data/mapLocations.json
+data/site-content.json
+data/payment-sessions.json
+public/ROLKA.mov
