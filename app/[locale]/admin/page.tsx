@@ -106,7 +106,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
   const [editingMasterclass, setEditingMasterclass] =
     useState<Masterclass | null>(null);
   const [editingMasterclassPhotosOriginal, setEditingMasterclassPhotosOriginal] =
-    useState<{ photo: string; photos?: string[] } | null>(null);
+    useState<{ photo?: string; photos?: string[] } | null>(null);
   const [masterclassPhotosModified, setMasterclassPhotosModified] =
     useState(false);
   const [editingProduct, setEditingProduct] = useState<OnlineProduct | null>(
