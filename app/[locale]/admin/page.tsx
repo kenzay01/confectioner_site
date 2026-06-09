@@ -54,6 +54,16 @@ function getMasterclassPhotoList(mc: {
   return mc.photo ? [mc.photo] : [];
 }
 
+function getMasterclassEndDate(masterclass: Masterclass): Date {
+  const endDate = new Date(masterclass.dateEnd || masterclass.date);
+  endDate.setHours(23, 59, 59, 999);
+  return endDate;
+}
+
+function isMasterclassUpcoming(masterclass: Masterclass): boolean {
+  return getMasterclassEndDate(masterclass) >= new Date();
+}
+
 const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
   const { refreshMasterclasses, refreshOnlineProducts } = useItems();
   const { refresh: refreshSiteContent } = useSiteContent();
@@ -95,6 +105,10 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
   const [polishCities, setPolishCities] = useState<Array<{name: string, lat: number, lng: number}>>([]);
   const [editingMasterclass, setEditingMasterclass] =
     useState<Masterclass | null>(null);
+  const [editingMasterclassPhotosOriginal, setEditingMasterclassPhotosOriginal] =
+    useState<{ photo: string; photos?: string[] } | null>(null);
+  const [masterclassPhotosModified, setMasterclassPhotosModified] =
+    useState(false);
   const [editingProduct, setEditingProduct] = useState<OnlineProduct | null>(
     null
   );
@@ -317,12 +331,20 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     }
   };
 
+  const closeMasterclassEditor = () => {
+    setEditingMasterclass(null);
+    setEditingMasterclassPhotosOriginal(null);
+    setMasterclassPhotosModified(false);
+  };
+
   const openMasterclassEditor = (masterclass: Masterclass) => {
-    const photos = getMasterclassPhotoList(masterclass);
+    setEditingMasterclassPhotosOriginal({
+      photo: masterclass.photo,
+      photos: masterclass.photos,
+    });
+    setMasterclassPhotosModified(false);
     setEditingMasterclass({
       ...masterclass,
-      photo: photos[0] || masterclass.photo || "",
-      photos,
       price: masterclass.price ?? 0,
       availableSlots: masterclass.availableSlots ?? 0,
       pickedSlots: masterclass.pickedSlots ?? 0,
@@ -332,10 +354,19 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
   const handleEditMasterclass = async () => {
     if (editingMasterclass) {
       try {
+        const masterclassToSave: Masterclass =
+          !masterclassPhotosModified && editingMasterclassPhotosOriginal
+            ? {
+                ...editingMasterclass,
+                photo: editingMasterclassPhotosOriginal.photo,
+                photos: editingMasterclassPhotosOriginal.photos,
+              }
+            : editingMasterclass;
+
         const res = await fetch(`/api/masterclasses/${editingMasterclass.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(editingMasterclass),
+          body: JSON.stringify(masterclassToSave),
         });
         if (res.ok) {
           const updatedMasterclass = await res.json();
@@ -344,7 +375,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
               m.id === updatedMasterclass.id ? updatedMasterclass : m
             )
           );
-          setEditingMasterclass(null);
+          closeMasterclassEditor();
           setNewFaq({
             question: "",
             answer: "",
@@ -742,6 +773,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
             };
           });
         } else if (target === "edit" && editingMasterclass) {
+          setMasterclassPhotosModified(true);
           setEditingMasterclass((prev) => {
             if (!prev) return prev;
             const allPhotos = [
@@ -988,6 +1020,88 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     }
   }, [currentTab]);
 
+  const { upcomingMasterclasses, pastMasterclasses } = useMemo(() => {
+    const upcoming: Masterclass[] = [];
+    const past: Masterclass[] = [];
+    for (const mc of masterclasses) {
+      if (isMasterclassUpcoming(mc)) {
+        upcoming.push(mc);
+      } else {
+        past.push(mc);
+      }
+    }
+    upcoming.sort(
+      (a, b) =>
+        getMasterclassEndDate(a).getTime() - getMasterclassEndDate(b).getTime()
+    );
+    past.sort(
+      (a, b) =>
+        getMasterclassEndDate(b).getTime() - getMasterclassEndDate(a).getTime()
+    );
+    return { upcomingMasterclasses: upcoming, pastMasterclasses: past };
+  }, [masterclasses]);
+
+  const renderMasterclassAdminRow = (
+    masterclass: Masterclass,
+    past = false
+  ) => (
+    <div
+      key={masterclass.id}
+      className={`flex justify-between items-center p-4 border-2 rounded ${
+        past
+          ? "bg-gray-100 border-gray-200 opacity-90"
+          : "bg-gray-50 border-gray-300"
+      }`}
+    >
+      <div className="flex items-center gap-4">
+        <div className="flex-shrink-0">
+          {masterclass.photo ? (
+            <Image
+              src={masterclass.photo}
+              alt="Masterclass"
+              width={64}
+              height={64}
+              className="w-16 h-16 object-cover rounded"
+            />
+          ) : (
+            <div className="w-16 h-16 bg-gray-300 rounded flex items-center justify-center text-gray-500 text-xs">
+              Brak
+            </div>
+          )}
+        </div>
+        <div>
+          <h3 className="text-black font-semibold">
+            {masterclass.title[language]}
+          </h3>
+          <p className="text-gray-600">
+            {masterclass.dateType === "single"
+              ? `${masterclass.date}`
+              : `${masterclass.date} - ${masterclass.dateEnd}`}{" "}
+            | {masterclass.location[language]} | {masterclass.price} zł |{" "}
+            {masterclass.availableSlots} miejsc | Zarezerwowano:{" "}
+            {masterclass.pickedSlots ?? 0}
+          </p>
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <button
+          onClick={() => openMasterclassEditor(masterclass)}
+          className="flex items-center gap-1 px-3 py-2 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium"
+          title="Edytuj"
+        >
+          <Edit className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => handleDeleteMasterclass(masterclass.id)}
+          className="flex items-center gap-1 px-3 py-2 rounded-lg border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200 font-medium"
+          title="Usuń"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-lg border-2 border-black">
@@ -1115,11 +1229,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     Wszystkich warsztatów: <span className="font-bold text-black text-lg">{masterclasses.length}</span>
                   </p>
                   <p className="text-sm text-gray-500">
-                    Aktywnych: {masterclasses.filter(mc => {
-                      const endDate = new Date(mc.dateEnd || mc.date);
-                      endDate.setHours(23, 59, 59, 999);
-                      return endDate >= new Date();
-                    }).length}
+                    Nadchodzących: {upcomingMasterclasses.length}
                   </p>
                 </div>
                 <button
@@ -1185,10 +1295,10 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-4">
                 <Calendar className="w-5 h-5 text-gray-600" />
-                <h3 className="text-lg font-semibold text-black">Ostatnie warsztaty</h3>
+                <h3 className="text-lg font-semibold text-black">Nadchodzące warsztaty</h3>
               </div>
               <div className="space-y-3">
-                {masterclasses.slice(0, 3).map((masterclass) => (
+                {upcomingMasterclasses.slice(0, 3).map((masterclass) => (
                   <div key={masterclass.id} className="bg-white p-4 rounded-xl border-2 border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-md">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
@@ -1218,10 +1328,10 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     </div>
                   </div>
                 ))}
-                {masterclasses.length === 0 && (
+                {upcomingMasterclasses.length === 0 && (
                   <div className="text-center py-8 text-gray-500">
                     <Calendar className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                    <p>Brak warsztatów</p>
+                    <p>Brak nadchodzących warsztatów</p>
                   </div>
                 )}
               </div>
@@ -1786,65 +1896,53 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
             </div>
 
             {/* Masterclass List */}
-            <div className="mt-6 space-y-4">
+            <div className="mt-6 space-y-8">
               {loading ? (
                 <p className="text-gray-300">Ładowanie...</p>
               ) : !masterclasses.length ? (
-                <p className="text-gray-300">Brak</p>
+                <p className="text-gray-300">Brak warsztatów</p>
               ) : (
-                masterclasses.map((masterclass) => (
-                  <div
-                    key={masterclass.id}
-                    className="flex justify-between items-center p-4 bg-gray-50 border-2 border-gray-300 rounded"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="flex-shrink-0">
-                        {masterclass.photo ? (
-                        <Image
-                          src={masterclass.photo}
-                          alt="Masterclass"
-                          width={64}
-                          height={64}
-                          className="w-16 h-16 object-cover rounded"
-                        />
-                        ) : (
-                          <div className="w-16 h-16 bg-gray-300 rounded flex items-center justify-center text-gray-500 text-xs">
-                            Brak
-                          </div>
+                <>
+                  <div>
+                    <div className="flex items-center gap-2 mb-4">
+                      <Calendar className="w-5 h-5 text-green-600" />
+                      <h3 className="text-lg font-semibold text-black">
+                        Nadchodzące warsztaty ({upcomingMasterclasses.length})
+                      </h3>
+                    </div>
+                    {upcomingMasterclasses.length > 0 ? (
+                      <div className="space-y-4">
+                        {upcomingMasterclasses.map((masterclass) =>
+                          renderMasterclassAdminRow(masterclass)
                         )}
                       </div>
-                      <div>
-                        <h3 className="text-black font-semibold">
-                          {masterclass.title[language]}
-                        </h3>
-                        <p className="text-gray-600">
-                          {masterclass.dateType === "single"
-                            ? `${masterclass.date}`
-                            : `${masterclass.date} - ${masterclass.dateEnd}`}{" "}
-                          | {masterclass.location[language]} |{" "}
-                          {masterclass.price} zł | {masterclass.availableSlots}{" "}
-                          miejsc | Zarezerwowano: {masterclass.pickedSlots}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => openMasterclassEditor(masterclass)}
-                        className="flex items-center gap-1 px-3 py-2 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium"
-                        title="Edytuj"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteMasterclass(masterclass.id)}
-                        className="flex items-center gap-1 px-3 py-2 rounded-lg border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200 font-medium"
-                        title="Usuń"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                    ) : (
+                      <p className="text-gray-500 text-sm">
+                        Brak nadchodzących warsztatów
+                      </p>
+                    )}
                   </div>
-                ))
+
+                  <div>
+                    <div className="flex items-center gap-2 mb-4">
+                      <Clock className="w-5 h-5 text-gray-500" />
+                      <h3 className="text-lg font-semibold text-black">
+                        Zakończone warsztaty ({pastMasterclasses.length})
+                      </h3>
+                    </div>
+                    {pastMasterclasses.length > 0 ? (
+                      <div className="space-y-4">
+                        {pastMasterclasses.map((masterclass) =>
+                          renderMasterclassAdminRow(masterclass, true)
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 text-sm">
+                        Brak zakończonych warsztatów
+                      </p>
+                    )}
+                  </div>
+                </>
               )}
             </div>
 
@@ -2185,6 +2283,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                                     type="button"
                                     onClick={() => {
                                       const updatedPhotos = photos.filter((_, i) => i !== index);
+                                      setMasterclassPhotosModified(true);
                                       setEditingMasterclass({
                                         ...editingMasterclass,
                                         photo: updatedPhotos[0] || "",
@@ -2288,7 +2387,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                   </div>
                   <div className="flex justify-end gap-4 mt-6">
                     <button
-                      onClick={() => setEditingMasterclass(null)}
+                      onClick={closeMasterclassEditor}
                       className="flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-gray-400 text-gray-400 hover:bg-gray-400 hover:text-white transition-all duration-200 font-medium"
                     >
                       <X className="w-4 h-4" />
