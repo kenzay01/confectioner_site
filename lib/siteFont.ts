@@ -46,3 +46,11 @@ export function coerceSiteFontFamily(
 ): SiteContentFontFamily {
   return typeof v === "string" && isValidSiteFontFamily(v) ? v : fallback;
 }
+
+export function getMasterclassFontStyle(
+  fontFamily: unknown
+): { fontFamily: string } {
+  return {
+    fontFamily: getSiteFontStack(coerceSiteFontFamily(fontFamily, "montserrat")),
+  };
+}

@@ -1,16 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
+import fs from "fs/promises";
 import path from "path";
 import { Partner } from "@/types/partner";
 
 const dataFilePath = path.join(process.cwd(), "data", "partners.json");
 
+async function ensurePartnersFile(): Promise<Partner[]> {
+  const fileExists = await fs
+    .access(dataFilePath)
+    .then(() => true)
+    .catch(() => false);
+
+  if (!fileExists) {
+    await fs.mkdir(path.dirname(dataFilePath), { recursive: true });
+    await fs.writeFile(dataFilePath, JSON.stringify([]), "utf8");
+    return [];
+  }
+
+  const data = await fs.readFile(dataFilePath, "utf8");
+  return data ? (JSON.parse(data) as Partner[]) : [];
+}
+
 export async function GET() {
   try {
-    const data = fs.readFileSync(dataFilePath, "utf8");
-    const partners = JSON.parse(data);
+    const partners = await ensurePartnersFile();
     return NextResponse.json(partners);
-  } catch (_error) {
+  } catch (error) {
+    console.error("GET /api/partners:", error);
     return NextResponse.json({ error: "Failed to read partners" }, { status: 500 });
   }
 }
@@ -18,16 +34,12 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const partner: Partner = await request.json();
-    
-    const data = fs.readFileSync(dataFilePath, "utf8");
-    const partners = JSON.parse(data);
-    
+    const partners = await ensurePartnersFile();
     partners.push(partner);
-    
-    fs.writeFileSync(dataFilePath, JSON.stringify(partners, null, 2));
-    
+    await fs.writeFile(dataFilePath, JSON.stringify(partners, null, 2), "utf8");
     return NextResponse.json(partner);
-  } catch (_error) {
+  } catch (error) {
+    console.error("POST /api/partners:", error);
     return NextResponse.json({ error: "Failed to create partner" }, { status: 500 });
   }
 }

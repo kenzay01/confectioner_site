@@ -1,3 +1,5 @@
+import type { SiteContentFontFamily } from "@/types/siteContent";
+
 export interface Masterclass {
   id: string;
   dateType: "single" | "range";
@@ -28,4 +30,6 @@ export interface Masterclass {
     pl: { id: string; question: string; answer: string }[];
     en: { id: string; question: string; answer: string }[];
   };
+  /** Czcionka tytułu, opisu i FAQ na stronie tego warsztatu */
+  fontFamily?: SiteContentFontFamily;
 }

@@ -10,6 +10,7 @@ import { format, isSameDay, addDays, isBefore } from "date-fns";
 import { pl, enGB } from "date-fns/locale";
 import AnimatedSection from "@/components/AnimatedSection";
 import bread2 from "@/public/materials/bread2.png";
+import { getMasterclassFontStyle } from "@/lib/siteFont";
 
 const formatDate = (
   masterclass: Masterclass,
@@ -161,6 +162,7 @@ const SliderSection = ({ masterclasses }: { masterclasses: Masterclass[] }) => {
           }}
         >
           {extendedMasterclasses.map((masterclass, index) => {
+            const mcFont = getMasterclassFontStyle(masterclass.fontFamily);
             return (
               <div
                 key={`${masterclass.id}-${index}`} // Унікальний ключ для клонованих слайдів
@@ -182,7 +184,10 @@ const SliderSection = ({ masterclasses }: { masterclasses: Masterclass[] }) => {
                     return (
                   <div className="min-h-[55vh] sm:min-h-[65vh] bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-200/60">
                     <div className="h-full flex items-center justify-center p-6 sm:p-8">
-                      <div className="text-center max-w-lg w-full">
+                      <div
+                        className="text-center max-w-lg w-full font-normal"
+                        style={mcFont}
+                      >
                         <h3 className="text-2xl sm:text-3xl font-bold mb-5 text-[var(--accent-color)]">
                           {masterclass.title[currentLocale]}
                         </h3>
@@ -257,7 +262,10 @@ const SliderSection = ({ masterclasses }: { masterclasses: Masterclass[] }) => {
                         </div>
                         
                         {/* Content on Photo - white text: title, date, location */}
-                        <div className="relative z-20 text-center p-6 sm:p-10 h-full flex flex-col justify-center">
+                        <div
+                          className="relative z-20 text-center p-6 sm:p-10 h-full flex flex-col justify-center font-normal"
+                          style={mcFont}
+                        >
                           <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 sm:mb-8 drop-shadow-lg line-clamp-2 break-words">
                             {masterclass.title[currentLocale]}
                           </h3>
@@ -573,7 +581,10 @@ export default function MasterClass() {
                     direction="left"
                   >
                   <div className="bg-white rounded-3xl p-8 shadow-lg overflow-hidden">
-                    <div className="text-center mb-6">
+                    <div
+                      className="text-center mb-6 font-normal"
+                      style={getMasterclassFontStyle(masterclass.fontFamily)}
+                    >
                       <h2 className="text-3xl sm:text-4xl font-bold text-[var(--accent-color)] mb-4 line-clamp-2 break-words">
                         {masterclass.title[currentLocale]}
                       </h2>

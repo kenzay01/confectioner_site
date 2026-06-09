@@ -25,8 +25,10 @@ import { MapLocation } from "@/types/mapLocation";
 import { SiteContent } from "@/types/siteContent";
 import { useItems } from "@/context/itemsContext";
 import { useSiteContent } from "@/context/siteContentContext";
-import { getSiteFontStack } from "@/lib/siteFont";
+import { coerceSiteFontFamily, getSiteFontStack } from "@/lib/siteFont";
 import { SiteContentTextEditor } from "@/components/admin/SiteContentTextEditor";
+import { FontFamilySelect } from "@/components/admin/FontFamilySelect";
+import type { SiteContentFontFamily } from "@/types/siteContent";
 import Image from "next/image";
 
 interface FAQ {
@@ -39,6 +41,17 @@ interface DateTimeSlot {
   id: string;
   date: string;
   time: string;
+}
+
+/** photos[] is source of truth; photo is legacy single cover */
+function getMasterclassPhotoList(mc: {
+  photo?: string;
+  photos?: string[];
+}): string[] {
+  if (mc.photos && mc.photos.length > 0) {
+    return mc.photos;
+  }
+  return mc.photo ? [mc.photo] : [];
 }
 
 const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
@@ -63,6 +76,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     availableSlots: 0,
     pickedSlots: 0,
     faqs: { pl: [], en: [] },
+    fontFamily: "montserrat",
   });
   const [newProduct, setNewProduct] = useState<Partial<OnlineProduct>>({
     type: "course",
@@ -132,6 +146,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      setErrorMessage("");
       try {
         const [masterclassRes, productRes, partnersRes, citiesRes, mapLocationsRes] = await Promise.all([
           fetch("/api/masterclasses"),
@@ -171,6 +186,16 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
           const errorText = await citiesRes.text();
           console.error("Cities API error:", errorText);
           setErrorMessage(`Nie udało się załadować listy miast: ${citiesRes.status} ${errorText}`);
+        }
+
+        if (
+          masterclassRes.ok &&
+          productRes.ok &&
+          partnersRes.ok &&
+          mapLocationsRes.ok &&
+          citiesRes.ok
+        ) {
+          setErrorMessage("");
         }
       } catch (_error) {
         setErrorMessage("Błąd przy ładowaniu danych");
@@ -226,11 +251,12 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     }
 
     // Jeśli używamy polskiej wersji dla angielskiej, kopiujemy dane
-      const photos = newMasterclass.photos || (newMasterclass.photo ? [newMasterclass.photo] : []);
+      const photos = getMasterclassPhotoList(newMasterclass);
       const masterclassToAdd: Masterclass = {
         ...newMasterclass,
         id: Date.now().toString(),
         pickedSlots: 0,
+        fontFamily: coerceSiteFontFamily(newMasterclass.fontFamily, "montserrat"),
         faqs: newMasterclass.faqs || { pl: [], en: [] },
         photo: photos[0] || newMasterclass.photo || "",
         photos: photos.length > 0 ? photos : undefined,
@@ -275,6 +301,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
             availableSlots: 0,
             pickedSlots: 0,
             faqs: { pl: [], en: [] },
+            fontFamily: "montserrat",
           });
           setNewFaq({
             question: "",
@@ -288,6 +315,18 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
       } catch (_error) {
         setErrorMessage("Błąd przy dodawaniu warsztatu");
     }
+  };
+
+  const openMasterclassEditor = (masterclass: Masterclass) => {
+    const photos = getMasterclassPhotoList(masterclass);
+    setEditingMasterclass({
+      ...masterclass,
+      photo: photos[0] || masterclass.photo || "",
+      photos,
+      price: masterclass.price ?? 0,
+      availableSlots: masterclass.availableSlots ?? 0,
+      pickedSlots: masterclass.pickedSlots ?? 0,
+    });
   };
 
   const handleEditMasterclass = async () => {
@@ -692,23 +731,28 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
       if (uploadedUrls.length > 0) {
         if (target === "new") {
           setNewMasterclass((prev) => {
-            const existingPhotos = prev.photos || [];
-            const existingPhoto = prev.photo ? [prev.photo] : [];
-            const allPhotos = [...existingPhoto, ...existingPhotos, ...uploadedUrls];
+            const allPhotos = [
+              ...getMasterclassPhotoList(prev),
+              ...uploadedUrls,
+            ];
             return {
-            ...prev,
-              photo: allPhotos[0] || prev.photo, // Перше фото для зворотної сумісності
+              ...prev,
+              photo: allPhotos[0] || prev.photo || "",
               photos: allPhotos,
             };
           });
         } else if (target === "edit" && editingMasterclass) {
-          const existingPhotos = editingMasterclass.photos || [];
-          const existingPhoto = editingMasterclass.photo ? [editingMasterclass.photo] : [];
-          const allPhotos = [...existingPhoto, ...existingPhotos, ...uploadedUrls];
-          setEditingMasterclass({
-            ...editingMasterclass,
-            photo: allPhotos[0] || editingMasterclass.photo,
-            photos: allPhotos,
+          setEditingMasterclass((prev) => {
+            if (!prev) return prev;
+            const allPhotos = [
+              ...getMasterclassPhotoList(prev),
+              ...uploadedUrls,
+            ];
+            return {
+              ...prev,
+              photo: allPhotos[0] || prev.photo || "",
+              photos: allPhotos,
+            };
           });
         }
       }
@@ -1165,7 +1209,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         </div>
                       </div>
                       <button
-                        onClick={() => setEditingMasterclass(masterclass)}
+                        onClick={() => openMasterclassEditor(masterclass)}
                         className="flex items-center gap-1 px-3 py-2 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 text-sm font-medium"
                       >
                         <Edit className="w-4 h-4" />
@@ -1514,6 +1558,17 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                   />
                 </div>
                 <div>
+                  <FontFamilySelect
+                    value={coerceSiteFontFamily(
+                      newMasterclass.fontFamily,
+                      "montserrat"
+                    )}
+                    onChange={(fontFamily: SiteContentFontFamily) =>
+                      setNewMasterclass({ ...newMasterclass, fontFamily })
+                    }
+                  />
+                </div>
+                <div>
                   <label className="block text-black mb-1">Cena (zł)</label>
                   <input
                     type="number"
@@ -1597,7 +1652,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     )}
                   </div>
                   {(() => {
-                    const photos = newMasterclass.photos || (newMasterclass.photo ? [newMasterclass.photo] : []);
+                    const photos = getMasterclassPhotoList(newMasterclass);
                     return photos.length > 0 && (
                       <div className="mt-3">
                         <p className="text-xs text-gray-600 mb-2">
@@ -1774,7 +1829,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                     </div>
                     <div className="flex gap-2">
                       <button
-                        onClick={() => setEditingMasterclass(masterclass)}
+                        onClick={() => openMasterclassEditor(masterclass)}
                         className="flex items-center gap-1 px-3 py-2 rounded-lg border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-medium"
                         title="Edytuj"
                       >
@@ -2011,13 +2066,27 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         rows={4}
                       />
                     </div>
+                    <div className="col-span-2">
+                      <FontFamilySelect
+                        value={coerceSiteFontFamily(
+                          editingMasterclass.fontFamily,
+                          "montserrat"
+                        )}
+                        onChange={(fontFamily: SiteContentFontFamily) =>
+                          setEditingMasterclass({
+                            ...editingMasterclass,
+                            fontFamily,
+                          })
+                        }
+                      />
+                    </div>
                     <div>
                       <label className="block text-black mb-1">
                         Cena (zł)
                       </label>
                       <input
                         type="number"
-                        value={editingMasterclass.price}
+                        value={editingMasterclass.price ?? 0}
                         onChange={(e) =>
                           setEditingMasterclass({
                             ...editingMasterclass,
@@ -2034,7 +2103,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                       </label>
                       <input
                         type="number"
-                        value={editingMasterclass.availableSlots}
+                        value={editingMasterclass.availableSlots ?? 0}
                         onChange={(e) =>
                           setEditingMasterclass({
                             ...editingMasterclass,
@@ -2097,7 +2166,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                         )}
                       </div>
                       {(() => {
-                        const photos = editingMasterclass.photos || (editingMasterclass.photo ? [editingMasterclass.photo] : []);
+                        const photos = getMasterclassPhotoList(editingMasterclass);
                         return photos.length > 0 && (
                           <div className="mt-3">
                             <p className="text-xs text-gray-600 mb-2">
@@ -2144,7 +2213,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                       </label>
                       <input
                         type="number"
-                        value={editingMasterclass.pickedSlots}
+                        value={editingMasterclass.pickedSlots ?? 0}
                         onChange={(e) =>
                           setEditingMasterclass({
                             ...editingMasterclass,

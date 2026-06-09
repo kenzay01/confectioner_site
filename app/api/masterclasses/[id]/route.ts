@@ -2,6 +2,7 @@ import { Masterclass } from "@/types/masterclass";
 import fs from "fs/promises";
 import path from "path";
 import { NextResponse } from "next/server";
+import { coerceSiteFontFamily } from "@/lib/siteFont";
 
 const masterclassesFile = path.join(
   process.cwd(),
@@ -16,6 +17,10 @@ export async function PUT(
   try {
     const { id } = await params;
     const updatedMasterclass = (await request.json()) as Masterclass;
+    updatedMasterclass.fontFamily = coerceSiteFontFamily(
+      updatedMasterclass.fontFamily,
+      "montserrat"
+    );
     const fileExists = await fs
       .access(masterclassesFile)
       .then(() => true)

@@ -3,6 +3,7 @@ import fs from "fs/promises";
 import path from "path";
 import { NextResponse } from "next/server";
 import { validateJsonInput, checkRateLimit, containsDangerousPatterns, validateId } from "@/lib/security";
+import { coerceSiteFontFamily } from "@/lib/siteFont";
 
 const masterclassesFile = path.join(
   process.cwd(),
@@ -60,6 +61,10 @@ export async function POST(request: Request) {
     }
 
     const newMasterclass = JSON.parse(body) as Masterclass;
+    newMasterclass.fontFamily = coerceSiteFontFamily(
+      newMasterclass.fontFamily,
+      "montserrat"
+    );
 
     // Додаткова валідація полів
     if (newMasterclass.id && !validateId(newMasterclass.id)) {

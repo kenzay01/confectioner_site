@@ -11,6 +11,7 @@ import { Masterclass } from "@/types/masterclass";
 import { ArrowLeft } from "lucide-react";
 import PaymentModal from "@/components/PaymentModal";
 import AnimatedSection from "@/components/AnimatedSection";
+import { getMasterclassFontStyle } from "@/lib/siteFont";
 
 export default function MasterClassPage() {
   const router = useRouter();
@@ -94,6 +95,8 @@ export default function MasterClassPage() {
     );
   }
 
+  const masterclassFontStyle = getMasterclassFontStyle(masterclass.fontFamily);
+
   if (isMasterclassEnded(masterclass)) {
     return (
       <div className="md:pt-0 pt-14 min-h-screen bg-[var(--main-color)]">
@@ -105,6 +108,7 @@ export default function MasterClassPage() {
             <ArrowLeft className="inline-block mr-2" />
             {currentLocale === "pl" ? "Powrót" : "Back"}
           </button>
+          <div style={masterclassFontStyle} className="font-normal">
           <h1 className="text-3xl sm:text-4xl font-bold  mb-8 text-center">
             {masterclass.title[currentLocale]}
           </h1>
@@ -113,6 +117,7 @@ export default function MasterClassPage() {
               ? "Ten warsztat nie jest już dostępny"
               : "This workshop is no longer available"}
           </p>
+          </div>
         </div>
       </div>
     );
@@ -129,6 +134,7 @@ export default function MasterClassPage() {
           {currentLocale === "pl" ? "Powrót" : "Back"}
         </button>
 
+        <div style={masterclassFontStyle} className="font-normal">
         {/* Header Section with Photo Background - only title, date, location */}
         {(() => {
           const photos = masterclass.photos || (masterclass.photo ? [masterclass.photo] : []);
@@ -319,6 +325,7 @@ export default function MasterClassPage() {
             </div>
           </div>
         )}
+        </div>
         <PaymentModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
