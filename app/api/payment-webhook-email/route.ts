@@ -222,49 +222,7 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        // Готуємо деталі про товар/майстер-клас
-        let itemDetails = "";
-        if (itemType === "masterclass" && itemId) {
-          try {
-            const fileContents = await fs.readFile(masterclassesFile, "utf-8");
-            const masterclasses = JSON.parse(fileContents) as Masterclass[];
-
-            const cleanItemId = itemId.replace("masterclass-", "");
-            const masterclass = masterclasses.find(
-              (m) => m.id === cleanItemId || m.id === itemId
-            );
-
-            if (masterclass) {
-              const formattedDate = format(
-                new Date(masterclass.date),
-                "d MMMM yyyy",
-                { locale: pl }
-              );
-              const location = masterclass.location.pl || masterclass.location.en;
-              const city = masterclass.city || "";
-              itemDetails = `
-                <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
-                <h3>📚 SZCZEGÓŁY WARSZTATU:</h3>
-                <p><strong>📖 Nazwa:</strong> ${masterclass.title.pl}</p>
-                <p><strong>📅 Data:</strong> ${formattedDate}</p>
-                <p><strong>📍 Lokalizacja:</strong> ${location}</p>
-                <p><strong>🏙️ Miasto:</strong> ${city}</p>
-                <p><strong>💰 Cena:</strong> ${masterclass.price} PLN</p>
-              `;
-            }
-          } catch (error) {
-            console.error("Error reading masterclass details:", error);
-          }
-        }
-
-        // Формуємо email
-        const amountInPLN =
-          typeof amount === "number"
-            ? (amount / 100).toFixed(2)
-            : String(amount);
-        const subject = `✅ Nowe zamówienie - OPŁACONE [Webhook]`;
-
-        // Дані форми (згода на wizerunek, faktura, kontakt) — збережені при створенні платежу
+        // Дані форми + cart items — спочатку з сесії (потрібні для листів)
         let sessionForm: Record<string, string | boolean> = {};
         let sessionCartItems: Array<{
           type?: string;
@@ -275,7 +233,10 @@ export async function POST(req: NextRequest) {
         }> = [];
         try {
           const raw = await fs.readFile(paymentSessionsFile, "utf-8");
-          const sessions = JSON.parse(raw) as Record<string, Record<string, unknown>>;
+          const sessions = JSON.parse(raw) as Record<
+            string,
+            Record<string, unknown>
+          >;
           if (sessionId && sessions[sessionId]) {
             const s = sessions[sessionId];
             sessionForm = {
@@ -293,11 +254,99 @@ export async function POST(req: NextRequest) {
               sessionCartItems = s.cartItems as typeof sessionCartItems;
             }
             delete sessions[sessionId];
-            await fs.writeFile(paymentSessionsFile, JSON.stringify(sessions, null, 2), "utf-8");
+            await fs.writeFile(
+              paymentSessionsFile,
+              JSON.stringify(sessions, null, 2),
+              "utf-8"
+            );
           }
         } catch {
           // файл не існує або помилка читання
         }
+
+        // Готуємо деталі замовлення (1 warsztat lub cały koszyk)
+        let itemDetails = "";
+        try {
+          const fileContents = await fs.readFile(masterclassesFile, "utf-8");
+          const masterclasses = JSON.parse(fileContents) as Masterclass[];
+
+          const orderLines =
+            sessionCartItems.length > 0
+              ? sessionCartItems
+              : itemType === "masterclass" && itemId
+                ? [
+                    {
+                      type: "masterclass",
+                      id: itemId,
+                      quantity: 1,
+                      title: undefined as
+                        | { pl?: string; en?: string }
+                        | undefined,
+                      price: undefined as number | undefined,
+                    },
+                  ]
+                : [];
+
+          if (orderLines.length > 0) {
+            const blocks: string[] = [];
+            for (const line of orderLines) {
+              if (line.type !== "masterclass" || !line.id) {
+                blocks.push(`
+                  <p><strong>${line.title?.pl || line.id}</strong> ×${line.quantity || 1}
+                  ${line.price != null ? ` — ${line.price * (line.quantity || 1)} PLN` : ""}</p>
+                `);
+                continue;
+              }
+              const cleanId = String(line.id).replace("masterclass-", "");
+              const masterclass = masterclasses.find(
+                (m) => m.id === cleanId || m.id === line.id
+              );
+              const qty = Math.max(1, Math.floor(Number(line.quantity) || 1));
+              if (masterclass) {
+                const formattedDate =
+                  masterclass.dateType === "range" && masterclass.dateEnd
+                    ? `${format(new Date(masterclass.date), "d MMMM yyyy", { locale: pl })} – ${format(new Date(masterclass.dateEnd), "d MMMM yyyy", { locale: pl })}`
+                    : format(new Date(masterclass.date), "d MMMM yyyy", {
+                        locale: pl,
+                      });
+                const location =
+                  masterclass.location.pl || masterclass.location.en;
+                const city = masterclass.city || "";
+                const lineTotal =
+                  (line.price ?? masterclass.price) * qty;
+                blocks.push(`
+                  <div style="margin: 12px 0; padding: 12px; background: #f9f6f3; border-radius: 8px;">
+                    <p><strong>📖 Nazwa:</strong> ${masterclass.title.pl}</p>
+                    <p><strong>🔢 Ilość miejsc:</strong> ${qty}</p>
+                    <p><strong>📅 Data:</strong> ${formattedDate}</p>
+                    <p><strong>📍 Lokalizacja:</strong> ${location}</p>
+                    <p><strong>🏙️ Miasto:</strong> ${city || "—"}</p>
+                    <p><strong>💰 Cena:</strong> ${lineTotal} PLN (${masterclass.price} PLN × ${qty})</p>
+                  </div>
+                `);
+              } else {
+                blocks.push(`
+                  <p><strong>${line.title?.pl || cleanId}</strong> ×${qty}
+                  ${line.price != null ? ` — ${line.price * qty} PLN` : ""}</p>
+                `);
+              }
+            }
+            itemDetails = `
+              <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+              <h3>📚 SZCZEGÓŁY ZAMÓWIENIA (${orderLines.length} ${orderLines.length === 1 ? "pozycja" : "pozycje"}):</h3>
+              ${blocks.join("")}
+            `;
+          }
+        } catch (error) {
+          console.error("Error reading masterclass details:", error);
+        }
+
+        // Формуємо email
+        const amountInPLN =
+          typeof amount === "number"
+            ? (amount / 100).toFixed(2)
+            : String(amount);
+        const subject = `✅ Nowe zamówienie - OPŁACONE [Webhook]`;
 
         const imageConsentText =
           sessionForm.imageConsent === "agree"
@@ -345,10 +394,17 @@ export async function POST(req: NextRequest) {
             : `
           <p><strong>Chcę otrzymać fakturę VAT:</strong> Nie</p>`;
 
+        const orderTypeLabel =
+          itemType === "cart" || sessionCartItems.length > 1
+            ? "Koszyk (wiele warsztatów)"
+            : itemType === "masterclass"
+              ? "Warsztat"
+              : "Produkt";
+
         const emailHtml = `
           <h2>✅ <strong>NOWE ZAMÓWIENIE</strong> (OPŁACONE)</h2>
           <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
-          <p><strong>📝 Typ:</strong> ${itemType === "masterclass" ? "Warsztat" : "Produkt"}</p>
+          <p><strong>📝 Typ:</strong> ${orderTypeLabel}</p>
           <p><strong>🆔 ID:</strong> ${itemId}</p>
           ${itemDetails}
           <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
@@ -416,54 +472,103 @@ export async function POST(req: NextRequest) {
           console.error("❌ EmailJS configuration is not set");
         }
 
-        // Після успішної покупки майстер-класу (warsztat) — відправляємо клієнту лист з датою та місцем
-        if (itemType === "masterclass" && clientEmail && itemId) {
+        // Лист до клієнта — 1 warsztat lub cały koszyk
+        const customerEmailTo =
+          (typeof sessionForm.email === "string" && sessionForm.email) ||
+          clientEmail ||
+          "";
+        const customerNameTo =
+          (typeof sessionForm.fullName === "string" && sessionForm.fullName) ||
+          clientName ||
+          "Kliencie";
+
+        if (customerEmailTo) {
           try {
             const fileContents = await fs.readFile(masterclassesFile, "utf-8");
             const masterclasses = JSON.parse(fileContents) as Masterclass[];
-            const masterclassId = itemId.replace("masterclass-", "");
-            const masterclass = masterclasses.find(
-              (m) => m.id === masterclassId || m.id === itemId
-            );
-            if (masterclass) {
-              const locale = pl;
-              const dateStart = format(new Date(masterclass.date), "d MMMM yyyy", { locale });
-              const formattedDate =
-                masterclass.dateType === "range" && masterclass.dateEnd
-                  ? `${dateStart} – ${format(new Date(masterclass.dateEnd), "d MMMM yyyy", { locale })}`
-                  : dateStart;
-              const location = masterclass.location?.pl || masterclass.location?.en || "";
-              const city = masterclass.city || "";
-              const customerHtml = buildCustomerCoursePurchaseEmail({
-                clientName: clientName || "Kliencie",
-                productTitle: masterclass.title.pl || masterclass.title.en || "Warsztat",
-                amountInPLN:
-                  typeof amount === "number"
-                    ? (amount / 100).toFixed(2)
-                    : String(amount),
-                isWorkshop: true,
-                eventDetails: {
+
+            const orderLines =
+              sessionCartItems.length > 0
+                ? sessionCartItems.filter((i) => i.type === "masterclass" && i.id)
+                : itemType === "masterclass" && itemId
+                  ? [{ type: "masterclass", id: itemId, quantity: 1 }]
+                  : [];
+
+            if (orderLines.length > 0) {
+              const workshopBlocks: Array<{
+                title: string;
+                quantity: number;
+                formattedDate: string;
+                location: string;
+                city: string;
+                startTime?: string;
+                endTime?: string;
+                lineTotal: number;
+              }> = [];
+
+              for (const line of orderLines) {
+                const cleanId = String(line.id).replace("masterclass-", "");
+                const masterclass = masterclasses.find(
+                  (m) => m.id === cleanId || m.id === line.id
+                );
+                if (!masterclass) continue;
+                const qty = Math.max(
+                  1,
+                  Math.floor(Number(line.quantity) || 1)
+                );
+                const dateStart = format(new Date(masterclass.date), "d MMMM yyyy", {
+                  locale: pl,
+                });
+                const formattedDate =
+                  masterclass.dateType === "range" && masterclass.dateEnd
+                    ? `${dateStart} – ${format(new Date(masterclass.dateEnd), "d MMMM yyyy", { locale: pl })}`
+                    : dateStart;
+                workshopBlocks.push({
+                  title: masterclass.title.pl || masterclass.title.en || "Warsztat",
+                  quantity: qty,
                   formattedDate,
-                  location,
-                  city,
+                  location:
+                    masterclass.location?.pl || masterclass.location?.en || "",
+                  city: masterclass.city || "",
                   startTime: masterclass.startTime || undefined,
                   endTime: masterclass.endTime || undefined,
-                },
-              });
-              const customerResult = await sendEmail({
-                to: clientEmail,
-                subject: "✅ Dziękujemy za zakup! Warsztat – Nieznany Piekarz",
-                html: customerHtml,
-                text: `Dziękujemy za zakup! Warsztat: ${masterclass.title.pl}. Data: ${formattedDate}. Miejsce: ${[location, city].filter(Boolean).join(", ")}. Suma: ${typeof amount === "number" ? (amount / 100).toFixed(2) : amount} PLN.`,
-              });
-              if (customerResult.success) {
-                console.log("✅ Customer masterclass confirmation email sent to:", clientEmail);
-              } else {
-                console.error("❌ Failed to send customer masterclass email:", customerResult.error);
+                  lineTotal: (line.price ?? masterclass.price) * qty,
+                });
+              }
+
+              if (workshopBlocks.length > 0) {
+                const customerHtml = buildCustomerCartPurchaseEmail({
+                  clientName: customerNameTo,
+                  amountInPLN,
+                  workshops: workshopBlocks,
+                });
+                const titlesText = workshopBlocks
+                  .map((w) => `${w.title} ×${w.quantity}`)
+                  .join(", ");
+                const customerResult = await sendEmail({
+                  to: customerEmailTo,
+                  subject:
+                    workshopBlocks.length > 1
+                      ? "✅ Dziękujemy za zakup! Twoje warsztaty – Nieznany Piekarz"
+                      : "✅ Dziękujemy za zakup! Warsztat – Nieznany Piekarz",
+                  html: customerHtml,
+                  text: `Dziękujemy za zakup! ${titlesText}. Suma: ${amountInPLN} PLN.`,
+                });
+                if (customerResult.success) {
+                  console.log(
+                    "✅ Customer confirmation email sent to:",
+                    customerEmailTo
+                  );
+                } else {
+                  console.error(
+                    "❌ Failed to send customer email:",
+                    customerResult.error
+                  );
+                }
               }
             }
           } catch (e) {
-            console.error("Error sending masterclass customer email:", e);
+            console.error("Error sending customer confirmation email:", e);
           }
         }
 
@@ -560,6 +665,126 @@ export async function POST(req: NextRequest) {
       },
     });
   }
+}
+
+function buildCustomerCartPurchaseEmail(params: {
+  clientName: string;
+  amountInPLN: string;
+  workshops: Array<{
+    title: string;
+    quantity: number;
+    formattedDate: string;
+    location: string;
+    city: string;
+    startTime?: string;
+    endTime?: string;
+    lineTotal: number;
+  }>;
+}): string {
+  const { clientName, amountInPLN, workshops } = params;
+  const firstName = clientName.trim().split(/\s+/)[0] || "Kliencie";
+  const itemsHtml = workshops
+    .map((w) => {
+      const place = [w.location, w.city].filter(Boolean).join(", ");
+      const hours =
+        w.startTime || w.endTime
+          ? `<br>🕐 <strong>Godziny:</strong> ${[w.startTime, w.endTime].filter(Boolean).join(" – ")}`
+          : "";
+      return `
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background: #f9f6f3; border-radius: 12px; border: 1px solid #e8e0d8; margin-bottom: 12px;">
+          <tr>
+            <td style="padding: 20px 24px;">
+              <p style="margin: 0 0 8px; font-size: 12px; color: #6b5344; text-transform: uppercase; letter-spacing: 0.05em;">Warsztat${w.quantity > 1 ? ` × ${w.quantity}` : ""}</p>
+              <p style="margin: 0 0 12px; font-size: 17px; font-weight: 600; color: #502d1c;">${w.title}</p>
+              <p style="margin: 0; font-size: 14px; color: #555; line-height: 1.6;">
+                📅 <strong>Data:</strong> ${w.formattedDate}${hours}<br>
+                📍 <strong>Miejsce:</strong> ${place || "—"}<br>
+                💰 <strong>Kwota:</strong> ${w.lineTotal} PLN
+              </p>
+            </td>
+          </tr>
+        </table>`;
+    })
+    .join("");
+
+  return `
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dziękujemy za zakup</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background-color: #f5f0eb;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f5f0eb; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 560px; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(80, 45, 28, 0.12);">
+          <tr>
+            <td style="background: #ffffff; padding: 32px 40px; text-align: center;">
+              <img src="https://nieznanypiekarz.com/materials/logo-final.png" alt="Nieznany Piekarz" width="120" height="120" style="display: block; margin: 0 auto 16px; max-width: 120px; height: auto;" />
+              <h1 style="margin: 0; color: #502d1c; font-size: 24px; font-weight: 700; letter-spacing: -0.02em;">
+                Nieznany Piekarz
+              </h1>
+              <p style="margin: 8px 0 0; color: #6b5344; font-size: 14px;">Szkolenia z nowoczesnego piekarnictwa</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px 40px 32px;">
+              <p style="margin: 0 0 20px; font-size: 18px; color: #1a1a1a; line-height: 1.5;">
+                Cześć <strong>${firstName}</strong>,
+              </p>
+              <p style="margin: 0 0 20px; font-size: 16px; color: #333; line-height: 1.6;">
+                Dziękujemy za zakup${workshops.length > 1 ? " warsztatów" : ""}.
+              </p>
+              <p style="margin: 0 0 24px; font-size: 15px; color: #4a321f; line-height: 1.6; background: #fdf5ec; border-radius: 12px; padding: 14px 16px;">
+                <strong>Twoje zgłoszenie zostało pomyślnie przyjęte — miejsca na szkoleniach są już dla Ciebie zarezerwowane.</strong>
+              </p>
+              ${itemsHtml}
+              <p style="margin: 8px 0 24px; font-size: 16px; color: #502d1c; font-weight: 600;">
+                Suma zamówienia: ${amountInPLN} PLN
+              </p>
+              <p style="margin: 24px 0 12px; font-size: 15px; color: #444; line-height: 1.7;">
+                W najbliższym czasie prześlę Ci wszystkie niezbędne informacje organizacyjne, w tym:
+              </p>
+              <ul style="margin: 0 0 20px 20px; padding: 0; font-size: 15px; color: #444; line-height: 1.7;">
+                <li style="margin-bottom: 6px;">szczegółowy harmonogram szkolenia,</li>
+                <li style="margin-bottom: 6px;">informacje dotyczące lokalizacji,</li>
+                <li style="margin-bottom: 0;">wskazówki przygotowawcze (jeśli będą wymagane).</li>
+              </ul>
+              <p style="margin: 0 0 16px; font-size: 15px; color: #444; line-height: 1.7;">
+                Na około <strong>7 dni przed rozpoczęciem szkolenia</strong> otrzymasz dodatkowe przypomnienie wraz z kompletem najważniejszych informacji.
+              </p>
+              <p style="margin: 0 0 16px; font-size: 15px; color: #444; line-height: 1.7;">
+                <strong>Masz pytania?</strong><br />
+                W razie pytań organizacyjnych lub potrzeby wystawienia faktury możesz odpowiedzieć bezpośrednio na tę wiadomość — pozostaję do Twojej dyspozycji.
+              </p>
+              <p style="margin: 24px 0 0; font-size: 16px; color: #1a1a1a; line-height: 1.6;">
+                Do zobaczenia na szkoleniu!<br />
+                <br />
+                <strong>Yaroslav Semkiv</strong><br />
+                Nieznany Piekarz
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 24px 40px; background: #f9f6f3; border-top: 1px solid #e8e0d8; text-align: center;">
+              <p style="margin: 0 0 8px; font-size: 12px; color: #888;">
+                Ten e-mail został wysłany automatycznie po dokonaniu płatności.
+              </p>
+              <p style="margin: 8px 0 0; font-size: 12px; color: #888;">
+                Strona: <a href="https://nieznanypiekarz.com" style="color: #6b5344; text-decoration: none;">nieznanypiekarz.com</a><br>
+                Instagram: <a href="https://www.instagram.com/nieznanypiekarz" style="color: #6b5344; text-decoration: none;">📸 @nieznanypiekarz</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
 }
 
 function buildCustomerCoursePurchaseEmail(params: {

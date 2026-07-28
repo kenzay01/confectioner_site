@@ -15,12 +15,13 @@ const masterclassesFile = path.join(
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { sessionId, itemType, itemId, formData, amount, status } = body;
+    const { sessionId, itemType, itemId, formData, amount, status, cartItems } = body;
 
     console.log('=== PROCESS PAYMENT ===');
     console.log('SessionId:', sessionId);
     console.log('ItemType:', itemType);
     console.log('ItemId:', itemId);
+    console.log('CartItems:', Array.isArray(cartItems) ? cartItems.length : 0);
     console.log('Amount:', amount);
     console.log('Status:', status);
     console.log('FormData received:', {
@@ -39,62 +40,62 @@ export async function POST(req: NextRequest) {
 
     // Відправляємо дані в Google Sheets - вимкнено
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || req.nextUrl.origin;
-    // const sheetsResponse = await fetch(`${baseUrl}/api/google-sheets`, {
-    //     method: "POST",
-    //     headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify({
-    //     type: 'payment',
-    //     data: {
-    //       ...formData,
-    //       itemType,
-    //       itemId,
-    //       amount,
-    //       sessionId,
-    //       paymentStatus: status,
-    //     }
-    //   })
-    // });
 
-    // if (!sheetsResponse.ok) {
-    //   const errorText = await sheetsResponse.text();
-    //   console.error('Failed to add data to Google Sheets:', errorText);
-    // } else {
-    //   console.log('✅ Data added to Google Sheets successfully');
-    // }
-
-    // Get masterclass details if it's a masterclass payment
+    // Get order details (single masterclass or full cart)
     let masterclassDetails = '';
-    if (itemType === 'masterclass' && itemId) {
-      try {
-        const fileContents = await fs.readFile(masterclassesFile, "utf-8");
-        const masterclasses = JSON.parse(fileContents) as Masterclass[];
-        
-        // itemId може бути в форматі "masterclass-123" або просто "123"
-        const cleanItemId = itemId.replace('masterclass-', '');
-        const masterclass = masterclasses.find(m => m.id === cleanItemId || m.id === itemId);
-        
-        console.log('Looking for masterclass with itemId:', itemId, 'cleanItemId:', cleanItemId);
-        
-        if (masterclass) {
-          console.log('Masterclass found:', masterclass.title.pl);
-          const formattedDate = format(new Date(masterclass.date), "d MMMM yyyy", { locale: pl });
+    try {
+      const fileContents = await fs.readFile(masterclassesFile, "utf-8");
+      const masterclasses = JSON.parse(fileContents) as Masterclass[];
+
+      const orderLines: Array<{
+        type?: string;
+        id?: string;
+        quantity?: number;
+        title?: { pl?: string; en?: string };
+        price?: number;
+      }> =
+        Array.isArray(cartItems) && cartItems.length > 0
+          ? cartItems
+          : itemType === "masterclass" && itemId
+            ? [{ type: "masterclass", id: itemId, quantity: 1 }]
+            : [];
+
+      if (orderLines.length > 0) {
+        const blocks: string[] = [];
+        for (const line of orderLines) {
+          if (line.type !== "masterclass" || !line.id) continue;
+          const cleanItemId = String(line.id).replace("masterclass-", "");
+          const masterclass = masterclasses.find(
+            (m) => m.id === cleanItemId || m.id === line.id
+          );
+          const qty = Math.max(1, Math.floor(Number(line.quantity) || 1));
+          if (!masterclass) continue;
+          const formattedDate = format(new Date(masterclass.date), "d MMMM yyyy", {
+            locale: pl,
+          });
           const location = masterclass.location.pl || masterclass.location.en;
-          const city = masterclass.city || '';
+          const city = masterclass.city || "";
+          blocks.push(`
+            <div style="margin: 12px 0; padding: 12px; background: #f9f6f3; border-radius: 8px;">
+              <p><strong>📖 Nazwa:</strong> ${masterclass.title.pl}</p>
+              <p><strong>🔢 Ilość miejsc:</strong> ${qty}</p>
+              <p><strong>📅 Data:</strong> ${formattedDate}</p>
+              <p><strong>📍 Lokalizacja:</strong> ${location}</p>
+              <p><strong>🏙️ Miasto:</strong> ${city || "—"}</p>
+              <p><strong>💰 Cena:</strong> ${(line.price ?? masterclass.price) * qty} PLN</p>
+            </div>
+          `);
+        }
+        if (blocks.length > 0) {
           masterclassDetails = `
             <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
-            <h3>📚 SZCZEGÓŁY WARSZTATU:</h3>
-            <p><strong>📖 Nazwa:</strong> ${masterclass.title.pl}</p>
-            <p><strong>📅 Data:</strong> ${formattedDate}</p>
-            <p><strong>📍 Lokalizacja:</strong> ${location}</p>
-            <p><strong>🏙️ Miasto:</strong> ${city}</p>
-            <p><strong>💰 Cena:</strong> ${masterclass.price} PLN</p>
+            <h3>📚 SZCZEGÓŁY ZAMÓWIENIA:</h3>
+            ${blocks.join("")}
           `;
-        } else {
-          console.warn('Masterclass not found for itemId:', itemId, 'Available IDs:', masterclasses.map(m => m.id));
         }
-      } catch (error) {
-        console.error('Error reading masterclass details:', error);
       }
+    } catch (error) {
+      console.error("Error reading masterclass details:", error);
     }
 
     // Підготовка email повідомлення
@@ -104,11 +105,17 @@ export async function POST(req: NextRequest) {
     const fromWebhook = body.fromWebhook ? ' [Webhook]' : '';
     
     const subject = `${statusEmoji} Nowe zamówienie - ${statusText}${fromWebhook}`;
+    const orderTypeLabel =
+      itemType === "cart" || (Array.isArray(cartItems) && cartItems.length > 1)
+        ? "Koszyk (wiele warsztatów)"
+        : itemType === "masterclass"
+          ? "Warsztat"
+          : "Produkt";
     
     let emailHtml = `
       <h2>${statusEmoji} <strong>NOWE ZAMÓWIENIE</strong> (${statusText})</h2>
       <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
-      <p><strong>📝 Typ:</strong> ${itemType === 'masterclass' ? 'Warsztat' : 'Produkt'}</p>
+      <p><strong>📝 Typ:</strong> ${orderTypeLabel}</p>
       <p><strong>🆔 ID:</strong> ${itemId}</p>
       ${masterclassDetails}
       <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
@@ -118,7 +125,7 @@ export async function POST(req: NextRequest) {
       <p><strong>📱 Telefon:</strong> ${formData.whatsapp || formData.phone || 'Nie podano'}</p>
       <p><strong>🏙️ Miasto:</strong> ${formData.city || 'Nie podano'}</p>
       <p><strong>📝 Zgoda na wizerunek:</strong> ${formData.imageConsent || 'Nie podano'}</p>
-      <p><strong>💰 Suma:</strong> ${typeof amount === 'number' ? (amount / 100).toFixed(2) : amount} PLN</p>
+      <p><strong>💰 Suma:</strong> ${typeof amount === 'number' ? amount.toFixed(2) : amount} PLN</p>
       <p><strong>🆔 Session ID:</strong> ${sessionId}</p>
     `;
     

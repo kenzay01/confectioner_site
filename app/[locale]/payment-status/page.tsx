@@ -318,6 +318,7 @@ function PaymentStatusContent() {
           sessionId: data.sessionId,
           itemType: data.itemType,
           itemId: data.itemId,
+          cartItems: data.cartItems || [],
           formData: data.formData,
           amount: data.amount,
           status: 'success',
