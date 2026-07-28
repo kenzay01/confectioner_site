@@ -448,15 +448,18 @@ export default function MasterClass() {
     const locale = currentLocale === "pl" ? pl : enGB;
 
     const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
-    const firstDayOfMonth = new Date(calendarYear, calendarMonth, 1).getDay();
+    // getDay(): 0=Sun … 6=Sat → shift so week starts on Monday
+    const sundayFirst = new Date(calendarYear, calendarMonth, 1).getDay();
+    const firstDayOfMonth = sundayFirst === 0 ? 6 : sundayFirst - 1;
     const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-    const weekdays = Array.from(
-      { length: 7 },
-      (_, i) =>
-        locale.localize?.day(i as 0 | 1 | 2 | 3 | 4 | 5 | 6, {
-          width: "short",
-        }) || ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][i]
-    );
+    const weekdayFallback = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const weekdays = Array.from({ length: 7 }, (_, i) => {
+      const dayIndex = ((i + 1) % 7) as 0 | 1 | 2 | 3 | 4 | 5 | 6; // Mon…Sun
+      return (
+        locale.localize?.day(dayIndex, { width: "short" }) ||
+        weekdayFallback[i]
+      );
+    });
 
     const prevMonth = () => {
       if (calendarMonth === 0) {
