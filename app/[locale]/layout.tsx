@@ -18,6 +18,7 @@ import {
 } from "next/font/google";
 import { ItemsProvider } from "@/context/itemsContext";
 import { SiteContentProvider } from "@/context/siteContentContext";
+import { CartProvider } from "@/context/cartContext";
 import Footer from "@/components/homePage/Footer";
 import { readSiteContent } from "@/lib/siteContent";
 
@@ -243,15 +244,17 @@ export default async function RootLayout({
         <link rel="apple-touch-icon" href="/logo.png" />
       </head>
       <body>
-        <Header />
-        <SiteContentProvider initialContent={initialContent}>
-          <ItemsProvider>
-            <main className="pt-14 sm:pt-24">{children}</main>
-          </ItemsProvider>
-        </SiteContentProvider>
-        <div className="overflow-hidden">
-          <Footer />
-        </div>
+        <CartProvider>
+          <Header />
+          <SiteContentProvider initialContent={initialContent}>
+            <ItemsProvider>
+              <main className="pt-14 sm:pt-24">{children}</main>
+            </ItemsProvider>
+          </SiteContentProvider>
+          <div className="overflow-hidden">
+            <Footer />
+          </div>
+        </CartProvider>
       </body>
     </html>
   );

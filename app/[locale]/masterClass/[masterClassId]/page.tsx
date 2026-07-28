@@ -9,18 +9,21 @@ import { format, isBefore } from "date-fns";
 import { pl, enGB } from "date-fns/locale";
 import { Masterclass } from "@/types/masterclass";
 import { ArrowLeft } from "lucide-react";
-import PaymentModal from "@/components/PaymentModal";
+import AddedToCartModal from "@/components/AddedToCartModal";
 import AnimatedSection from "@/components/AnimatedSection";
 import { getMasterclassFontStyle } from "@/lib/siteFont";
+import { useCart } from "@/context/cartContext";
 
 export default function MasterClassPage() {
   const router = useRouter();
   const currentLocale = useCurrentLanguage() as "pl" | "en";
   const { masterclasses, loading, error } = useItems();
+  const { addItem } = useCart();
   const params = useParams();
   const masterclassId = params.masterClassId as string;
   const [masterclass, setMasterclass] = useState<Masterclass | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddedToCartOpen, setIsAddedToCartOpen] = useState(false);
+  const [quantity, setQuantity] = useState(1);
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const [photoGallery, setPhotoGallery] = useState<{
@@ -211,29 +214,87 @@ export default function MasterClassPage() {
               <div className="flex items-center gap-2 text-[var(--accent-color)]">
                 <Users className="w-4 h-4" />
                 <span className="text-sm sm:text-base">
-                  {masterclass.availableSlots - masterclass.pickedSlots}{" "}
+                  {Math.max(
+                    0,
+                    (masterclass.availableSlots || 0) -
+                      (masterclass.pickedSlots || 0)
+                  )}{" "}
                   {currentLocale === "pl" ? "wolnych miejsc" : "slots available"}
                 </span>
               </div>
             </div>
-            <button
-              onClick={() => {
-                if (masterclass.availableSlots - masterclass.pickedSlots > 0) {
-                  setIsModalOpen(true);
-                } else {
-                  setIsWaitlistOpen(true);
+            {(() => {
+              const freeSlots = Math.max(
+                0,
+                (masterclass.availableSlots || 0) -
+                  (masterclass.pickedSlots || 0)
+              );
+              if (freeSlots <= 0) {
+                return (
+                  <button
+                    onClick={() => setIsWaitlistOpen(true)}
+                    className="btn-unified px-8 py-3 text-base sm:text-lg"
+                  >
+                    {currentLocale === "pl"
+                      ? "Dołącz do listy oczekujących"
+                      : "Join Waitlist"}
+                  </button>
+                );
               }
-              }}
-              className="btn-unified px-8 py-3 text-base sm:text-lg"
-            >
-              {masterclass.availableSlots - masterclass.pickedSlots > 0
-                ? currentLocale === "pl"
-                  ? "Zapłać"
-                  : "Pay Now"
-                : currentLocale === "pl"
-                ? "Dołącz do listy oczekujących"
-                : "Join Waitlist"}
-            </button>
+              return (
+                <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      aria-label="Decrease quantity"
+                      disabled={quantity <= 1}
+                      onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                      className="w-10 h-10 rounded-full border-2 border-[var(--accent-color)] flex items-center justify-center disabled:opacity-40"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+                    <span className="w-10 text-center text-lg font-semibold">
+                      {quantity}
+                    </span>
+                    <button
+                      type="button"
+                      aria-label="Increase quantity"
+                      disabled={quantity >= freeSlots}
+                      onClick={() =>
+                        setQuantity((q) => Math.min(freeSlots, q + 1))
+                      }
+                      className="w-10 h-10 rounded-full border-2 border-[var(--accent-color)] flex items-center justify-center disabled:opacity-40"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const photos =
+                        masterclass.photos ||
+                        (masterclass.photo ? [masterclass.photo] : []);
+                      addItem({
+                        type: "masterclass",
+                        id: masterclass.id,
+                        title: masterclass.title,
+                        price: masterclass.price,
+                        quantity,
+                        maxQuantity: freeSlots,
+                        photo: photos[0],
+                      });
+                      setIsAddedToCartOpen(true);
+                      setQuantity(1);
+                    }}
+                    className="btn-unified px-8 py-3 text-base sm:text-lg w-full sm:w-auto"
+                  >
+                    {currentLocale === "pl"
+                      ? "Dodaj do koszyka"
+                      : "Add to cart"}
+                  </button>
+                </div>
+              );
+            })()}
           </div>
         </div>
         {/* Description Section */}
@@ -326,16 +387,9 @@ export default function MasterClassPage() {
           </div>
         )}
         </div>
-        <PaymentModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          item={{
-            type: "masterclass",
-            id: masterclassId,
-            title: masterclass.title,
-            price: masterclass.price,
-            description: masterclass.description,
-          }}
+        <AddedToCartModal
+          isOpen={isAddedToCartOpen}
+          onClose={() => setIsAddedToCartOpen(false)}
         />
         {/* Waitlist Modal */}
         {isWaitlistOpen && (

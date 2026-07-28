@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
       itemType,
       sessionId,
       itemId,
+      cartItems,
       imageConsent,
       invoiceNeeded,
       companyName,
@@ -56,6 +57,10 @@ export async function POST(req: NextRequest) {
         email: email ?? "",
         phone: phone ?? "",
         city: city ?? "",
+        itemType: itemType ?? "",
+        itemId: itemId ?? "",
+        cartItems: Array.isArray(cartItems) ? cartItems : undefined,
+        amount: amount ?? 0,
       };
       await fs.writeFile(
         paymentSessionsFile,
@@ -93,12 +98,36 @@ export async function POST(req: NextRequest) {
     const amountInGrosz = Math.round(amount * 100);
     
     // Get masterclass details if it's a masterclass payment
-    let paymentDescription = `${itemType === 'masterclass' ? 'Warsztat' : 'Produkt'}`;
-    if (itemType === 'masterclass' && itemId) {
+    let paymentDescription = `${itemType === 'masterclass' ? 'Warsztat' : itemType === 'cart' ? 'Zamówienie' : 'Produkt'}`;
+    if (itemType === 'cart' && Array.isArray(cartItems) && cartItems.length > 0) {
       try {
         const fileContents = await fs.readFile(masterclassesFile, "utf-8");
         const masterclasses = JSON.parse(fileContents) as Masterclass[];
-        const masterclass = masterclasses.find(m => m.id === itemId);
+        const parts: string[] = [];
+        for (const cartItem of cartItems) {
+          if (cartItem.type !== 'masterclass') {
+            parts.push(`${cartItem.title?.pl || cartItem.id} x${cartItem.quantity || 1}`);
+            continue;
+          }
+          const cleanId = String(cartItem.id).replace('masterclass-', '');
+          const masterclass = masterclasses.find(m => m.id === cleanId || m.id === cartItem.id);
+          if (masterclass) {
+            const formattedDate = format(new Date(masterclass.date), "d MMMM yyyy", { locale: pl });
+            parts.push(`${masterclass.title.pl} x${cartItem.quantity || 1} (${formattedDate})`);
+          } else {
+            parts.push(`${cartItem.title?.pl || cleanId} x${cartItem.quantity || 1}`);
+          }
+        }
+        paymentDescription = `Zamówienie: ${parts.join('; ')}`.slice(0, 1000);
+      } catch (error) {
+        console.error('Error building cart payment description:', error);
+      }
+    } else if (itemType === 'masterclass' && itemId) {
+      try {
+        const fileContents = await fs.readFile(masterclassesFile, "utf-8");
+        const masterclasses = JSON.parse(fileContents) as Masterclass[];
+        const cleanId = String(itemId).replace('masterclass-', '');
+        const masterclass = masterclasses.find(m => m.id === cleanId || m.id === itemId);
         
         if (masterclass) {
           const formattedDate = format(new Date(masterclass.date), "d MMMM yyyy", { locale: pl });

@@ -171,6 +171,9 @@ export async function POST(req: NextRequest) {
           } else if (sessionParts[0] === "product") {
             itemType = "product";
             itemId = sessionParts[1];
+          } else if (sessionParts[0] === "cart") {
+            itemType = "cart";
+            itemId = "cart";
           }
         }
 
@@ -263,6 +266,13 @@ export async function POST(req: NextRequest) {
 
         // Дані форми (згода на wizerunek, faktura, kontakt) — збережені при створенні платежу
         let sessionForm: Record<string, string | boolean> = {};
+        let sessionCartItems: Array<{
+          type?: string;
+          id?: string;
+          quantity?: number;
+          title?: { pl?: string; en?: string };
+          price?: number;
+        }> = [];
         try {
           const raw = await fs.readFile(paymentSessionsFile, "utf-8");
           const sessions = JSON.parse(raw) as Record<string, Record<string, unknown>>;
@@ -279,6 +289,9 @@ export async function POST(req: NextRequest) {
               email: String(s.email ?? ""),
               phone: String(s.phone ?? ""),
             } as Record<string, string | boolean>;
+            if (Array.isArray(s.cartItems)) {
+              sessionCartItems = s.cartItems as typeof sessionCartItems;
+            }
             delete sessions[sessionId];
             await fs.writeFile(paymentSessionsFile, JSON.stringify(sessions, null, 2), "utf-8");
           }
@@ -454,45 +467,72 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        // Якщо це майстер-клас, зменшуємо кількість місць
-        if (itemType === "masterclass" && itemId) {
-          const masterclassId = itemId.replace("masterclass-", "");
-          try {
-            // Читаємо файл з майстер-класами
+        // Якщо це майстер-клас / koszyk — зменшуємо кількість місць
+        try {
+          const itemsToReduce =
+            sessionCartItems.length > 0
+              ? sessionCartItems.filter((i) => i.type === "masterclass" && i.id)
+              : itemType === "masterclass" && itemId
+                ? [{ type: "masterclass", id: itemId, quantity: 1 }]
+                : [];
+
+          if (itemsToReduce.length > 0) {
             const fileContents = await fs.readFile(masterclassesFile, "utf-8");
             const masterclasses = JSON.parse(fileContents) as Masterclass[];
-            
-            // Знаходимо потрібний майстер-клас
-            const masterclassIndex = masterclasses.findIndex(
-              (m) => m.id === masterclassId
-            );
-            
-            if (masterclassIndex !== -1) {
-              const masterclass = masterclasses[masterclassIndex];
-              
-              // Зменшуємо кількість місць
-              if (masterclass.availableSlots > 0) {
-                masterclasses[masterclassIndex] = {
-                  ...masterclass,
-                  availableSlots: masterclass.availableSlots - 1,
-                };
-                
-                // Зберігаємо оновлений файл
-                await fs.writeFile(
-                  masterclassesFile,
-                  JSON.stringify(masterclasses, null, 2)
-                );
-                
-                console.log("✅ Slot reduced successfully for masterclass:", masterclassId);
-              } else {
-                console.warn("⚠️ No available slots to reduce for masterclass:", masterclassId);
+            let changed = false;
+
+            for (const cartItem of itemsToReduce) {
+              const masterclassId = String(cartItem.id).replace(
+                "masterclass-",
+                ""
+              );
+              const qty = Math.max(1, Math.floor(Number(cartItem.quantity) || 1));
+              const masterclassIndex = masterclasses.findIndex(
+                (m) => m.id === masterclassId
+              );
+
+              if (masterclassIndex === -1) {
+                console.error("❌ Masterclass not found:", masterclassId);
+                continue;
               }
-            } else {
-              console.error("❌ Masterclass not found:", masterclassId);
+
+              const masterclass = masterclasses[masterclassIndex];
+              const freeSlots = Math.max(
+                0,
+                (masterclass.availableSlots || 0) -
+                  (masterclass.pickedSlots || 0)
+              );
+              const reduceBy = Math.min(qty, freeSlots);
+              if (reduceBy <= 0) {
+                console.warn(
+                  "⚠️ No available slots to reduce for masterclass:",
+                  masterclassId
+                );
+                continue;
+              }
+
+              masterclasses[masterclassIndex] = {
+                ...masterclass,
+                pickedSlots: (masterclass.pickedSlots || 0) + reduceBy,
+              };
+              changed = true;
+              console.log(
+                "✅ Slots reduced for masterclass:",
+                masterclassId,
+                "qty:",
+                reduceBy
+              );
             }
-          } catch (error) {
-            console.error("Error reducing masterclass slot:", error);
+
+            if (changed) {
+              await fs.writeFile(
+                masterclassesFile,
+                JSON.stringify(masterclasses, null, 2)
+              );
+            }
           }
+        } catch (error) {
+          console.error("Error reducing masterclass slot:", error);
         }
       } catch (error) {
         console.error("Error processing payment in webhook:", error);

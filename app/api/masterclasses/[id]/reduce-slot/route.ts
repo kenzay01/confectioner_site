@@ -41,18 +41,29 @@ export async function POST(
     }
 
     const masterclass = masterclasses[index];
-    
-    // Перевіряємо, чи є доступні місця
-    if (masterclass.availableSlots <= 0) {
+    let quantity = 1;
+    try {
+      const body = await request.json().catch(() => ({}));
+      if (body && typeof body.quantity === "number" && body.quantity > 0) {
+        quantity = Math.floor(body.quantity);
+      }
+    } catch {
+      quantity = 1;
+    }
+
+    const freeSlots = Math.max(
+      0,
+      (masterclass.availableSlots || 0) - (masterclass.pickedSlots || 0)
+    );
+
+    if (freeSlots < quantity) {
       return NextResponse.json(
         { error: "No available slots" },
         { status: 400 }
       );
     }
 
-    // Зменшуємо доступні місця та збільшуємо зайняті
-    masterclass.availableSlots -= 1;
-    masterclass.pickedSlots += 1;
+    masterclass.pickedSlots = (masterclass.pickedSlots || 0) + quantity;
 
     await fs.writeFile(
       masterclassesFile,
@@ -63,7 +74,8 @@ export async function POST(
       success: true,
       message: "Slot reduced successfully",
       availableSlots: masterclass.availableSlots,
-      pickedSlots: masterclass.pickedSlots
+      pickedSlots: masterclass.pickedSlots,
+      quantity,
     });
 
   } catch (error) {

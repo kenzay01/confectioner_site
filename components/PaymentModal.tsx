@@ -2,26 +2,58 @@
 import { useState, useEffect } from "react";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import { X } from "lucide-react";
+import type { CartCheckoutItem } from "@/types/cart";
+
+interface SingleItem {
+  type: "masterclass" | "product";
+  id: string;
+  title: { pl: string; en: string };
+  price: number;
+  description?: { pl: string; en: string };
+}
 
 interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  item: {
-    type: "masterclass" | "product";
-    id: string;
-    title: { pl: string; en: string };
-    price: number;
-    description: { pl: string; en: string };
-  };
+  /** Single-item checkout (legacy) */
+  item?: SingleItem;
+  /** Multi-item cart checkout */
+  cartItems?: CartCheckoutItem[];
+  /** Called after payment is created successfully (before redirect) */
+  onPaymentCreated?: () => void;
 }
 
 export default function PaymentModal({
   isOpen,
   onClose,
   item,
+  cartItems,
+  onPaymentCreated,
 }: PaymentModalProps) {
   const currentLocale = useCurrentLanguage() as "pl" | "en";
-  const [page, setPage] = useState<"info" | "form">("info");
+  const isCartCheckout = Boolean(cartItems && cartItems.length > 0);
+  const lineItems: CartCheckoutItem[] = isCartCheckout
+    ? cartItems!
+    : item
+      ? [
+          {
+            type: item.type,
+            id: item.id.replace(/^masterclass-/, "").replace(/^product-/, ""),
+            title: item.title,
+            price: item.price,
+            quantity: 1,
+          },
+        ]
+      : [];
+
+  const totalAmount = lineItems.reduce(
+    (sum, i) => sum + i.price * i.quantity,
+    0
+  );
+
+  const [page, setPage] = useState<"info" | "form">(
+    isCartCheckout ? "form" : "info"
+  );
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -38,6 +70,12 @@ export default function PaymentModal({
     "idle" | "loading" | "success" | "error"
   >("idle");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  useEffect(() => {
+    if (isOpen) {
+      setPage(isCartCheckout ? "form" : "info");
+    }
+  }, [isOpen, isCartCheckout]);
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
@@ -77,8 +115,6 @@ export default function PaymentModal({
           ? "Aby kontynuować, prosimy o akceptację regulaminu"
           : "Please accept the regulation to continue";
     }
-    // Wizerunek - to jest informacja dla admina, użytkownik może wybrać dowolnie
-    // Nie blokujemy jeśli wybierze "Nie wyrażam zgody"
     if (formData.invoiceNeeded) {
       if (!formData.companyName) {
         newErrors.companyName =
@@ -136,7 +172,7 @@ export default function PaymentModal({
   };
 
   const handleSubmit = async () => {
-    if (!validateForm()) {
+    if (!validateForm() || lineItems.length === 0) {
       setStatus("error");
       return;
     }
@@ -144,34 +180,53 @@ export default function PaymentModal({
     setStatus("loading");
 
     try {
-      // Генеруємо унікальний sessionId
-      const sessionId = `${item.type}_${item.id}_${Date.now()}`;
-      
-      // Зберігаємо дані платежу в localStorage для сторінки статусу
+      const primary = lineItems[0];
+      const sessionId = isCartCheckout
+        ? `cart_${Date.now()}`
+        : `${primary.type}_${primary.type === "masterclass" ? `masterclass-${primary.id}` : primary.id}_${Date.now()}`;
+
+      const itemTitle = isCartCheckout
+        ? lineItems
+            .map(
+              (i) =>
+                `${i.title[currentLocale]} ×${i.quantity}`
+            )
+            .join(", ")
+        : primary.title[currentLocale];
+
       const paymentData = {
         sessionId,
-        itemType: item.type,
-        itemId: item.id,
-        itemTitle: item.title[currentLocale],
+        itemType: isCartCheckout ? "cart" : primary.type,
+        itemId: isCartCheckout
+          ? "cart"
+          : primary.type === "masterclass"
+            ? `masterclass-${primary.id}`
+            : primary.id,
+        itemTitle,
+        cartItems: lineItems,
         formData,
-        price: item.price,
-        amount: item.price, // kwota w złotych
+        price: totalAmount,
+        amount: totalAmount,
         timestamp: Date.now(),
       };
-      
+
       localStorage.setItem("paymentData", JSON.stringify(paymentData));
 
-      // Створюємо платіж через Przelewy24
       const response = await fetch("/api/create-payment", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          amount: item.price, // kwota w złotych
-          itemType: item.type,
-          itemId: item.id,
-          sessionId: sessionId,
+          amount: totalAmount,
+          itemType: isCartCheckout ? "cart" : primary.type,
+          itemId: isCartCheckout
+            ? "cart"
+            : primary.type === "masterclass"
+              ? `masterclass-${primary.id}`
+              : primary.id,
+          sessionId,
+          cartItems: lineItems,
           email: formData.email,
           fullName: formData.fullName,
           phone: formData.phone,
@@ -188,39 +243,38 @@ export default function PaymentModal({
 
       if (result.success) {
         setStatus("success");
-        
-        // Оновлюємо дані в localStorage з token'ом
-        const updatedPaymentData = {
-          ...paymentData,
-          token: result.token,
-        };
-        localStorage.setItem("paymentData", JSON.stringify(updatedPaymentData));
+        onPaymentCreated?.();
 
-        // Перенаправляємо на сторінку оплати Przelewy24
+        localStorage.setItem(
+          "paymentData",
+          JSON.stringify({
+            ...paymentData,
+            token: result.token,
+          })
+        );
+
         setTimeout(() => {
           window.location.href = result.paymentUrl;
         }, 1000);
       } else {
         throw new Error(result.error || "Failed to create payment");
       }
-
     } catch (error) {
       console.error("Error creating payment:", error);
       setStatus("error");
-      
-      // Показуємо помилку користувачу
+
       alert(
         currentLocale === "pl"
           ? "Błąd podczas tworzenia płatności. Spróbuj ponownie."
           : "Error creating payment. Please try again."
       );
-      
+
       setTimeout(() => setStatus("idle"), 3000);
     }
   };
 
   const resetModal = () => {
-    setPage("info");
+    setPage(isCartCheckout ? "form" : "info");
     setErrors({});
     setStatus("idle");
     setFormData({
@@ -237,10 +291,10 @@ export default function PaymentModal({
     });
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || lineItems.length === 0) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-[300] p-4"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
@@ -250,11 +304,7 @@ export default function PaymentModal({
       }}
     >
       <div
-        className={`bg-white rounded-3xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto relative transition-all duration-300 ${
-          item.type === "masterclass"
-            ? "border-l-4 border-[var(--accent-color)]"
-            : "border-l-4 border-[var(--brown-color)]"
-        }`}
+        className="bg-white rounded-3xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto relative transition-all duration-300 border-l-4 border-[var(--accent-color)]"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -267,23 +317,15 @@ export default function PaymentModal({
           <X className="w-6 h-6" />
         </button>
 
-        {page === "info" ? (
+        {page === "info" && !isCartCheckout && item ? (
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <span
-                className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
-                  item.type === "masterclass"
-                    ? "bg-[var(--accent-color)]/10 text-[var(--accent-color)]"
-                    : "bg-[var(--brown-color)]/10"
-                }`}
-              >
+              <span className="inline-block px-3 py-1 rounded-full text-sm font-semibold bg-[var(--accent-color)]/10 text-[var(--accent-color)]">
                 {item.type === "masterclass"
-                  ? currentLocale === "pl"
-                    ? "Masterclass"
-                    : "Masterclass"
+                  ? "Masterclass"
                   : currentLocale === "pl"
-                  ? "Produkt"
-                  : "Product"}
+                    ? "Produkt"
+                    : "Product"}
               </span>
               <h2 className="text-2xl font-bold">
                 {item.title[currentLocale]}
@@ -292,34 +334,21 @@ export default function PaymentModal({
             <p className="font-medium">
               {currentLocale === "pl" ? "Cena:" : "Price:"} {item.price} zł
             </p>
-            <div className="whitespace-pre-line line-clamp-6">
-              {item.type === "masterclass" ? (
-                <>
-                  <p className="font-semibold">
-                    {currentLocale === "pl"
-                      ? "Czego się nauczysz:"
-                      : "What you'll learn:"}
-                  </p>
-                  <p>{item.description[currentLocale]}</p>
-                </>
-              ) : (
-                <>
-                  <p className="font-semibold">
-                    {currentLocale === "pl"
-                      ? "Opis produktu:"
-                      : "Product Description:"}
-                  </p>
-                  <p>{item.description[currentLocale]}</p>
-                </>
-              )}
-            </div>
+            {item.description && (
+              <div className="whitespace-pre-line line-clamp-6">
+                <p className="font-semibold">
+                  {currentLocale === "pl"
+                    ? "Czego się nauczysz:"
+                    : "What you'll learn:"}
+                </p>
+                <p>{item.description[currentLocale]}</p>
+              </div>
+            )}
             <button
               onClick={() => setPage("form")}
               className="w-full btn-unified"
             >
-              {currentLocale === "pl"
-                ? "Weź udział"
-                : "Join"}
+              {currentLocale === "pl" ? "Weź udział" : "Join"}
             </button>
           </div>
         ) : (
@@ -327,6 +356,28 @@ export default function PaymentModal({
             <h2 className="text-2xl font-bold">
               {currentLocale === "pl" ? "Dane do płatności" : "Payment Details"}
             </h2>
+
+            <div className="bg-[var(--main-color)]/40 rounded-xl p-3 space-y-1 text-sm">
+              {lineItems.map((li) => (
+                <div
+                  key={`${li.type}-${li.id}`}
+                  className="flex justify-between gap-2"
+                >
+                  <span>
+                    {li.title[currentLocale]}
+                    {li.quantity > 1 ? ` ×${li.quantity}` : ""}
+                  </span>
+                  <span className="font-medium whitespace-nowrap">
+                    {li.price * li.quantity} zł
+                  </span>
+                </div>
+              ))}
+              <div className="flex justify-between font-bold pt-2 border-t border-black/10">
+                <span>{currentLocale === "pl" ? "Suma" : "Total"}</span>
+                <span>{totalAmount} zł</span>
+              </div>
+            </div>
+
             <div className="grid gap-4">
               <div>
                 <label className="block font-medium mb-1">
@@ -346,9 +397,7 @@ export default function PaymentModal({
                 )}
               </div>
               <div>
-                <label className="block font-medium mb-1">
-                  {currentLocale === "pl" ? "Email" : "Email"}
-                </label>
+                <label className="block font-medium mb-1">Email</label>
                 <input
                   type="email"
                   name="email"
@@ -364,7 +413,9 @@ export default function PaymentModal({
               </div>
               <div>
                 <label className="block font-medium mb-1">
-                  {currentLocale === "pl" ? "Wprowadź numer Telefonu" : "Phone number"}
+                  {currentLocale === "pl"
+                    ? "Wprowadź numer Telefonu"
+                    : "Phone number"}
                 </label>
                 <input
                   type="text"
@@ -381,7 +432,9 @@ export default function PaymentModal({
               </div>
               <div>
                 <label className="block font-medium mb-1">
-                  {currentLocale === "pl" ? "Miasto (lub kod pocztowy)" : "City"}
+                  {currentLocale === "pl"
+                    ? "Miasto (lub kod pocztowy)"
+                    : "City"}
                 </label>
                 <input
                   type="text"
@@ -493,13 +546,17 @@ export default function PaymentModal({
                   </span>
                 </label>
                 {errors.regulationAccepted && (
-                  <p className="text-red-500 text-sm mt-1">{errors.regulationAccepted}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.regulationAccepted}
+                  </p>
                 )}
               </div>
 
               <div>
                 <label className="block font-medium mb-2">
-                  {currentLocale === "pl" ? "Udostępnienie wizerunku" : "Image consent"}
+                  {currentLocale === "pl"
+                    ? "Udostępnienie wizerunku"
+                    : "Image consent"}
                 </label>
                 <div className="grid gap-2">
                   <label className="flex items-center gap-2">
@@ -509,11 +566,18 @@ export default function PaymentModal({
                       value="agree"
                       checked={formData.imageConsent === "agree"}
                       onChange={(e) => {
-                        setFormData({ ...formData, imageConsent: e.target.value as "agree" | "disagree" });
+                        setFormData({
+                          ...formData,
+                          imageConsent: e.target.value as "agree" | "disagree",
+                        });
                         setErrors({ ...errors, imageConsent: "" });
                       }}
                     />
-                    <span>{currentLocale === "pl" ? "Wyrażam zgodę na ud. wizerunku" : "I agree"}</span>
+                    <span>
+                      {currentLocale === "pl"
+                        ? "Wyrażam zgodę na ud. wizerunku"
+                        : "I agree"}
+                    </span>
                   </label>
                   <label className="flex items-center gap-2">
                     <input
@@ -522,25 +586,31 @@ export default function PaymentModal({
                       value="disagree"
                       checked={formData.imageConsent === "disagree"}
                       onChange={(e) => {
-                        setFormData({ ...formData, imageConsent: e.target.value as "agree" | "disagree" });
+                        setFormData({
+                          ...formData,
+                          imageConsent: e.target.value as "agree" | "disagree",
+                        });
                         setErrors({ ...errors, imageConsent: "" });
                       }}
                     />
-                    <span>{currentLocale === "pl" ? "Nie wyrażam zgody na ud. wizerunku" : "I do not agree"}</span>
+                    <span>
+                      {currentLocale === "pl"
+                        ? "Nie wyrażam zgody na ud. wizerunku"
+                        : "I do not agree"}
+                    </span>
                   </label>
                 </div>
-                {errors.imageConsent && (
-                  <p className="text-red-500 text-sm mt-1">{errors.imageConsent}</p>
-                )}
               </div>
               <div className="flex justify-between gap-4">
-                <button
-                  onClick={() => setPage("info")}
-                  className="flex-1 btn-unified"
-                  disabled={status === "loading"}
-                >
-                  {currentLocale === "pl" ? "Powrót" : "Back"}
-                </button>
+                {!isCartCheckout && (
+                  <button
+                    onClick={() => setPage("info")}
+                    className="flex-1 btn-unified"
+                    disabled={status === "loading"}
+                  >
+                    {currentLocale === "pl" ? "Powrót" : "Back"}
+                  </button>
+                )}
                 <button
                   onClick={handleSubmit}
                   disabled={status === "loading"}
@@ -553,8 +623,8 @@ export default function PaymentModal({
                       ? "Tworzenie płatności..."
                       : "Creating payment..."
                     : currentLocale === "pl"
-                    ? "Opłać"
-                    : "Pay now"}
+                      ? "Opłać"
+                      : "Pay now"}
                 </button>
               </div>
               {status === "success" && (

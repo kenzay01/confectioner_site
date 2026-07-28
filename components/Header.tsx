@@ -10,6 +10,8 @@ import { useDictionary } from "@/hooks/getDictionary";
 import { Locale } from "@/i18n/config";
 import LanguageSwitcher from "./LanguageSwitcher";
 import AnimatedSection from "./AnimatedSection";
+import { CartIcon } from "./CartIcon";
+import { useCart } from "@/context/cartContext";
 
 const Header = () => {
   const router = useRouter();
@@ -17,8 +19,8 @@ const Header = () => {
   const currentLocale = useCurrentLanguage();
   const { dict } = useDictionary(currentLocale as Locale);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { itemCount } = useCart();
 
-  // Блокуємо скрол при відкритому меню
   useEffect(() => {
     if (isMenuOpen) {
       document.body.style.overflow = "hidden";
@@ -30,7 +32,6 @@ const Header = () => {
     };
   }, [isMenuOpen]);
 
-  // Normalize pathname for comparison (remove trailing slashes and handle locale)
   const normalizePath = (path: string) => {
     return path.replace(/\/$/, "").replace(/^\/$/, `/${currentLocale}`);
   };
@@ -39,20 +40,51 @@ const Header = () => {
     { link: "/", label: dict?.header.home || "Główna" },
     { link: "/masterClass", label: dict?.header.masterClass || "Szkolenia" },
     { link: "/aboutMe", label: dict?.header.aboutMe || "O mnie" },
-    // { link: "/onlineProducts", label: dict?.header.onlineProducts || "Produkty online" },
     { link: "/partners", label: dict?.header.partners || "Partnerzy" },
-    // {
-    //   link: "/contactWithChef",
-    //   label: dict?.header.contactWithChef || "Skontaktuj się z szefem kuchni",
-    // },
     { link: "/contacts", label: dict?.header.contacts || "Kontakt" },
   ];
+
+  const cartLabel = dict?.header.cart || "Koszyk";
+  const cartHref = `/${currentLocale}/cart`;
+  const isCartActive = normalizePath(pathname) === normalizePath(cartHref);
+
+  const CartButton = ({
+    size = "desktop",
+    onNavigate,
+  }: {
+    size?: "desktop" | "mobile";
+    onNavigate?: () => void;
+  }) => {
+    const isMobile = size === "mobile";
+    return (
+      <Link
+        href={cartHref}
+        onClick={onNavigate}
+        aria-label={cartLabel}
+        className={`relative inline-flex items-center justify-center rounded-full text-[var(--accent-color)] transition-colors hover:text-[var(--brown-color)] ${
+          isMobile ? "w-11 h-11" : "w-10 h-10"
+        } ${isCartActive ? "text-[var(--brown-color)]" : ""}`}
+      >
+        <CartIcon className={isMobile ? "w-7 h-7" : "w-6 h-6"} />
+        {itemCount > 0 && (
+          <span
+            className={`absolute flex items-center justify-center rounded-full bg-[var(--brown-color)] text-white font-semibold leading-none ${
+              isMobile
+                ? "top-1 right-0.5 min-w-[18px] h-[18px] px-1 text-[10px]"
+                : "top-0.5 right-0 min-w-[16px] h-[16px] px-1 text-[10px]"
+            }`}
+          >
+            {itemCount > 9 ? "9+" : itemCount}
+          </span>
+        )}
+      </Link>
+    );
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-[250] bg-[var(--main-color)] shadow-md overflow-visible">
       <div className="max-w-7xl mx-auto overflow-visible">
         <div className="flex justify-between items-center h-14 sm:h-24 mx-3 sm:mx-6 lg:mx-8">
-          {/* Left side - Logo (clipped to header height) */}
           <div className="h-14 sm:h-24 overflow-hidden flex items-center">
             <div
               onClick={() => router.push(`/${currentLocale}`)}
@@ -79,7 +111,6 @@ const Header = () => {
             </div>
           </div>
 
-          {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-4">
             <div className="flex items-center justify-center space-x-4">
               {navLinks.map((link) => {
@@ -105,36 +136,38 @@ const Header = () => {
               })}
             </div>
           </nav>
-          <div className="hidden lg:flex">
+          <div className="hidden lg:flex items-center gap-2">
+            <CartButton size="desktop" />
             <LanguageSwitcher currentLocale={currentLocale} />
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            type="button"
-            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-            className="lg:hidden flex flex-col items-center justify-center gap-1.5 p-2 sm:p-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] rounded-md"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            <span
-              className={`h-0.5 w-8 bg-gray-700 transition-transform duration-200 ${
-                isMenuOpen ? "translate-y-2 rotate-45" : ""
-              }`}
-            />
-            <span
-              className={`h-0.5 w-8 bg-gray-700 transition-opacity duration-200 ${
-                isMenuOpen ? "opacity-0" : "opacity-100"
-              }`}
-            />
-            <span
-              className={`h-0.5 w-8 bg-gray-700 transition-transform duration-200 ${
-                isMenuOpen ? "-translate-y-2 -rotate-45" : ""
-              }`}
-            />
-          </button>
+          <div className="lg:hidden flex items-center gap-0.5">
+            <CartButton size="mobile" />
+            <button
+              type="button"
+              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+              className="flex flex-col items-center justify-center gap-1.5 w-11 h-11 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] rounded-full"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              <span
+                className={`h-0.5 w-6 bg-gray-700 transition-transform duration-200 ${
+                  isMenuOpen ? "translate-y-2 rotate-45" : ""
+                }`}
+              />
+              <span
+                className={`h-0.5 w-6 bg-gray-700 transition-opacity duration-200 ${
+                  isMenuOpen ? "opacity-0" : "opacity-100"
+                }`}
+              />
+              <span
+                className={`h-0.5 w-6 bg-gray-700 transition-transform duration-200 ${
+                  isMenuOpen ? "-translate-y-2 -rotate-45" : ""
+                }`}
+              />
+            </button>
+          </div>
         </div>
 
-        {/* Mobile Menu */}
         {isMenuOpen && (
           <AnimatedSection
             direction="down"
@@ -167,6 +200,24 @@ const Header = () => {
                     </AnimatedSection>
                   );
                 })}
+                <AnimatedSection
+                  className="py-2 px-4 text-center"
+                  direction="down"
+                  delay={0.2}
+                  duration={0.05 * (navLinks.length + 1)}
+                >
+                  <Link
+                    href={cartHref}
+                    onClick={() => setIsMenuOpen(false)}
+                    className={`text-center transition-all duration-200 rounded-lg text-xl uppercase sm:text-base inline-flex items-center justify-center gap-2.5 ${
+                      isCartActive ? "underline underline-offset-4" : ""
+                    }`}
+                  >
+                    <CartIcon className="w-6 h-6" />
+                    {cartLabel}
+                    {itemCount > 0 ? ` (${itemCount})` : ""}
+                  </Link>
+                </AnimatedSection>
               </nav>
               <div className="px-3 sm:px-4 mt-4 flex-1 flex items-end">
                 <LanguageSwitcher currentLocale={currentLocale} />

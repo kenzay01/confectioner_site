@@ -14,9 +14,16 @@ import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 
 interface PaymentData {
   sessionId: string;
-  itemType: "masterclass" | "product";
+  itemType: "masterclass" | "product" | "cart";
   itemId: string;
   itemTitle: string;
+  cartItems?: Array<{
+    type: "masterclass" | "product";
+    id: string;
+    quantity: number;
+    title?: { pl: string; en: string };
+    price?: number;
+  }>;
   formData: {
     fullName: string;
     email: string;
@@ -320,26 +327,40 @@ function PaymentStatusContent() {
       const processResult = await processResponse.json();
       console.log('Process payment result:', processResult);
 
-      // 2. Якщо це masterclass, зменшуємо кількість доступних місць
-      if (data.itemType === 'masterclass') {
+      // 2. Зменшуємо кількість доступних місць (masterclass / cart)
+      const itemsToReduce =
+        data.cartItems && data.cartItems.length > 0
+          ? data.cartItems.filter((i) => i.type === "masterclass")
+          : data.itemType === "masterclass"
+            ? [{ type: "masterclass" as const, id: data.itemId, quantity: 1 }]
+            : [];
+
+      for (const cartItem of itemsToReduce) {
         try {
-          const reduceSlotResponse = await fetch(`/api/masterclasses/${data.itemId}/reduce-slot`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          });
+          const masterclassId = String(cartItem.id).replace("masterclass-", "");
+          const quantity = Math.max(1, Math.floor(cartItem.quantity || 1));
+          const reduceSlotResponse = await fetch(
+            `/api/masterclasses/${masterclassId}/reduce-slot`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ quantity }),
+            }
+          );
 
           const reduceSlotResult = await reduceSlotResponse.json();
-          console.log('Reduce slot result:', reduceSlotResult);
+          console.log("Reduce slot result:", reduceSlotResult);
 
           if (!reduceSlotResult.success) {
-            console.error('Failed to reduce masterclass slot:', reduceSlotResult.error);
-            // Не блокуємо весь процес, але логуємо помилку
+            console.error(
+              "Failed to reduce masterclass slot:",
+              reduceSlotResult.error
+            );
           }
         } catch (error) {
-          console.error('Error reducing masterclass slot:', error);
-          // Не блокуємо весь процес
+          console.error("Error reducing masterclass slot:", error);
         }
       }
 
