@@ -2,7 +2,7 @@
 
 import { useRef, useCallback, useState, type CSSProperties } from "react";
 import { Bold, Italic, Link2, List, Eye, EyeOff } from "lucide-react";
-import { renderSiteMarkdown } from "@/lib/renderSiteMarkdown";
+import { renderSiteMarkdownDocument } from "@/lib/renderSiteMarkdown";
 
 type PreviewVariant = "default" | "hero";
 
@@ -244,7 +244,7 @@ export function SiteContentTextEditor({
           </p>
           <div className="rounded-lg border border-gray-200 bg-white px-4 py-4 shadow-inner">
             <div className={previewBoxClass} style={style}>
-              {renderSiteMarkdown(value || "")}
+              {renderSiteMarkdownDocument(value || "")}
             </div>
           </div>
         </div>

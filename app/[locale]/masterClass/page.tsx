@@ -188,7 +188,7 @@ const SliderSection = ({ masterclasses }: { masterclasses: Masterclass[] }) => {
                         className="text-center max-w-lg w-full font-normal"
                         style={mcFont}
                       >
-                        <h3 className="text-2xl sm:text-3xl font-bold mb-5 text-[var(--accent-color)]">
+                        <h3 className="text-2xl sm:text-3xl font-black mb-5 text-[var(--accent-color)]">
                           {masterclass.title[currentLocale]}
                         </h3>
                         
@@ -266,7 +266,7 @@ const SliderSection = ({ masterclasses }: { masterclasses: Masterclass[] }) => {
                           className="relative z-20 text-center p-6 sm:p-10 h-full flex flex-col justify-center font-normal"
                           style={mcFont}
                         >
-                          <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 sm:mb-8 drop-shadow-lg line-clamp-2 break-words">
+                          <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6 sm:mb-8 drop-shadow-lg line-clamp-2 break-words">
                             {masterclass.title[currentLocale]}
                           </h3>
                           
@@ -395,25 +395,35 @@ export default function MasterClass() {
     return dates;
   }, [masterclasses]);
 
-  // Filter masterclasses for the selected date or show only the nearest upcoming event
+  // Filter masterclasses for the selected date or show all (upcoming + past)
   const filteredMasterclasses = useMemo(() => {
     if (masterclasses.length === 0) return [];
 
     if (!selectedDate) {
-      // Show only the nearest upcoming masterclass
-      const upcomingMasterclasses = masterclasses.filter((mc) => {
-        const endDate = new Date(mc.dateEnd || mc.date);
-        endDate.setHours(23, 59, 59, 999); // End of day
-        return !isBefore(endDate, today);
-      });
-      const sortedUpcoming = upcomingMasterclasses.sort(
-        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-      );
-      // Return only the first (nearest) masterclass
-      return sortedUpcoming.length > 0 ? [sortedUpcoming[0]] : [];
+      const upcoming = masterclasses
+        .filter((mc) => {
+          const endDate = new Date(mc.dateEnd || mc.date);
+          endDate.setHours(23, 59, 59, 999);
+          return !isBefore(endDate, today);
+        })
+        .sort(
+          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+        );
+
+      const past = masterclasses
+        .filter((mc) => {
+          const endDate = new Date(mc.dateEnd || mc.date);
+          endDate.setHours(23, 59, 59, 999);
+          return isBefore(endDate, today);
+        })
+        .sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+        );
+
+      return [...upcoming, ...past];
     }
 
-    // Find masterclasses matching the selected date
+    // Find masterclasses matching the selected date (including past)
     const matchedMasterclasses = masterclasses.filter((mc) => {
       const startDate = new Date(mc.date);
       const endDate = new Date(mc.dateEnd || mc.date);
@@ -573,8 +583,8 @@ export default function MasterClass() {
                     ? "Brak warsztatów dla wybranej daty"
                     : "No masterclasses for the selected date"
                   : currentLocale === "pl"
-                  ? "Brak nadchodzących warsztatów"
-                  : "No upcoming masterclasses available"}
+                  ? "Brak warsztatów"
+                  : "No masterclasses available"}
               </p>
             ) : (
               <div className="lg:col-span-2 space-y-6">
@@ -588,7 +598,7 @@ export default function MasterClass() {
                       className="text-center mb-6 font-normal"
                       style={getMasterclassFontStyle(masterclass.fontFamily)}
                     >
-                      <h2 className="text-3xl sm:text-4xl font-bold text-[var(--accent-color)] mb-4 line-clamp-2 break-words">
+                      <h2 className="text-3xl sm:text-4xl font-black text-[var(--accent-color)] mb-4 line-clamp-2 break-words">
                         {masterclass.title[currentLocale]}
                       </h2>
                       
@@ -620,12 +630,22 @@ export default function MasterClass() {
                       </div>
                       
                       {isMasterclassEnded(masterclass) ? (
-                        <div className="bg-gray-100 rounded-2xl p-4">
-                          <p className="text-gray-600 font-semibold text-lg">
+                        <div className="space-y-3">
+                          <div className="bg-gray-100 rounded-2xl p-4">
+                            <p className="text-gray-600 font-semibold text-lg">
+                              {currentLocale === "pl"
+                                ? "To wydarzenie się zakończyło"
+                                : "This event has ended"}
+                            </p>
+                          </div>
+                          <Link
+                            href={`/${currentLocale}/masterClass/masterclass-${masterclass.id}`}
+                            className="btn-unified px-8 py-3 text-base inline-block"
+                          >
                             {currentLocale === "pl"
-                              ? "To wydarzenie się zakończyło"
-                              : "This event has ended"}
-                          </p>
+                              ? "Zobacz szczegóły"
+                              : "View details"}
+                          </Link>
                         </div>
                       ) : (
                         <Link

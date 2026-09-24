@@ -111,9 +111,37 @@ export function renderSiteMarkdownParagraph(text: string): ReactNode {
       </ul>
     );
   }
+  // Pojedyncza linia listy
+  if (nonEmpty.length === 1 && /^\s*-\s+/.test(nonEmpty[0].trim())) {
+    return (
+      <ul className="list-disc list-inside space-y-1 my-2 text-left">
+        <li>
+          {renderSiteMarkdownWithLinks(
+            nonEmpty[0].replace(/^\s*-\s+/, "").trim(),
+            "li-0"
+          )}
+        </li>
+      </ul>
+    );
+  }
   return (
-    <p className="whitespace-pre-line text-base sm:text-lg leading-relaxed text-gray-700">
+    <p className="whitespace-pre-line text-base sm:text-lg leading-relaxed">
       {renderSiteMarkdownWithLinks(trimmed, "p")}
     </p>
+  );
+}
+
+/** Pełny opis (wiele akapitów / list) — bloki rozdzielone pustą linią. */
+export function renderSiteMarkdownDocument(text: string): ReactNode {
+  if (!text?.trim()) return null;
+  const blocks = text.replace(/\r\n/g, "\n").split(/\n\s*\n/);
+  return (
+    <div className="space-y-3 text-[var(--accent-color)] text-base sm:text-lg leading-relaxed text-left">
+      {blocks.map((block, i) => (
+        <Fragment key={`doc-${i}`}>
+          {renderSiteMarkdownParagraph(block)}
+        </Fragment>
+      ))}
+    </div>
   );
 }

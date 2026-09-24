@@ -1642,30 +1642,33 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                       )}
                     </div>
                   </label>
-                  <textarea
-                    value={newMasterclass.description?.[language] || ""}
-                    onChange={(e) =>
-                      setNewMasterclass({
-                        ...newMasterclass,
-                        description: {
-                          pl:
-                            language === "pl"
-                              ? e.target.value
-                              : newMasterclass.description?.pl ?? "",
-                          en:
-                            language === "en"
-                              ? e.target.value
-                              : newMasterclass.description?.en ?? "",
-                        },
-                      })
-                    }
-                    className={`w-full px-3 py-2 border-2 border-black rounded bg-white text-black ${
-                      language === "en" && usePolishForEnglish ? "opacity-50" : ""
+                  <div
+                    className={`border-2 border-black rounded overflow-hidden ${
+                      language === "en" && usePolishForEnglish ? "opacity-50 pointer-events-none" : ""
                     }`}
-                    placeholder="Opis"
-                    rows={4}
-                    disabled={language === "en" && usePolishForEnglish}
-                  />
+                  >
+                    <SiteContentTextEditor
+                      value={newMasterclass.description?.[language] || ""}
+                      onChange={(next) =>
+                        setNewMasterclass({
+                          ...newMasterclass,
+                          description: {
+                            pl:
+                              language === "pl"
+                                ? next
+                                : newMasterclass.description?.pl ?? "",
+                            en:
+                              language === "en"
+                                ? next
+                                : newMasterclass.description?.en ?? "",
+                          },
+                        })
+                      }
+                      rows={6}
+                      placeholder="Opis — **pogrubienie**, *kursywa*, - lista, [link](url)"
+                      preview
+                    />
+                  </div>
                 </div>
                 <div>
                   <FontFamilySelect
@@ -2148,21 +2151,23 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                       <label className="block text-black mb-1">
                         Opis ({language === "pl" ? "Polski" : "Angielski"})
                       </label>
-                      <textarea
-                        value={editingMasterclass.description[language]}
-                        onChange={(e) =>
-                          setEditingMasterclass({
-                            ...editingMasterclass,
-                            description: {
-                              ...editingMasterclass.description,
-                              [language]: e.target.value,
-                            },
-                          })
-                        }
-                        className="w-full px-3 py-2 border-2 border-black rounded bg-white text-black"
-                        placeholder="Opis"
-                        rows={4}
-                      />
+                      <div className="border-2 border-black rounded overflow-hidden">
+                        <SiteContentTextEditor
+                          value={editingMasterclass.description[language]}
+                          onChange={(next) =>
+                            setEditingMasterclass({
+                              ...editingMasterclass,
+                              description: {
+                                ...editingMasterclass.description,
+                                [language]: next,
+                              },
+                            })
+                          }
+                          rows={6}
+                          placeholder="Opis — **pogrubienie**, *kursywa*, - lista, [link](url)"
+                          preview
+                        />
+                      </div>
                     </div>
                     <div className="col-span-2">
                       <FontFamilySelect

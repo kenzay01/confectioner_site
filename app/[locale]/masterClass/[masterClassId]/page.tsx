@@ -12,6 +12,7 @@ import { ArrowLeft } from "lucide-react";
 import AddedToCartModal from "@/components/AddedToCartModal";
 import AnimatedSection from "@/components/AnimatedSection";
 import { getMasterclassFontStyle } from "@/lib/siteFont";
+import { renderSiteMarkdownDocument } from "@/lib/renderSiteMarkdown";
 import { useCart } from "@/context/cartContext";
 
 export default function MasterClassPage() {
@@ -99,32 +100,11 @@ export default function MasterClassPage() {
   }
 
   const masterclassFontStyle = getMasterclassFontStyle(masterclass.fontFamily);
-
-  if (isMasterclassEnded(masterclass)) {
-    return (
-      <div className="md:pt-0 pt-14 min-h-screen bg-[var(--main-color)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <button
-            className="mb-4 btn-unified flex items-center"
-            onClick={() => router.back()}
-          >
-            <ArrowLeft className="inline-block mr-2" />
-            {currentLocale === "pl" ? "Powrót" : "Back"}
-          </button>
-          <div style={masterclassFontStyle} className="font-normal">
-          <h1 className="text-3xl sm:text-4xl font-bold  mb-8 text-center">
-            {masterclass.title[currentLocale]}
-          </h1>
-          <p className="text-center text-[var(--accent-color)] text-xl">
-            {currentLocale === "pl"
-              ? "Ten warsztat nie jest już dostępny"
-              : "This workshop is no longer available"}
-          </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const ended = isMasterclassEnded(masterclass);
+  const freeSlots = Math.max(
+    0,
+    (masterclass.availableSlots || 0) - (masterclass.pickedSlots || 0)
+  );
 
   return (
     <AnimatedSection className="md:pt-0 pt-14 min-h-screen bg-[var(--main-color)]">
@@ -138,6 +118,13 @@ export default function MasterClassPage() {
         </button>
 
         <div style={masterclassFontStyle} className="font-normal">
+        {ended && (
+          <div className="mb-6 rounded-2xl bg-gray-100 border border-gray-200 px-4 py-3 text-center text-gray-700 font-semibold">
+            {currentLocale === "pl"
+              ? "To wydarzenie już się odbyło"
+              : "This event has already taken place"}
+          </div>
+        )}
         {/* Header Section with Photo Background - only title, date, location */}
         {(() => {
           const photos = masterclass.photos || (masterclass.photo ? [masterclass.photo] : []);
@@ -166,7 +153,7 @@ export default function MasterClassPage() {
             
             {/* Content on Photo - only title, date, location */}
             <div className="relative z-20 text-center p-6 sm:p-10 h-full flex flex-col justify-center">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6 sm:mb-8 drop-shadow-lg">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white mb-6 sm:mb-8 drop-shadow-lg">
                 {masterclass.title[currentLocale]}
               </h1>
               
@@ -186,7 +173,7 @@ export default function MasterClassPage() {
           }
           return (
           <div className="text-center mb-8">
-            <h1 className="text-3xl sm:text-4xl font-bold text-[var(--accent-color)] mb-5">
+            <h1 className="text-3xl sm:text-4xl font-black text-[var(--accent-color)] mb-5">
               {masterclass.title[currentLocale]}
             </h1>
             
@@ -224,11 +211,15 @@ export default function MasterClassPage() {
               </div>
             </div>
             {(() => {
-              const freeSlots = Math.max(
-                0,
-                (masterclass.availableSlots || 0) -
-                  (masterclass.pickedSlots || 0)
-              );
+              if (ended) {
+                return (
+                  <div className="bg-gray-100 rounded-xl px-6 py-3 text-gray-600 font-semibold">
+                    {currentLocale === "pl"
+                      ? "Rezerwacje zamknięte"
+                      : "Bookings closed"}
+                  </div>
+                );
+              }
               if (freeSlots <= 0) {
                 return (
                   <button
@@ -303,9 +294,9 @@ export default function MasterClassPage() {
             {currentLocale === "pl" ? "Opis" : "Description"}
           </h2>
           <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200/60">
-            <p className="whitespace-pre-line text-[var(--accent-color)] text-base sm:text-lg leading-relaxed">
-              {masterclass.description[currentLocale]}
-            </p>
+            {renderSiteMarkdownDocument(
+              masterclass.description[currentLocale] || ""
+            )}
           </div>
         </div>
         {/* Photo Gallery Section */}
