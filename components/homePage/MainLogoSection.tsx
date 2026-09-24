@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import AnimatedSection from "../AnimatedSection";
 import { useSiteContent } from "@/context/siteContentContext";
@@ -9,8 +9,6 @@ import { getSiteFontStack } from "@/lib/siteFont";
 export default function MainLogoSection() {
   const { content } = useSiteContent();
   const [showStaticLogo, setShowStaticLogo] = useState(false);
-  const gifRef = useRef<HTMLImageElement>(null);
-
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowStaticLogo(true);
@@ -25,14 +23,14 @@ export default function MainLogoSection() {
     <AnimatedSection className="flex flex-col min-h-140 items-center pt-8">
       <div className="relative w-102 h-102 mb-8">
         {!showStaticLogo ? (
-          <img
-            ref={gifRef}
+          <Image
             src="/white_BG.gif"
             alt="Confectioner Masterclasses Animated Logo"
             width={400}
             height={400}
             className="w-full h-full object-contain"
-            style={{ display: "block" }}
+            unoptimized
+            priority
             onLoad={() => {
               setTimeout(() => {
                 setShowStaticLogo(true);

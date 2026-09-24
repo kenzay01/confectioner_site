@@ -1,5 +1,12 @@
 "use client";
-import { useContext, createContext, useEffect, useState } from "react";
+import {
+  useContext,
+  createContext,
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+} from "react";
 import { Masterclass } from "@/types/masterclass";
 import { OnlineProduct } from "@/types/products";
 
@@ -10,15 +17,16 @@ interface ItemsContextType {
   error: string | null;
   refreshMasterclasses: () => Promise<void>;
   refreshOnlineProducts: () => Promise<void>;
+  ensureLoaded: () => Promise<void>;
 }
 const ItemsContext = createContext<ItemsContextType | undefined>(undefined);
 
 export const ItemsProvider = ({ children }: { children: React.ReactNode }) => {
   const [masterclasses, setMasterclasses] = useState<Masterclass[]>([]);
-  //   console.log("Masterclasses in context:", masterclasses);
   const [onlineProducts, setOnlineProducts] = useState<OnlineProduct[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const loadStarted = useRef(false);
 
   const fetchMasterclasses = async () => {
     try {
@@ -48,6 +56,14 @@ export const ItemsProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const ensureLoaded = useCallback(async () => {
+    if (loadStarted.current) return;
+    loadStarted.current = true;
+    setLoading(true);
+    await Promise.all([fetchMasterclasses(), fetchOnlineProducts()]);
+    setLoading(false);
+  }, []);
+
   const refreshMasterclasses = async () => {
     setLoading(true);
     await fetchMasterclasses();
@@ -60,15 +76,6 @@ export const ItemsProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(false);
   };
 
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      await Promise.all([fetchMasterclasses(), fetchOnlineProducts()]);
-      setLoading(false);
-    };
-    loadData();
-  }, []);
-
   return (
     <ItemsContext.Provider
       value={{
@@ -78,6 +85,7 @@ export const ItemsProvider = ({ children }: { children: React.ReactNode }) => {
         error,
         refreshMasterclasses,
         refreshOnlineProducts,
+        ensureLoaded,
       }}
     >
       {children}
@@ -90,5 +98,10 @@ export const useItems = () => {
   if (!context) {
     throw new Error("useItems must be used within an ItemsProvider");
   }
+
+  useEffect(() => {
+    void context.ensureLoaded();
+  }, [context.ensureLoaded]);
+
   return context;
 };

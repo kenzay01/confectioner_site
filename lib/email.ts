@@ -9,8 +9,18 @@
 
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const fromEmail = process.env.EMAIL_FROM || "info@nieznanypiekarz.com";
+
+let resendClient: Resend | null = null;
+
+function getResend(): Resend | null {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return null;
+  if (!resendClient) {
+    resendClient = new Resend(key);
+  }
+  return resendClient;
+}
 
 export interface SendEmailOptions {
   to: string | string[];
@@ -22,7 +32,8 @@ export interface SendEmailOptions {
 export async function sendEmail(
   options: SendEmailOptions
 ): Promise<{ success: boolean; error?: string }> {
-  if (!process.env.RESEND_API_KEY) {
+  const resend = getResend();
+  if (!resend) {
     console.error("[email] RESEND_API_KEY is not set");
     return {
       success: false,

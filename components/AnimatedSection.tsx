@@ -1,6 +1,6 @@
 "use client";
-import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+
+import { useEffect, useRef, useState } from "react";
 
 interface AnimatedSectionProps {
   children: React.ReactNode;
@@ -10,46 +10,65 @@ interface AnimatedSectionProps {
   duration?: number;
 }
 
+const offsetForDirection = (
+  direction: AnimatedSectionProps["direction"],
+  visible: boolean
+): string => {
+  if (visible) return "translate3d(0, 0, 0)";
+  switch (direction) {
+    case "left":
+      return "translate3d(-50px, 0, 0)";
+    case "right":
+      return "translate3d(50px, 0, 0)";
+    case "up":
+      return "translate3d(0, -50px, 0)";
+    case "down":
+    default:
+      return "translate3d(0, 50px, 0)";
+  }
+};
+
 const AnimatedSection: React.FC<AnimatedSectionProps> = ({
   children,
   className,
   direction,
-  delay,
+  delay = 0,
   duration = 0.75,
 }) => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
-  const getInitialPosition = () => {
-    switch (direction) {
-      case "left":
-        return { opacity: 0, x: -50 };
-      case "right":
-        return { opacity: 0, x: 50 };
-      case "up":
-        return { opacity: 0, y: -50 };
-      case "down":
-        return { opacity: 0, y: 50 };
-      default:
-        return { opacity: 0, y: 50 };
-    }
-  };
-  const getAnimation = () => {
-    return isInView ? { opacity: 1, x: 0, y: 0 } : getInitialPosition();
-  };
-  const getTransition = () => {
-    return { duration, delay: delay || 0 };
-  };
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "-100px", threshold: 0 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <motion.div
+    <div
       ref={ref}
-      initial={getInitialPosition()}
-      animate={getAnimation()}
-      transition={getTransition()}
       className={className}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: offsetForDirection(direction, visible),
+        transition: `opacity ${duration}s ease-out ${delay}s, transform ${duration}s ease-out ${delay}s`,
+        willChange: visible ? "auto" : "opacity, transform",
+      }}
     >
       {children}
-    </motion.div>
+    </div>
   );
 };
 

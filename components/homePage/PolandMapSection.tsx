@@ -61,17 +61,13 @@ declare global {
 // Завантажуємо координати міст Польщі
 const loadPolishCities = async () => {
   try {
-    console.log('Loading cities from API...');
     const response = await fetch('/api/cities');
-    console.log('Cities API response status:', response.status);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
-    const cities = await response.json();
-    console.log('Loaded cities:', cities.length);
-    return cities;
+    return await response.json();
   } catch (error) {
     console.error('Error loading cities:', error);
     return [];
