@@ -9,7 +9,18 @@ const config: Config = {
     "./lib/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      spacing: {
+        "102": "25.5rem",
+        "140": "35rem",
+      },
+      height: {
+        "140": "35rem",
+      },
+      minHeight: {
+        "140": "35rem",
+      },
+    },
   },
   plugins: [],
 };

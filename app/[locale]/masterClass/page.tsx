@@ -1,16 +1,25 @@
 "use client";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
 import { Calendar, MapPin, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Masterclass } from "@/types/masterclass";
 import { useItems } from "@/context/itemsContext";
-import { format, isSameDay, addDays, isBefore } from "date-fns";
+import { format, isSameDay } from "date-fns";
 import { pl, enGB } from "date-fns/locale";
 import AnimatedSection from "@/components/AnimatedSection";
 import bread2 from "@/public/materials/bread2.png";
 import { getMasterclassFontStyle } from "@/lib/siteFont";
+import {
+  getMasterclassCalendarDays,
+  getMasterclassStartDate,
+  isMasterclassPast,
+  masterclassOccursOnDay,
+  parseMasterclassDate,
+  sortMasterclassesByStart,
+  startOfLocalDay,
+} from "@/lib/masterclassDates";
 
 const formatDate = (
   masterclass: Masterclass,
@@ -18,12 +27,12 @@ const formatDate = (
 ): string => {
   const locale = currentLocale === "pl" ? pl : enGB;
   if (masterclass.dateType === "single") {
-    const date = new Date(masterclass.date);
+    const date = parseMasterclassDate(masterclass.date);
     const formattedDate = format(date, "PPP", { locale });
     return `${formattedDate}`;
   } else {
-    const startDate = new Date(masterclass.date);
-    const endDate = new Date(masterclass.dateEnd || masterclass.date);
+    const startDate = parseMasterclassDate(masterclass.date);
+    const endDate = parseMasterclassDate(masterclass.dateEnd || masterclass.date);
     return `${format(startDate, "MMM d", { locale })} - ${format(
       endDate,
       "MMM d, yyyy",
@@ -41,14 +50,8 @@ const SliderSection = ({ masterclasses }: { masterclasses: Masterclass[] }) => {
 
   // Фільтруємо тільки активні майстер-класи (не завершені)
   const activeMasterclasses = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    return masterclasses.filter((mc) => {
-      const endDate = new Date(mc.dateEnd || mc.date);
-      endDate.setHours(23, 59, 59, 999);
-      return endDate >= today;
-    });
+    const todayLocal = startOfLocalDay(new Date());
+    return masterclasses.filter((mc) => !isMasterclassPast(mc, todayLocal));
   }, [masterclasses]);
 
   // Створюємо масив із клонованими слайдами: [останній, ...оригінальні, перший]
@@ -371,85 +374,169 @@ export default function MasterClass() {
   const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth());
   const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
   
-  const today = useMemo(() => {
-    const date = new Date();
-    date.setHours(0, 0, 0, 0);
-    return date;
-  }, []);
+  const today = useMemo(() => startOfLocalDay(new Date()), []);
 
-  // Get unique dates for all masterclasses
+  const calendarInitialized = useRef(false);
+
+  useEffect(() => {
+    if (calendarInitialized.current || masterclasses.length === 0) return;
+
+    const viewMonth = new Date().getMonth();
+    const viewYear = new Date().getFullYear();
+    const hasEventInView = masterclasses.some((mc) =>
+      getMasterclassCalendarDays(mc).some(
+        (d) => d.getMonth() === viewMonth && d.getFullYear() === viewYear
+      )
+    );
+
+    if (!hasEventInView) {
+      const sorted = sortMasterclassesByStart(masterclasses, "asc");
+      const focus =
+        sorted.find((mc) => !isMasterclassPast(mc, today)) ||
+        sorted[sorted.length - 1];
+      const focusDate = getMasterclassStartDate(focus);
+      setCalendarMonth(focusDate.getMonth());
+      setCalendarYear(focusDate.getFullYear());
+    }
+
+    calendarInitialized.current = true;
+  }, [masterclasses, today]);
+
   const eventDates = useMemo(() => {
     const dates: Date[] = [];
     masterclasses.forEach((mc) => {
-      if (mc.dateType === "single") {
-        dates.push(new Date(mc.date));
-      } else {
-        let currentDate = new Date(mc.date);
-        const endDate = new Date(mc.dateEnd || mc.date);
-        while (currentDate <= endDate) {
-          dates.push(new Date(currentDate));
-          currentDate = addDays(currentDate, 1);
-        }
-      }
+      dates.push(...getMasterclassCalendarDays(mc));
     });
     return dates;
   }, [masterclasses]);
 
-  // Filter masterclasses for the selected date or show all (upcoming + past)
-  const filteredMasterclasses = useMemo(() => {
-    if (masterclasses.length === 0) return [];
+  const { upcomingMasterclasses, pastMasterclasses, selectedDateMasterclasses } =
+    useMemo(() => {
+      if (masterclasses.length === 0) {
+        return {
+          upcomingMasterclasses: [] as Masterclass[],
+          pastMasterclasses: [] as Masterclass[],
+          selectedDateMasterclasses: [] as Masterclass[],
+        };
+      }
 
-    if (!selectedDate) {
-      const upcoming = masterclasses
-        .filter((mc) => {
-          const endDate = new Date(mc.dateEnd || mc.date);
-          endDate.setHours(23, 59, 59, 999);
-          return !isBefore(endDate, today);
-        })
-        .sort(
-          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+      if (selectedDate) {
+        const matched = masterclasses.filter((mc) =>
+          masterclassOccursOnDay(mc, selectedDate)
         );
+        return {
+          upcomingMasterclasses: [],
+          pastMasterclasses: [],
+          selectedDateMasterclasses: sortMasterclassesByStart(matched, "asc"),
+        };
+      }
 
-      const past = masterclasses
-        .filter((mc) => {
-          const endDate = new Date(mc.dateEnd || mc.date);
-          endDate.setHours(23, 59, 59, 999);
-          return isBefore(endDate, today);
-        })
-        .sort(
-          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-        );
-
-      return [...upcoming, ...past];
-    }
-
-    // Find masterclasses matching the selected date (including past)
-    const matchedMasterclasses = masterclasses.filter((mc) => {
-      const startDate = new Date(mc.date);
-      const endDate = new Date(mc.dateEnd || mc.date);
-      startDate.setHours(0, 0, 0, 0);
-      endDate.setHours(23, 59, 59, 999);
-      const normalizedSelectedDate = new Date(selectedDate);
-      normalizedSelectedDate.setHours(0, 0, 0, 0);
-
-      return (
-        (mc.dateType === "single" &&
-          isSameDay(startDate, normalizedSelectedDate)) ||
-        (mc.dateType === "range" &&
-          normalizedSelectedDate >= startDate &&
-          normalizedSelectedDate <= endDate)
+      const upcoming = sortMasterclassesByStart(
+        masterclasses.filter((mc) => !isMasterclassPast(mc, today)),
+        "asc"
       );
-    });
+      const past = sortMasterclassesByStart(
+        masterclasses.filter((mc) => isMasterclassPast(mc, today)),
+        "desc"
+      );
 
-    return matchedMasterclasses;
-  }, [masterclasses, selectedDate, today]);
+      return {
+        upcomingMasterclasses: upcoming,
+        pastMasterclasses: past,
+        selectedDateMasterclasses: [],
+      };
+    }, [masterclasses, selectedDate, today]);
 
-  // Check if a masterclass has ended
-  const isMasterclassEnded = (masterclass: Masterclass): boolean => {
-    const endDate = new Date(masterclass.dateEnd || masterclass.date);
-    endDate.setHours(0, 0, 0, 0);
-    return isBefore(endDate, today);
-  };
+  const isMasterclassEnded = (masterclass: Masterclass): boolean =>
+    isMasterclassPast(masterclass, today);
+
+  const renderMasterclassCard = (masterclass: Masterclass) => (
+    <AnimatedSection key={masterclass.id} direction="left">
+      <div className="bg-white rounded-3xl p-8 shadow-lg overflow-hidden">
+        <div
+          className="text-center mb-6 font-normal"
+          style={getMasterclassFontStyle(masterclass.fontFamily)}
+        >
+          <h2 className="text-3xl sm:text-4xl font-black text-[var(--accent-color)] mb-4 line-clamp-2 break-words">
+            {masterclass.title[currentLocale]}
+          </h2>
+
+          <div className="flex flex-wrap justify-center gap-4 mb-6">
+            <div className="flex items-center gap-2 text-[var(--accent-color)] bg-[var(--main-color)]/20 px-4 py-2 rounded-full">
+              <Calendar className="w-5 h-5 flex-shrink-0" />
+              <span className="font-medium whitespace-nowrap">
+                {formatDate(masterclass, currentLocale)}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-[var(--accent-color)] bg-[var(--main-color)]/20 px-4 py-2 rounded-full max-w-full">
+              <MapPin className="w-5 h-5 flex-shrink-0" />
+              <span className="font-medium line-clamp-1 break-words">
+                {masterclass.location[currentLocale]}
+              </span>
+            </div>
+            {!isMasterclassEnded(masterclass) && (
+              <div className="flex items-center gap-2 text-[var(--accent-color)] bg-[var(--main-color)]/20 px-4 py-2 rounded-full">
+                <Users className="w-5 h-5 flex-shrink-0" />
+                <span className="font-medium whitespace-nowrap">
+                  {(masterclass.availableSlots || 0) -
+                    (masterclass.pickedSlots || 0)}{" "}
+                  {currentLocale === "pl" ? "wolnych miejsc" : "slots available"}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="text-4xl font-bold text-[var(--accent-color)] mb-6">
+            {masterclass.price} zł
+          </div>
+
+          {isMasterclassEnded(masterclass) ? (
+            <div className="space-y-3">
+              <div className="bg-gray-100 rounded-2xl p-4">
+                <p className="text-gray-600 font-semibold text-lg">
+                  {currentLocale === "pl"
+                    ? "To wydarzenie się zakończyło"
+                    : "This event has ended"}
+                </p>
+              </div>
+              <Link
+                href={`/${currentLocale}/masterClass/masterclass-${masterclass.id}`}
+                className="btn-unified px-8 py-3 text-base inline-block"
+              >
+                {currentLocale === "pl" ? "Zobacz szczegóły" : "View details"}
+              </Link>
+            </div>
+          ) : (
+            <Link
+              href={`/${currentLocale}/masterClass/masterclass-${masterclass.id}`}
+              className={`btn-unified px-8 py-4 text-lg inline-block ${
+                (masterclass.availableSlots || 0) -
+                  (masterclass.pickedSlots || 0) >
+                0
+                  ? ""
+                  : "opacity-50 cursor-not-allowed"
+              }`}
+            >
+              {(masterclass.availableSlots || 0) -
+                (masterclass.pickedSlots || 0) >
+              0
+                ? currentLocale === "pl"
+                  ? "Weź udział"
+                  : "Book Now"
+                : currentLocale === "pl"
+                  ? "Dołącz do listy oczekujących"
+                  : "Join Waitlist"}
+            </Link>
+          )}
+        </div>
+      </div>
+    </AnimatedSection>
+  );
+
+  const listIsEmpty =
+    selectedDate
+      ? selectedDateMasterclasses.length === 0
+      : upcomingMasterclasses.length === 0 && pastMasterclasses.length === 0;
 
   // Format date for display
 
@@ -489,8 +576,36 @@ export default function MasterClass() {
       }
     };
 
+    const dayHasPastEvent = (date: Date) =>
+      masterclasses.some(
+        (mc) =>
+          masterclassOccursOnDay(mc, date) && isMasterclassPast(mc, today)
+      );
+
+    const dayHasUpcomingEvent = (date: Date) =>
+      masterclasses.some(
+        (mc) =>
+          masterclassOccursOnDay(mc, date) && !isMasterclassPast(mc, today)
+      );
+
     return (
       <div className="bg-white rounded-3xl p-6">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <p className="text-sm text-gray-600">
+            {currentLocale === "pl"
+              ? "Kliknij dzień ze szkoleniem (również archiwalne)"
+              : "Tap a day with a class (including past events)"}
+          </p>
+          {selectedDate && (
+            <button
+              type="button"
+              onClick={() => setSelectedDate(null)}
+              className="text-sm font-medium text-[var(--brown-color)] underline hover:opacity-80"
+            >
+              {currentLocale === "pl" ? "Wszystkie terminy" : "All dates"}
+            </button>
+          )}
+        </div>
         <div className="flex justify-between items-center mb-4">
           <button
             onClick={prevMonth}
@@ -528,31 +643,59 @@ export default function MasterClass() {
             );
             const isSelected = selectedDate && isSameDay(date, selectedDate);
             const isToday = isSameDay(date, today);
-            const isPastDay = isBefore(date, today);
+            const isPastDay = startOfLocalDay(date) < today;
+            const hasPastEvent = dayHasPastEvent(date);
+            const hasUpcomingEvent = dayHasUpcomingEvent(date);
             return (
               <button
                 key={day}
-                onClick={() => setSelectedDate(date)}
-                className={`p-2 rounded-full relative ${
-                  isEventDay
-                    ? isPastDay
-                      ? "bg-gray-300 text-gray-600"
-                      : "bg-[var(--accent-color)] text-white"
-                    : isToday
-                    ? "bg-[var(--brown-color)]/30 text-[var(--brown-color)] font-bold"
-                    : ""
+                type="button"
+                onClick={() => setSelectedDate(startOfLocalDay(date))}
+                className={`p-2 rounded-full relative min-h-[2.25rem] ${
+                  hasUpcomingEvent
+                    ? "bg-[var(--accent-color)] text-white font-semibold"
+                    : hasPastEvent
+                      ? "bg-gray-200 text-gray-700 font-medium"
+                      : isToday
+                        ? "bg-[var(--brown-color)]/30 text-[var(--brown-color)] font-bold"
+                        : isPastDay
+                          ? "text-gray-400"
+                          : ""
                 } ${
                   isSelected ? "ring-2 ring-[var(--brown-color)] ring-offset-1" : ""
-                } hover:bg-[var(--brown-color)]/20 transition-all duration-200`}
-                disabled={isPastDay && !isEventDay}
+                } ${
+                  isEventDay
+                    ? "hover:opacity-90"
+                    : "hover:bg-[var(--brown-color)]/15"
+                } transition-all duration-200`}
               >
                 {day}
-                {isToday && (
+                {isEventDay && (
+                  <span
+                    className={`absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full ${
+                      hasPastEvent && !hasUpcomingEvent
+                        ? "bg-gray-500"
+                        : "bg-white"
+                    }`}
+                    aria-hidden
+                  />
+                )}
+                {isToday && !isEventDay && (
                   <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-[var(--brown-color)] rounded-full"></div>
                 )}
               </button>
             );
           })}
+        </div>
+        <div className="mt-4 flex flex-wrap gap-4 text-xs text-gray-600">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-full bg-[var(--accent-color)]" />
+            {currentLocale === "pl" ? "Nadchodzące" : "Upcoming"}
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-full bg-gray-300" />
+            {currentLocale === "pl" ? "Zakończone" : "Past"}
+          </span>
         </div>
       </div>
     );
@@ -560,11 +703,21 @@ export default function MasterClass() {
 
   return (
     <div className="md:pt-0 pt-14 min-h-screen bg-[var(--main-color)]">
-      <div className=" py-8 relative">
-        <div className="absolute -top-20 sm:-top-25 left-1/2 transform -translate-x-1/2 z-10 w-full flex justify-center pointer-events-none">
-          <Image src={bread2} alt="bread" width={600} height={600} className="w-auto h-92"/>
-        </div>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-24">
+      <div className="py-6 sm:py-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div
+            className="flex justify-center mb-4 sm:mb-6 pointer-events-none select-none"
+            aria-hidden
+          >
+            <Image
+              src={bread2}
+              alt=""
+              width={280}
+              height={280}
+              className="w-auto h-14 sm:h-16 md:h-20 object-contain opacity-95"
+            />
+          </div>
+        <div className="py-2 sm:py-4">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
             {/* Left Side: Masterclass List */}
             <div className="lg:col-span-3 space-y-8 md:order-1 order-2">
@@ -576,7 +729,7 @@ export default function MasterClass() {
               <p className="lg:col-span-2 self-center text-center text-red-500">
                 {error}
               </p>
-            ) : filteredMasterclasses.length === 0 ? (
+            ) : listIsEmpty ? (
               <p className="lg:col-span-2 self-center text-center text-[var(--accent-color)]">
                 {selectedDate
                   ? currentLocale === "pl"
@@ -587,92 +740,45 @@ export default function MasterClass() {
                   : "No masterclasses available"}
               </p>
             ) : (
-              <div className="lg:col-span-2 space-y-6">
-                {filteredMasterclasses.map((masterclass) => (
-                  <AnimatedSection
-                    key={masterclass.id}
-                    direction="left"
-                  >
-                  <div className="bg-white rounded-3xl p-8 shadow-lg overflow-hidden">
-                    <div
-                      className="text-center mb-6 font-normal"
-                      style={getMasterclassFontStyle(masterclass.fontFamily)}
-                    >
-                      <h2 className="text-3xl sm:text-4xl font-black text-[var(--accent-color)] mb-4 line-clamp-2 break-words">
-                        {masterclass.title[currentLocale]}
-                      </h2>
-                      
-                      <div className="flex flex-wrap justify-center gap-4 mb-6">
-                        <div className="flex items-center gap-2 text-[var(--accent-color)] bg-[var(--main-color)]/20 px-4 py-2 rounded-full">
-                          <Calendar className="w-5 h-5 flex-shrink-0" />
-                          <span className="font-medium whitespace-nowrap">{formatDate(masterclass, currentLocale)}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-[var(--accent-color)] bg-[var(--main-color)]/20 px-4 py-2 rounded-full max-w-full">
-                          <MapPin className="w-5 h-5 flex-shrink-0" />
-                          <span className="font-medium line-clamp-1 break-words">
-                            {masterclass.location[currentLocale]}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-[var(--accent-color)] bg-[var(--main-color)]/20 px-4 py-2 rounded-full">
-                          <Users className="w-5 h-5 flex-shrink-0" />
-                          <span className="font-medium whitespace-nowrap">
-                            {(masterclass.availableSlots || 0) -
-                              (masterclass.pickedSlots || 0)}{" "}
-                            {currentLocale === "pl"
-                              ? "wolnych miejsc"
-                              : "slots available"}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <div className="text-4xl font-bold text-[var(--accent-color)] mb-6">
-                        {masterclass.price} zł
-                      </div>
-                      
-                      {isMasterclassEnded(masterclass) ? (
-                        <div className="space-y-3">
-                          <div className="bg-gray-100 rounded-2xl p-4">
-                            <p className="text-gray-600 font-semibold text-lg">
-                              {currentLocale === "pl"
-                                ? "To wydarzenie się zakończyło"
-                                : "This event has ended"}
-                            </p>
-                          </div>
-                          <Link
-                            href={`/${currentLocale}/masterClass/masterclass-${masterclass.id}`}
-                            className="btn-unified px-8 py-3 text-base inline-block"
-                          >
-                            {currentLocale === "pl"
-                              ? "Zobacz szczegóły"
-                              : "View details"}
-                          </Link>
-                        </div>
-                      ) : (
-                        <Link
-                          href={`/${currentLocale}/masterClass/masterclass-${masterclass.id}`}
-                          className={`btn-unified px-8 py-4 text-lg inline-block ${
-                            (masterclass.availableSlots || 0) -
-                              (masterclass.pickedSlots || 0) >
-                            0
-                              ? ""
-                              : "opacity-50 cursor-not-allowed"
-                          }`}
-                        >
-                          {(masterclass.availableSlots || 0) -
-                            (masterclass.pickedSlots || 0) >
-                          0
-                            ? currentLocale === "pl"
-                              ? "Weź udział"
-                              : "Book Now"
-                            : currentLocale === "pl"
-                            ? "Dołącz do listy oczekujących"
-                            : "Join Waitlist"}
-                        </Link>
-                      )}
-                    </div>
+              <div className="lg:col-span-2 space-y-8">
+                {selectedDate ? (
+                  <div className="space-y-6">
+                    {selectedDateMasterclasses.map((mc) =>
+                      renderMasterclassCard(mc)
+                    )}
                   </div>
-                  </AnimatedSection>
-                ))}
+                ) : (
+                  <>
+                    {upcomingMasterclasses.length > 0 && (
+                      <div className="space-y-4">
+                        <h2 className="text-2xl font-bold text-[var(--accent-color)]">
+                          {currentLocale === "pl"
+                            ? "Nadchodzące szkolenia"
+                            : "Upcoming masterclasses"}
+                        </h2>
+                        <div className="space-y-6">
+                          {upcomingMasterclasses.map((mc) =>
+                            renderMasterclassCard(mc)
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {pastMasterclasses.length > 0 && (
+                      <div className="space-y-4">
+                        <h2 className="text-2xl font-bold text-gray-600">
+                          {currentLocale === "pl"
+                            ? "Zakończone szkolenia"
+                            : "Past masterclasses"}
+                        </h2>
+                        <div className="space-y-6">
+                          {pastMasterclasses.map((mc) =>
+                            renderMasterclassCard(mc)
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -684,8 +790,8 @@ export default function MasterClass() {
           </div>
         </div>
         
-        {/* Event Gallery Slider Section */}
         <SliderSection masterclasses={masterclasses} />
+        </div>
       </div>
     </div>
   );
