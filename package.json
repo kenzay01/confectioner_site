@@ -4,23 +4,22 @@
   "private": true,
   "scripts": {
     "dev": "NODE_OPTIONS='--no-warnings=ExperimentalWarning' next dev --turbopack",
-    "prebuild": "node scripts/ensure-tailwind-oxide.mjs",
     "build": "NODE_OPTIONS='--max-old-space-size=4096' next build",
     "build:turbo": "NODE_OPTIONS='--max-old-space-size=4096' next build --turbopack",
     "start": "NODE_OPTIONS='--no-warnings=ExperimentalWarning' next start",
-    "lint": "eslint",
-    "postinstall": "node scripts/ensure-tailwind-oxide.mjs"
+    "lint": "eslint"
   },
   "dependencies": {
-    "@tailwindcss/postcss": "4.3.3",
+    "autoprefixer": "^10.4.21",
     "date-fns": "^4.1.0",
     "googleapis": "^159.0.0",
     "lucide-react": "^0.541.0",
     "next": "15.5.26",
+    "postcss": "8.5.28",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "resend": "^4.0.0",
-    "tailwindcss": "4.3.3"
+    "tailwindcss": "^3.4.17"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -31,18 +30,8 @@
     "eslint-config-next": "15.5.26",
     "typescript": "^5"
   },
-  "optionalDependencies": {
-    "@tailwindcss/oxide-darwin-arm64": "4.3.3",
-    "@tailwindcss/oxide-darwin-x64": "4.3.3",
-    "@tailwindcss/oxide-linux-arm64-gnu": "4.3.3",
-    "@tailwindcss/oxide-linux-arm64-musl": "4.3.3",
-    "@tailwindcss/oxide-linux-x64-gnu": "4.3.3",
-    "@tailwindcss/oxide-linux-x64-musl": "4.3.3",
-    "@tailwindcss/oxide-wasm32-wasi": "4.3.3"
-  },
   "overrides": {
     "postcss": "8.5.28",
-    "sharp": "0.35.4",
-    "@tailwindcss/oxide": "4.3.3"
+    "sharp": "0.35.4"
   }
 }
