@@ -1,12 +1,14 @@
 /**
- * Workaround for npm optional-deps bug (https://github.com/npm/cli/issues/4828).
- * Ensures the platform @tailwindcss/oxide-* package exists before next build.
+ * Ensures @tailwindcss/oxide loads (native or WASI). Runs on postinstall and prebuild.
  */
-import { existsSync, readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { execSync } from "node:child_process";
 
 const OXIDE_VERSION = "4.3.3";
+const root = process.cwd();
+const requireFromRoot = createRequire(join(root, "package.json"));
 
 function linuxMusl() {
   if (process.platform !== "linux") return false;
@@ -30,30 +32,81 @@ function resolveOxidePackage() {
         ? "@tailwindcss/oxide-linux-arm64-musl"
         : "@tailwindcss/oxide-linux-arm64-gnu";
     }
-    return musl
-      ? "@tailwindcss/oxide-linux-x64-musl"
-      : "@tailwindcss/oxide-linux-x64-gnu";
+    if (process.arch === "x64") {
+      return musl
+        ? "@tailwindcss/oxide-linux-x64-musl"
+        : "@tailwindcss/oxide-linux-x64-gnu";
+    }
   }
   return null;
 }
 
-const pkg = resolveOxidePackage();
-
-if (!pkg) {
-  process.exit(0);
+function tryLoadOxide() {
+  try {
+    requireFromRoot("@tailwindcss/oxide");
+    return true;
+  } catch (err) {
+    console.error(
+      "[tailwind-oxide] Load failed:",
+      err instanceof Error ? err.message : err
+    );
+    if (err instanceof Error && err.cause) {
+      console.error("[tailwind-oxide] Cause:", err.cause);
+    }
+    return false;
+  }
 }
 
-const pkgDir = join(process.cwd(), "node_modules", ...pkg.split("/"));
-
-if (existsSync(pkgDir)) {
-  process.exit(0);
+function install(packages) {
+  const list = Array.isArray(packages) ? packages : [packages];
+  const specs = list.map((p) => `${p}@${OXIDE_VERSION}`).join(" ");
+  console.warn(`[tailwind-oxide] Installing ${specs}...`);
+  execSync(`npm install ${specs} --no-save --no-audit --no-fund --include=optional`, {
+    stdio: "inherit",
+    cwd: root,
+    env: {
+      ...process.env,
+      npm_config_optional: "true",
+      npm_config_include: "optional",
+    },
+  });
 }
 
-console.warn(
-  `[postinstall] Missing ${pkg}; installing ${OXIDE_VERSION} (npm optional-deps workaround)...`
+console.log(
+  `[tailwind-oxide] node ${process.version} | ${process.platform}-${process.arch}`
 );
 
-execSync(`npm install ${pkg}@${OXIDE_VERSION} --no-save --no-package-lock`, {
-  stdio: "inherit",
-  env: { ...process.env, npm_config_optional: "true" },
-});
+if (tryLoadOxide()) {
+  process.exit(0);
+}
+
+const platformPkg = resolveOxidePackage();
+if (platformPkg) {
+  const pkgDir = join(root, "node_modules", ...platformPkg.split("/"));
+  if (!existsSync(pkgDir)) {
+    install(platformPkg);
+  } else if (!tryLoadOxide()) {
+    // Folder exists but binding broken (wrong arch, corrupt install) — reinstall.
+    install(platformPkg);
+  }
+}
+
+if (!tryLoadOxide()) {
+  console.warn(
+    "[tailwind-oxide] Native binding unavailable; installing WASI fallback..."
+  );
+  install("@tailwindcss/oxide-wasm32-wasi");
+}
+
+// Last resort: both platform native + WASI (npm optional-deps bug on some hosts).
+if (!tryLoadOxide() && platformPkg) {
+  install([platformPkg, "@tailwindcss/oxide-wasm32-wasi"]);
+}
+
+if (!tryLoadOxide()) {
+  console.error(
+    "[tailwind-oxide] Could not load @tailwindcss/oxide. On the server run:\n" +
+      "  rm -rf node_modules && npm install && npm run build"
+  );
+  process.exit(1);
+}
