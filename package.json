@@ -14,7 +14,7 @@
     "framer-motion": "^12.23.12",
     "googleapis": "^159.0.0",
     "lucide-react": "^0.541.0",
-    "next": "15.5.0",
+    "next": "15.5.26",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-icons": "^5.5.0",
@@ -29,8 +29,12 @@
     "@types/react-dom": "^19",
     "@types/react-slick": "^0.23.13",
     "eslint": "^9",
-    "eslint-config-next": "15.5.0",
+    "eslint-config-next": "15.5.26",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "overrides": {
+    "postcss": "8.5.28",
+    "sharp": "0.35.4"
   }
 }
