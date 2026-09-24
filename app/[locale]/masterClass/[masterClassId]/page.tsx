@@ -14,15 +14,23 @@ import AnimatedSection from "@/components/AnimatedSection";
 import { getMasterclassFontStyle } from "@/lib/siteFont";
 import { renderSiteMarkdownDocument } from "@/lib/renderSiteMarkdown";
 import { useCart } from "@/context/cartContext";
+import { isApiStaticImage } from "@/lib/imageSrc";
+
+function routeIdToMasterclassId(routeId: string): string {
+  return routeId.replace(/^masterclass-/, "");
+}
 
 export default function MasterClassPage() {
   const router = useRouter();
   const currentLocale = useCurrentLanguage() as "pl" | "en";
-  const { masterclasses, loading, error } = useItems();
+  const { masterclasses } = useItems();
   const { addItem } = useCart();
   const params = useParams();
   const masterclassId = params.masterClassId as string;
   const [masterclass, setMasterclass] = useState<Masterclass | null>(null);
+  const [pageStatus, setPageStatus] = useState<"loading" | "ready" | "error">(
+    "loading"
+  );
   const [isAddedToCartOpen, setIsAddedToCartOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
@@ -43,13 +51,46 @@ export default function MasterClassPage() {
   today.setHours(0, 0, 0, 0);
 
   useEffect(() => {
-    if (masterclasses.length > 0) {
-      const foundMasterclass = masterclasses.find(
-        (mc) => `masterclass-${mc.id}` === masterclassId
-      );
-      setMasterclass(foundMasterclass || null);
+    const id = routeIdToMasterclassId(masterclassId);
+    const fromContext = masterclasses.find((mc) => mc.id === id);
+    if (fromContext) {
+      setMasterclass(fromContext);
+      setPageStatus("ready");
+      return;
     }
-  }, [masterclasses, masterclassId]);
+
+    let cancelled = false;
+    setPageStatus("loading");
+
+    (async () => {
+      try {
+        const res = await fetch(`/api/masterclasses/${id}`, {
+          cache: "no-store",
+        });
+        if (res.ok) {
+          const data = (await res.json()) as Masterclass;
+          if (!cancelled) {
+            setMasterclass(data);
+            setPageStatus("ready");
+          }
+          return;
+        }
+        if (!cancelled) {
+          setMasterclass(null);
+          setPageStatus("error");
+        }
+      } catch {
+        if (!cancelled) {
+          setMasterclass(null);
+          setPageStatus("error");
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [masterclassId, masterclasses]);
 
   const isMasterclassEnded = (masterclass: Masterclass): boolean => {
     const endDate = new Date(masterclass.dateEnd || masterclass.date);
@@ -74,25 +115,26 @@ export default function MasterClassPage() {
     }
   };
 
-  if (loading) {
+  if (pageStatus === "loading") {
     return (
       <div className="md:pt-0 pt-14 min-h-screen bg-[var(--main-color)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-center text-[var(--accent-color)]">Loading...</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-pulse">
+          <div className="h-10 w-32 rounded-lg bg-gray-200 mb-6" />
+          <div className="rounded-2xl min-h-[50vh] bg-gray-200 mb-8" />
+          <div className="h-40 rounded-2xl bg-gray-100" />
         </div>
       </div>
     );
   }
 
-  if (error || !masterclass) {
+  if (pageStatus === "error" || !masterclass) {
     return (
       <div className="md:pt-0 pt-14 min-h-screen bg-[var(--main-color)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <p className="text-center text-red-500">
-            {error ||
-              (currentLocale === "pl"
-                ? "Warsztat nie znaleziony"
-                : "Workshop not found")}
+            {currentLocale === "pl"
+              ? "Warsztat nie znaleziony"
+              : "Workshop not found"}
           </p>
         </div>
       </div>
@@ -145,6 +187,7 @@ export default function MasterClassPage() {
                 fill
                   className="object-cover cursor-pointer"
                 priority
+                unoptimized={isApiStaticImage(mainPhoto)}
                 quality={85}
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
                   onClick={() => photos.length > 0 && setPhotoGallery({ photos, index: 0, title: masterclass.title[currentLocale] })}
@@ -323,7 +366,8 @@ export default function MasterClassPage() {
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-110"
                       sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-                      loading={index < 4 ? "eager" : "lazy"}
+                      loading="eager"
+                      unoptimized={isApiStaticImage(photo)}
                       quality={75}
                     />
                   </button>
@@ -561,6 +605,9 @@ export default function MasterClassPage() {
                   fill
                   className="object-contain"
                   priority
+                  unoptimized={isApiStaticImage(
+                    photoGallery.photos[photoGallery.index]
+                  )}
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
                   quality={85}
                 />
@@ -612,7 +659,8 @@ export default function MasterClassPage() {
                         fill
                         className="object-cover"
                         sizes="(max-width: 640px) 16vw, 10vw"
-                        loading="lazy"
+                        loading="eager"
+                        unoptimized={isApiStaticImage(photo)}
                         quality={60}
                       />
                     </button>

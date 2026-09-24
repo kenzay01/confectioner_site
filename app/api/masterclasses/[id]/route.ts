@@ -10,6 +10,40 @@ const masterclassesFile = path.join(
   "masterclasses.json"
 );
 
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const fileExists = await fs
+      .access(masterclassesFile)
+      .then(() => true)
+      .catch(() => false);
+    if (!fileExists) {
+      return NextResponse.json(
+        { error: "Masterclasses file not found" },
+        { status: 404 }
+      );
+    }
+    const fileContents = await fs.readFile(masterclassesFile, "utf-8");
+    const masterclasses = JSON.parse(fileContents) as Masterclass[];
+    const masterclass = masterclasses.find((m) => m.id === id);
+    if (!masterclass) {
+      return NextResponse.json(
+        { error: "Masterclass not found" },
+        { status: 404 }
+      );
+    }
+    return NextResponse.json(masterclass, { status: 200 });
+  } catch (_error) {
+    return NextResponse.json(
+      { error: "Failed to read masterclass" },
+      { status: 500 }
+    );
+  }
+}
+
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
