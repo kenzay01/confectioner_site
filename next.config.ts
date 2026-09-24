@@ -3,8 +3,16 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   productionBrowserSourceMaps: false,
+  eslint: {
+    // Lint via `npm run lint` — keeps redeploy builds fast (webpack/turbo cache reuse).
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: false,
+  },
   experimental: {
     optimizePackageImports: ["lucide-react", "date-fns"],
+    webpackBuildWorker: true,
   },
   images: {
     remotePatterns: [

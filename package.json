@@ -5,8 +5,10 @@
   "scripts": {
     "dev": "NODE_OPTIONS='--no-warnings=ExperimentalWarning' next dev --turbopack",
     "prebuild": "node scripts/ensure-sharp.mjs",
-    "build": "NODE_OPTIONS='--max-old-space-size=4096' next build",
-    "build:turbo": "NODE_OPTIONS='--max-old-space-size=4096' next build --turbopack",
+    "build": "NODE_OPTIONS='--max-old-space-size=4096' next build --turbo --no-lint",
+    "build:webpack": "NODE_OPTIONS='--max-old-space-size=4096' next build --no-lint",
+    "build:clean": "rm -rf .next && npm run build",
+    "build:check": "npm run lint && NODE_OPTIONS='--max-old-space-size=4096' next build --turbo --no-lint",
     "start": "NODE_OPTIONS='--no-warnings=ExperimentalWarning' next start",
     "lint": "eslint",
     "postinstall": "node scripts/ensure-sharp.mjs"
