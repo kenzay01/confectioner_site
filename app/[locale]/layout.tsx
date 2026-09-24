@@ -136,14 +136,14 @@ export default async function RootLayout({
   return (
     <html
       lang="pl"
-      className={`${siteFontVariables} font-sans`}
+      className={siteFontVariables}
     >
       <head>
         <link rel="icon" href="/logo.png" type="image/png" sizes="32x32" />
         <link rel="icon" href="/logo.png" type="image/png" sizes="16x16" />
         <link rel="apple-touch-icon" href="/logo.png" />
       </head>
-      <body>
+      <body className="font-sans antialiased">
         <CartProvider>
           <Header />
           <SiteContentProvider initialContent={initialContent}>

@@ -21,13 +21,13 @@ export default function MainLogoSection() {
 
   return (
     <AnimatedSection className="flex flex-col min-h-140 items-center pt-8">
-      <div className="relative mb-6 sm:mb-8 w-44 h-44 sm:w-52 sm:h-52 md:w-60 md:h-60 mx-auto shrink-0">
+      <div className="relative w-102 h-102 mb-8">
         {!showStaticLogo ? (
           <Image
             src="/white_BG.gif"
             alt="Confectioner Masterclasses Animated Logo"
-            width={240}
-            height={240}
+            width={400}
+            height={400}
             className="w-full h-full object-contain"
             unoptimized
             priority
@@ -41,8 +41,8 @@ export default function MainLogoSection() {
           <Image
             src="/materials/logo-final.png"
             alt="Confectioner Masterclasses Logo"
-            width={240}
-            height={240}
+            width={400}
+            height={400}
             className="w-full h-full object-contain"
             priority
           />

@@ -1,19 +1,7 @@
 "use client";
-import dynamic from "next/dynamic";
 import MainLogoSection from "@/components/homePage/MainLogoSection";
+import PolandMapSection from "@/components/homePage/PolandMapSection";
 import { useCurrentLanguage } from "@/hooks/getCurrentLanguage";
-
-const PolandMapSection = dynamic(
-  () => import("@/components/homePage/PolandMapSection"),
-  {
-    loading: () => (
-      <div
-        className="min-h-[480px] w-full animate-pulse bg-[var(--main-color)]"
-        aria-hidden
-      />
-    ),
-  }
-);
 
 const HomePage = () => {
   const currentLocale = useCurrentLanguage() as "pl" | "en";
@@ -33,7 +21,7 @@ const HomePage = () => {
               loop
               playsInline
               controls
-              preload="none"
+              preload="metadata"
             />
             <div className="px-5 sm:px-8 py-5 sm:py-6 text-center">
               <h2 className="text-2xl sm:text-3xl font-bold text-[var(--accent-color)] mb-2">

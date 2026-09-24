@@ -29,30 +29,39 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
-    formats: ['image/avif', 'image/webp'],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
-    imageSizes: [32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 60,
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    /** Browser + CDN cache for `/_next/image` (seconds). */
+    minimumCacheTTL: 31536000,
   },
   async headers() {
+    const longImageCache = [
+      {
+        key: "Cache-Control",
+        value: "public, max-age=31536000, stale-while-revalidate=86400, immutable",
+      },
+    ];
+
     return [
       {
-        source: '/uploads/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
+        source: "/uploads/:path*",
+        headers: longImageCache,
       },
       {
-        source: '/:path*\\.(jpg|jpeg|png|gif|webp|avif|svg|ico|woff2)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
+        source: "/materials/:path*",
+        headers: longImageCache,
+      },
+      {
+        source: "/api/static/:path*",
+        headers: longImageCache,
+      },
+      {
+        source: "/_next/image",
+        headers: longImageCache,
+      },
+      {
+        source: "/:path*\\.(jpg|jpeg|png|gif|webp|avif|svg|ico)",
+        headers: longImageCache,
       },
       {
         source: '/api/payment-webhook',

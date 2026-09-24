@@ -703,21 +703,17 @@ export default function MasterClass() {
 
   return (
     <div className="md:pt-0 pt-14 min-h-screen bg-[var(--main-color)]">
-      <div className="py-6 sm:py-8">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div
-            className="flex justify-center mb-4 sm:mb-6 pointer-events-none select-none"
-            aria-hidden
-          >
-            <Image
-              src={bread2}
-              alt=""
-              width={280}
-              height={280}
-              className="w-auto h-14 sm:h-16 md:h-20 object-contain opacity-95"
-            />
-          </div>
-        <div className="py-2 sm:py-4">
+      <div className="py-8 relative">
+        <div className="absolute -top-20 sm:-top-24 left-1/2 -translate-x-1/2 z-0 w-full flex justify-center pointer-events-none">
+          <Image
+            src={bread2}
+            alt="bread"
+            width={600}
+            height={600}
+            className="w-auto h-92"
+          />
+        </div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-24 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
             {/* Left Side: Masterclass List */}
             <div className="lg:col-span-3 space-y-8 md:order-1 order-2">
@@ -791,7 +787,6 @@ export default function MasterClass() {
         </div>
         
         <SliderSection masterclasses={masterclasses} />
-        </div>
       </div>
     </div>
   );

@@ -13,10 +13,9 @@ import {
   Work_Sans,
 } from "next/font/google";
 
-/** Site + masterclass font families — minimal weights to cut build size and LCP cost. */
 const montserrat = Montserrat({
   subsets: ["latin", "latin-ext"],
-  weight: ["400", "600", "700", "900"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
   variable: "--font-montserrat",
   preload: true,
   display: "swap",
@@ -24,7 +23,7 @@ const montserrat = Montserrat({
 
 const lato = Lato({
   subsets: ["latin", "latin-ext"],
-  weight: ["400", "700"],
+  weight: ["300", "400", "700"],
   variable: "--font-lato",
   preload: false,
   display: "swap",
@@ -32,7 +31,7 @@ const lato = Lato({
 
 const openSans = Open_Sans({
   subsets: ["latin", "latin-ext"],
-  weight: ["400", "600", "700"],
+  weight: ["300", "400", "600", "700"],
   variable: "--font-open-sans",
   preload: false,
   display: "swap",
@@ -40,7 +39,7 @@ const openSans = Open_Sans({
 
 const roboto = Roboto({
   subsets: ["latin", "latin-ext"],
-  weight: ["400", "500", "700"],
+  weight: ["300", "400", "500", "700"],
   variable: "--font-roboto",
   preload: false,
   display: "swap",
@@ -48,7 +47,7 @@ const roboto = Roboto({
 
 const playfairDisplay = Playfair_Display({
   subsets: ["latin", "latin-ext"],
-  weight: ["400", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
   variable: "--font-playfair-display",
   preload: false,
   display: "swap",
@@ -56,7 +55,7 @@ const playfairDisplay = Playfair_Display({
 
 const merriweather = Merriweather({
   subsets: ["latin", "latin-ext"],
-  weight: ["400", "700"],
+  weight: ["300", "400", "700"],
   variable: "--font-merriweather",
   preload: false,
   display: "swap",
@@ -64,7 +63,7 @@ const merriweather = Merriweather({
 
 const dmSans = DM_Sans({
   subsets: ["latin", "latin-ext"],
-  weight: ["400", "600", "700"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-dm-sans",
   preload: false,
   display: "swap",
@@ -72,7 +71,7 @@ const dmSans = DM_Sans({
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin", "latin-ext"],
-  weight: ["400", "600", "700"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-plus-jakarta-sans",
   preload: false,
   display: "swap",
@@ -80,7 +79,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 
 const nunito = Nunito({
   subsets: ["latin", "latin-ext"],
-  weight: ["400", "600", "700"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-nunito",
   preload: false,
   display: "swap",
@@ -88,7 +87,7 @@ const nunito = Nunito({
 
 const raleway = Raleway({
   subsets: ["latin", "latin-ext"],
-  weight: ["400", "600", "700"],
+  weight: ["300", "400", "500", "600", "700"],
   variable: "--font-raleway",
   preload: false,
   display: "swap",
@@ -96,7 +95,7 @@ const raleway = Raleway({
 
 const literata = Literata({
   subsets: ["latin", "latin-ext"],
-  weight: ["400", "600", "700"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-literata",
   preload: false,
   display: "swap",
@@ -104,7 +103,7 @@ const literata = Literata({
 
 const workSans = Work_Sans({
   subsets: ["latin", "latin-ext"],
-  weight: ["400", "600", "700"],
+  weight: ["300", "400", "500", "600", "700"],
   variable: "--font-work-sans",
   preload: false,
   display: "swap",

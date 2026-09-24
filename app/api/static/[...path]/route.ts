@@ -36,7 +36,8 @@ export async function GET(
     return new NextResponse(fileBuffer as unknown as BodyInit, {
       headers: {
         "Content-Type": contentType,
-        "Cache-Control": "public, max-age=31536000, immutable",
+        "Cache-Control":
+          "public, max-age=31536000, stale-while-revalidate=86400, immutable",
         "X-Content-Type-Options": "nosniff",
       },
     });
