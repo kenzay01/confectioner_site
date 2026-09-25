@@ -9,6 +9,8 @@ import { getCityName } from "@/utils/cityTranslations";
 import { useSiteContent } from "@/context/siteContentContext";
 import { renderSiteMarkdownParagraph } from "@/lib/renderSiteMarkdown";
 import { getSiteFontStack } from "@/lib/siteFont";
+import ModalPortal from "@/components/ModalPortal";
+import { isApiStaticImage } from "@/lib/imageSrc";
 
 // Leaflet types
 interface LeafletMap {
@@ -396,30 +398,29 @@ export default function PolandMapSection() {
           )}
         </div>
 
-        {/* Modal for City Details */}
-        {selectedCity && selectedMapLocations.length > 0 && (
-          <div 
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) {
-                setSelectedCity(null);
-              }
-            }}
-          >
-            <div onClick={(e) => e.stopPropagation()}>
-            <AnimatedSection 
-              className="bg-white rounded-3xl p-6 max-w-6xl w-full max-h-[90vh] overflow-y-auto relative border-l-4 border-[var(--brown-color)] shadow-2xl"
-              direction="up"
-              duration={0.3}
+        <ModalPortal
+          open={Boolean(selectedCity && selectedMapLocations.length > 0)}
+          onClose={() => setSelectedCity(null)}
+          zIndexClass="z-[10000]"
+          ariaLabelledBy="map-city-modal-title"
+        >
+          {selectedCity && selectedMapLocations.length > 0 && (
+            <div
+              className="bg-white rounded-3xl p-6 sm:p-8 max-w-6xl w-[min(100%,72rem)] max-h-[min(90dvh,900px)] overflow-y-auto overscroll-contain relative border-l-4 border-[var(--brown-color)] shadow-2xl"
             >
               <button
+                type="button"
                 onClick={() => setSelectedCity(null)}
-                className="absolute top-4 right-4 btn-unified p-2 rounded-full z-10"
+                className="sticky top-0 float-right btn-unified p-2 rounded-full z-10 -mr-1 -mt-1 mb-2"
+                aria-label={currentLocale === "pl" ? "Zamknij" : "Close"}
               >
                 <X className="w-6 h-6 text-gray-500 hover:text-[var(--brown-color)]" />
               </button>
 
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">
+              <h2
+                id="map-city-modal-title"
+                className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 pr-12 clear-both"
+              >
                 {getCityName(selectedCity, currentLocale)}
               </h2>
 
@@ -501,7 +502,8 @@ export default function PolandMapSection() {
                                           fill
                                       className="object-cover transition-transform duration-300 group-hover:scale-110"
                                           sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-                                          loading={index < 4 ? "eager" : "lazy"}
+                                          loading="eager"
+                                          unoptimized={isApiStaticImage(photo)}
                                           quality={75}
                                         />
                                       </button>
@@ -515,39 +517,37 @@ export default function PolandMapSection() {
                   </div>
                 </div>
               )}
-            </AnimatedSection>
             </div>
-          </div>
-        )}
+          )}
+        </ModalPortal>
       </div>
-      {/* Photo gallery lightbox */}
-      {photoGallery && photoGallery.photos.length > 0 && (
-        <div 
-          className="fixed inset-0 bg-black/90 z-[10000] flex items-center justify-center p-4"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setPhotoGallery(null);
-            }
-          }}
-        >
-          <div 
-            className="relative max-w-7xl w-full max-h-[90vh] flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
+
+      <ModalPortal
+        open={Boolean(photoGallery && photoGallery.photos.length > 0)}
+        onClose={() => setPhotoGallery(null)}
+        zIndexClass="z-[10050]"
+        overlayClassName="bg-black/90 backdrop-blur-sm"
+      >
+        {photoGallery && photoGallery.photos.length > 0 && (
+          <div className="relative max-w-7xl w-full max-h-[min(92dvh,960px)] flex flex-col">
             <button
               type="button"
               onClick={() => setPhotoGallery(null)}
-              className="absolute top-3 right-3 sm:top-4 sm:right-4 p-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors z-10"
+              className="absolute top-2 right-2 sm:top-0 sm:right-0 p-2 rounded-full bg-white/90 hover:bg-white transition-colors z-10 shadow-md"
+              aria-label={currentLocale === "pl" ? "Zamknij galerię" : "Close gallery"}
             >
               <X className="w-6 h-6 text-gray-700" />
             </button>
-            <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden mb-4">
+            <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden mb-4 bg-black/40">
                 <Image
                   src={photoGallery.photos[photoGallery.index]}
                   alt={`${photoGallery.title} - ${photoGallery.index + 1}`}
                   fill
                 className="object-contain"
                 priority
+                unoptimized={isApiStaticImage(
+                  photoGallery.photos[photoGallery.index]
+                )}
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
                 quality={85}
                 />
@@ -599,7 +599,8 @@ export default function PolandMapSection() {
                         fill
                         className="object-cover"
                         sizes="(max-width: 640px) 16vw, 10vw"
-                        loading="lazy"
+                        loading="eager"
+                        unoptimized={isApiStaticImage(photo)}
                         quality={60}
                       />
                     </button>
@@ -607,8 +608,8 @@ export default function PolandMapSection() {
                 </div>
               )}
           </div>
-        </div>
-      )}
+        )}
+      </ModalPortal>
     </AnimatedSection>
   );
 }

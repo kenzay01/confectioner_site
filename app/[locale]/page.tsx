@@ -7,7 +7,7 @@ const HomePage = () => {
   const currentLocale = useCurrentLanguage() as "pl" | "en";
 
   return (
-    <div className="min-h-screen bg-[var(--main-color)] md:pt-0 pt-14 overflow-hidden">
+    <div className="min-h-screen bg-[var(--main-color)] md:pt-0 pt-14 overflow-x-hidden">
       <MainLogoSection />
       <PolandMapSection />
       <section className="px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16">
